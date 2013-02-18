@@ -52,9 +52,14 @@ var Document = oHelpers.createClass(
         {
             var oClient = this._aClients[i];
             if(oEvent.oClient == oClient)
-                oClient.notifyEventProcessed();
+            {
+                if (oEvent.type != 'selectionChange')
+                    oClient.notifyEventProcessed();
+            }
             else
+            {
                 oClient.sendEvent(oEvent)
+            }
         }
     }
 });
@@ -74,6 +79,7 @@ var Client = oHelpers.createClass({
 
     _oSocket: null,
     _oDocument: null,
+    _sID: '1234',
     
     __init__: function(oSocket, oDocument)
     {
@@ -92,14 +98,19 @@ var Client = oHelpers.createClass({
     {
         this._send(
         {
-            type: 'EVENT_PROCESSED',
+            type: 'eventProcessed',
             data: ''
         });
     },
     
     _onClientEvent: function(sEventData)
     {
+        // Get event data.
         var oEventData = JSON.parse(sEventData);
+        if (oEventData.type == 'selectionChange')
+            oEventData.sPeerID = this._sID;
+        
+        // Send event to document.
         this._oDocument.onClientEvent(
         {
             oClient: this,
