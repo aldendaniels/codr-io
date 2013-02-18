@@ -45,6 +45,12 @@ var Document = oHelpers.createClass(
         this._aClients.push(new Client(oSocket, this));
     },
     
+    removeClient: function(oClient)
+    {
+        var iIndex = this._aClients.indexOf(oClient);
+        this._aClients.splice(iIndex, 1);
+    },
+    
     onClientEvent: function(oEvent)
     {
         this._oEventQueue.push(oEvent);
@@ -87,6 +93,10 @@ var Client = oHelpers.createClass({
         this._oDocument = oDocument;
         
         oSocket.on('message', oHelpers.createCallback(this, this._onClientEvent));
+        oSocket.on('close', oHelpers.createCallback(this, function()
+        {
+            this._oDocument.removeClient(this);
+        }));
     },
     
     sendEvent: function(oEvent)
