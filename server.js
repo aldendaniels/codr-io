@@ -1,27 +1,24 @@
-var express = require('express');
-var ws = require('ws');
 
-var host = '127.0.0.1';
-var portHTTP = 8080;
-var portWS   = 8081; 
+// Include Libraries.
+var oExpress = require('express');
+var oWS = require('ws');
+var oHTTP = require('http');
 
-// Socket server.
-var wsServer = new ws.Server({port: portWS});
-wsServer.on('connection', function(ws)
+// Create express app.
+var oApp = oExpress();
+oApp.use(oExpress.static(__dirname + '/static'));
+
+// Instantiate server.
+var oServer = oHTTP.createServer(oApp);
+oServer.listen(8080);
+
+// Instantiate websocket listener.
+var oWsServer = new oWS.Server({server: oServer});
+oWsServer.on('connection', function(oSocket)
 {
-    ws.on('message', function(message)
+    oSocket.on('message', function(sMessage)
     {
-        console.log('received: %s', message);
+        console.log('received: %s', sMessage);
     });
-    ws.send('something');
+    oSocket.send('something');
 });
-console.log('Websocket listening on ' + host + ':' + portWS);
-
-// Http server
-var app = express();
-app.get('/', function(req, res)
-{
-    res.end('Hello Josiah!');
-});
-app.listen(portHTTP, host);
-console.log('Express listening on ' + host + ':' + portHTTP);

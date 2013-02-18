@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<title>ACE in Action</title>
+<title>Codr</title>
 <style type="text/css" media="screen">
     #editor { 
         position: absolute;
@@ -21,9 +21,26 @@
     
 <script src="ace/ace.js" type="text/javascript" charset="utf-8"></script>
 <script>
+    
+    // Create editor.
     var editor = ace.edit("editor");
     editor.setTheme("ace/theme/monokai");
     editor.getSession().setMode("ace/mode/javascript");
+    
+    // Reveive events.
+    var socket = new WebSocket('ws://localhost:8080');
+    socket.onmessage = function (event)
+    {
+        console.log(event);
+        //console.log(JSON.parse(event.data));
+    };
+
+    // Send events.
+    editor.on("change", function(e)
+    {
+        socket.send(e.data)
+    });
+    
 </script>
 </body>
 </html>
