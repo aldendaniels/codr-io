@@ -6,7 +6,7 @@ app.get('/', function(req, res)
     res.end('Hello Josiah!');
 });
 
-var host = '192.168.56.102';
+var host = '127.0.0.1';
 var port = 8080;
 app.listen(port, host);
 console.log('Listening on ' + host + ':' + port);
