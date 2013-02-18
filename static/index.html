@@ -38,7 +38,7 @@
     // Send events.
     editor.on("change", function(e)
     {
-        socket.send(e.data)
+        socket.send(JSON.stringify(e.data));
     });
     
 </script>

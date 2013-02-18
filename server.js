@@ -3,7 +3,7 @@
 var oExpress = require('express');
 var oWS = require('ws');
 var oHTTP = require('http');
-var oClass = require('class');
+var oHelpers = require('helpers');
 
 // Create express app.
 var oApp = oExpress();
@@ -19,17 +19,17 @@ oWsServer.on('connection', function(oSocket)
 {
     // Create new doc (if necessary).
     var sID = 'abcd'; // Get this from URL.
-    if (sID in g_oDocuments)
+    if (!(sID in g_oDocuments))
         g_oDocuments[sID] = new Document(sID);
-    
+
     // Register client.
-    oDocuments[sID].registerClient(oSocket);    
+    g_oDocuments[sID].registerClient(oSocket);    
 });
 
 var g_oDocuments = {}; // sID to Document instance.
 
 
-var Document = oClass.create(
+var Document = oHelpers.createClass(
 {
     _aLines: [],
     _oEventQueue: null,
@@ -42,24 +42,25 @@ var Document = oClass.create(
     
     registerClient: function(oSocket)
     {
-        this.aClients.push(new Client(oSocket, this));
+        this._oEventQueue = new EventQueue();
+        this._aClients.push(new Client(oSocket, this));
     },
     
-    onClientEvent: function(oEvent, )
+    onClientEvent: function(oEvent)
     {
         this._oEventQueue.push(oEvent);
-        for (var i = 0; i < aClients.length; i++)
+        for (var i = 0; i < this._aClients.length; i++)
         {
-            var oClient = aClients[i];
+            var oClient = this._aClients[i];
             if(oEvent.oClient == oClient)
                 oClient.notifyEventProcessed();
             else
-                oClient.send(oEvent)
+                oClient.sendEvent(oEvent)
         }
     }
 });
 
-var EventQueue = oClass.create({
+var EventQueue = oHelpers.createClass({
 
     _aEvents: [],
 
@@ -70,7 +71,7 @@ var EventQueue = oClass.create({
     },
 });
 
-var Client = pClass.create({
+var Client = oHelpers.createClass({
 
     _oSocket: null,
     _oDocument: null,
@@ -79,32 +80,37 @@ var Client = pClass.create({
     {
         this._oSocket = oSocket;
         this._oDocument = oDocument;
-        this._sID = Math.random(0, 1) + '';
         
-        oSocket.on('message', helpers.createCallback(this, this._onClientEvent));
+        oSocket.on('message', oHelpers.createCallback(this, this._onClientEvent));
     },
     
     sendEvent: function(oEvent)
     {
-        socket.send(oEvent);
+        this._send(oEvent.oEventData);
     },
     
     notifyEventProcessed: function()
     {
-        this._oSocket.send(
+        this._send(
         {
-            type: 'EVENT_PROCESSED'
+            type: 'EVENT_PROCESSED',
             data: ''
         });
     },
     
-    _onClientEvent: function(oEventData)
+    _onClientEvent: function(sEventData)
     {
+        var oEventData = JSON.parse(sEventData);
+        console.log('onClientEvent', oEventData);
         this._oDocument.onClientEvent(
         {
             oClient: this,
             oEventData: oEventData
         });
+    },
+    
+    _send: function(oEvent)
+    {
+        this._oSocket.send(JSON.stringify(oEvent));
     }
-
 });
