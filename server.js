@@ -20,7 +20,7 @@ oWsServer.on('connection', function(oSocket)
     // Create new doc (if necessary).
     var sID = 'abcd'; // Get this from URL.
     if (!(sID in g_oDocuments))
-        g_oDocuments[sID] = new Document(sID);
+        g_oDocuments[sID] = new Document();
 
     // Register client.
     g_oDocuments[sID].registerClient(oSocket);    
@@ -37,12 +37,11 @@ var Document = oHelpers.createClass(
     
     __init__: function()
     {
-        // TODO
+        this._oEventQueue = new EventQueue();
     },
     
     registerClient: function(oSocket)
     {
-        this._oEventQueue = new EventQueue();
         this._aClients.push(new Client(oSocket, this));
     },
     
@@ -101,7 +100,6 @@ var Client = oHelpers.createClass({
     _onClientEvent: function(sEventData)
     {
         var oEventData = JSON.parse(sEventData);
-        console.log('onClientEvent', oEventData);
         this._oDocument.onClientEvent(
         {
             oClient: this,
