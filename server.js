@@ -108,10 +108,33 @@ var EventQueue = oHelpers.createClass({
                 if (aNewLines.length > 1)
                     this.insertLines(aLines, aNewLines.slice(1), oStart.iRow + 1);
             }
+            else if (oDelta.sType == "removeText")
+            {
+                var oStart = oDelta.oRange.oStart;
+                var oEnd = oDelta.oRange.oEnd;
+                
+                // Simple delete.
+                if (oStart.iRow == oEnd.iRow)
+                {
+                    var sLine = aLines[oStart.iRow]
+                    aLines[oStart.iRow] = sLine.substring(0, oStart.iColumn) + sLine.substring(oEnd.iColumn);
+                }                
+                // Handle a multi-line delete.
+                else
+                {
+                    aLines[oStart.iRow] = aLines[oStart.iRow].substring(0, oStart.iColumn) + aLines[oEnd.iRow].substring(oEnd.iColumn);;
+                    
+                    // Remove the full middle lines.
+                    aLines.splice(oStart.iRow + 1, oEnd.iRow - oStart.iRow)
+                }
+            }
+            else if (oDelta.sType == 'removeLines')
+            {
+                aLines.splice(oDelta.oRange.oStart.iRow, oDelta.oRange.oEnd.iRow - oDelta.oRange.oStart.iRow);
+            }
         }
         return aLines.join('\n');
 //        else if (delta.action == "removeLines")
-//        else if (delta.action == "removeText")
     },
     
     insertLines: function (aDocument, aNewLines, iRow)
@@ -196,6 +219,24 @@ var UnitTest = oHelpers.createClass({
         
         this.assertEqual('Line One\nLine Two\nLine Three\nLine Four', this.oEventQueue.getText());
     },
+    
+    testSimpleRemoveText: function()
+    {
+        this.insertText('me', 'Hello World', 0, 0);
+        this.removeText('me', 0, 2, 0, 5, 1);
+        this.assertEqual('He World', this.oEventQueue.getText());
+        
+        this.insertLines('me', ['Line Two', 'Line Three', 'Line Four'], 1, 2);
+        this.removeText('me', 0, 6, 2, 5, 3);
+        this.assertEqual('He WorThree\nLine Four', this.oEventQueue.getText());
+    },
+    
+    testSimpleRemoveLiens: function()
+    {
+        this.insertLines('me', ['Line One', 'Line Two', 'Line Three', 'Line Four'], 0);
+        this.removeLines('me', 1, 3, 1);
+        this.assertEqual('Line One\nLine Four', this.oEventQueue.getText());
+    },
 
     testMergeInserts: function()
     {
@@ -218,16 +259,7 @@ var UnitTest = oHelpers.createClass({
             'oClient': sUser,
             'oEventData': {
                 'sType': 'insertText',
-                'oRange': {
-                    'oStart': {
-                        'iRow': 0,
-                        'iColumn': iPos
-                    },
-                    'oEnd': {
-                        'iRow': 0,
-                        'iColumn': iPos + sText.length
-                    }
-                },
+                'oRange': this._createRange(0, iPos, 0, iPos + sText.length),
                 'iState': iState,
                 'sText': sText
             }
@@ -240,20 +272,49 @@ var UnitTest = oHelpers.createClass({
             'oClient': sUser,
             'oEventData': {
                 'sType': 'insertLines',
-                'oRange': {
-                    'oStart': {
-                        'iRow': iRow,
-                        'iColumn': 0
-                    },
-                    'oEnd': {
-                        'iRow': iRow + aLines.length,
-                        'iColumn': 0
-                    }
-                },
+                'oRange': this._createRange(iRow, 0, iRow + aLines.length, 0),
                 'iState': iState,
                 'aLines': aLines
+            },
+        });
+    },
+    
+    removeText: function(sUser, iStartRow, iStartCol, iEndRow, iEndCol, iState)
+    {
+        this.oEventQueue.push({
+            'oClient': sUser,
+            'oEventData': {
+                'sType': 'removeText',
+                'oRange': this._createRange(iStartRow, iStartCol, iEndRow, iEndCol),
+                'iState': iState
+            },
+        });
+    },
+    
+    removeLines: function(sUser, iStartRow, iEndRow, iState)
+    {
+        this.oEventQueue.push({
+            'oClient': sUser,
+            'oEventData': {
+                'sType': 'removeLines',
+                'oRange': this._createRange(iStartRow, 0, iEndRow, 0),
+                'iState': iState
             }
         });
+    },
+    
+    _createRange: function(iStartRow, iStartCol, iEndRow, iEndCol)
+    {
+        return {
+            'oStart': {
+                'iRow': iStartRow,
+                'iColumn': iStartCol
+            },
+            'oEnd': {
+                'iRow': iEndRow,
+                'iColumn': iEndCol
+            }
+        };
     },
     
     _setup: function()
