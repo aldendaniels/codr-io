@@ -72,7 +72,12 @@ var Document = oHelpers.createClass(
 
 var EventQueue = oHelpers.createClass({
 
-    _aEvents: [],
+    _aEvents: null,
+    
+    __init__: function()
+    {
+        this._aEvents = [];
+    },
 
     push: function(oEvent)
     {
@@ -101,7 +106,7 @@ var EventQueue = oHelpers.createClass({
                 aLines[oStart.iRow] = sFirstLine;
                 
                 if (aNewLines.length > 1)
-                    self.insertLines(aLines, aNewLines.slice(1), oStart.iRow + 1);
+                    this.insertLines(aLines, aNewLines.slice(1), oStart.iRow + 1);
             }
         }
         return aLines.join('\n');
@@ -176,11 +181,19 @@ var UnitTest = oHelpers.createClass({
     oErrors: {},
     oEventQueue: null,
     
-    testInsertInsert: function()
+    testSimpleInsertText: function()
     {
-        this.insertText(0, 'abc', 0, 0);
-        this.insertText(0, '123', 1, 0);
-        this.insertText(1, 'ABC', 1, 1);
+        this.insertText('me', 'abc', 0, 0);
+        this.insertText('me', '\nnew line\n', 1, 1);
+        
+        this.assertEqual('a\nnew line\nbc', this.oEventQueue.getText());
+    },
+
+    testMergeInserts: function()
+    {
+        this.insertText('me', 'abc', 0, 0);
+        this.insertText('me', '123', 0, 1);
+        this.insertText('you', 'ABC', 1, 0);
 
         this.assertEqual('123aABCbc', this.oEventQueue.getText());
     },
@@ -188,13 +201,13 @@ var UnitTest = oHelpers.createClass({
     assertEqual: function(left, right)
     {
         if (left != right)
-            throw left + ' != ' + right;
+            throw '\'' + left + '\' != \'' + right + '\'';
     },
     
-    insertText: function(iUser, sText, iPos, iState)
+    insertText: function(sUser, sText, iPos, iState)
     {
         this.oEventQueue.push({
-            'oClient': iUser,
+            'oClient': sUser,
             'oEventData': {
                 'sType': 'insertText',
                 'oRange': {
