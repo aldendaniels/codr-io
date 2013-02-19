@@ -51,9 +51,19 @@ function onSocketMessage(oMessage, bForce)
     
     var oEvent = JSON.parse(oMessage.data);
     if (oEvent.sType == 'validateDocument')
+    {
         onValidateDocument(oEvent);
+    }
+    else if (oEvent.sType == 'setInitialValue')
+    {
+        bApplyingExternalEvent = true;
+        oDocument.setValue(oEvent.sData);
+        bApplyingExternalEvent = false;
+    }
     else if (oEvent.sType == 'selectionChange')
+    {
         onPeerCursorMove(oEvent);
+    }
     else if (oEvent.sType != 'eventProcessed')
     {
         bApplyingExternalEvent = true;

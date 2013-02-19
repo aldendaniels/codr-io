@@ -82,6 +82,11 @@ var Document = oHelpers.createClass(
                 oClient.sendEvent(oEvent)
             }
         }
+    },
+    
+    getText: function()
+    {
+        return this._oEventQueue.getText();
     }
 });
 
@@ -174,6 +179,11 @@ var Client = oHelpers.createClass({
         oSocket.on('close', oHelpers.createCallback(this, function()
         {
             this._oDocument.removeClient(this);
+        }));
+        
+        oSocket.send(JSON.stringify({
+            'sType': 'setInitialValue',
+            'sData': this._oDocument.getText()
         }));
     },
     
