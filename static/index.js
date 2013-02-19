@@ -16,7 +16,7 @@ $(document).on('ready', function()
     oEditSession.setMode("ace/mode/javascript");
     
     // Set initial text.
-    var sDocText = 'function foo(items)\n{\n    var x = "All this is syntax highlighted";\n    return x;\n}'
+    var sDocText = '';
     oDocument = oEditSession.getDocument();
     oDocument.setValue(sDocText);
     
@@ -28,6 +28,14 @@ $(document).on('ready', function()
     oEditor.on("change", onDocumentChange);
     oEditor.selection.on("changeCursor", onSelectionChange);
     oEditor.selection.on("changeSelection", onSelectionChange);
+    
+    $('#ValidateButton').click(function()
+    {
+        oSocket.send(JSON.stringify({
+            'sType': 'requestValidate',
+            'sData': ''
+        }));
+    });
 });
 
 // SERVER EVENTS //////////////////////////////
@@ -42,13 +50,28 @@ function onSocketMessage(oMessage, bForce)
     }
     
     var oEvent = JSON.parse(oMessage.data);
-    if (oEvent.sType == 'selectionChange')
+    if (oEvent.sType == 'validateDocument')
+        onValidateDocument(oEvent);
+    else if (oEvent.sType == 'selectionChange')
         onPeerCursorMove(oEvent);
     else if (oEvent.sType != 'eventProcessed')
     {
         bApplyingExternalEvent = true;
         oDocument.applyDeltas([getACEDeltaFromDelta(oEvent)]);
         bApplyingExternalEvent = false;
+    }
+}
+
+function onValidateDocument(oEvent)
+{
+    var sServerDocument = oEvent.sDocument;
+    var sClientDocument = oDocument.getAllLines().join('\n');
+    
+    if (sServerDocument != sClientDocument)
+    {
+        console.log('sServerDocument:\n', sServerDocument);
+        console.log('sClientDocument:\n', sClientDocument);
+        alert('The server document does not match what we have. Please check the log for details.');
     }
 }
 

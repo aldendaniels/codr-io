@@ -53,6 +53,21 @@ var Document = oHelpers.createClass(
     
     onClientEvent: function(oEvent)
     {
+        if (oEvent.oEventData.sType == 'requestValidate') //Testing only, don't add to the Q.
+        {
+            var sDocument = this._oEventQueue.getText();
+            for (var i = 0; i < this._aClients.length; i++)
+            {
+                this._aClients[i].sendEvent({
+                    oEventData: {
+                        sType: 'validateDocument',
+                        sDocument: sDocument
+                    }
+                })
+            }
+            return;
+        }
+        
         this._oEventQueue.push(oEvent);
         for (var i = 0; i < this._aClients.length; i++)
         {
@@ -134,7 +149,6 @@ var EventQueue = oHelpers.createClass({
             }
         }
         return aLines.join('\n');
-//        else if (delta.action == "removeLines")
     },
     
     insertLines: function (aDocument, aNewLines, iRow)
