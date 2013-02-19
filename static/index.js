@@ -34,14 +34,14 @@ $(document).on('ready', function()
 function onSocketMessage(oMessage)
 {
     var oEvent = JSON.parse(oMessage.data);
-    if (oEvent.type == 'selectionChange')
+    if (oEvent.sType == 'selectionChange')
         onPeerCursorMove(oEvent);
-    else if (oEvent.type != 'eventProcessed')
+    else if (oEvent.sType != 'eventProcessed')
     {
         bApplyingExternalEvent = true;
-        oDocument.applyDeltas([oEvent]);
+        oDocument.applyDeltas([getACEDeltaFromDelta(oEvent)]);
         bApplyingExternalEvent = false;
-    }    
+    }
 }
 
 function onPeerCursorMove(oEvent)
@@ -54,12 +54,12 @@ function onPeerCursorMove(oEvent)
     }
     
     // Add new.
-    var oStart = oEvent.data.start;
-    var oEnd = oEvent.data.end;
-    var oNewRange = new Range(oStart.row, oStart.column, oEnd.row, oEnd.column);
+    var oStart = oEvent.oRange.oStart;
+    var oEnd = oEvent.oRange.oEnd;
+    var oNewRange = new Range(oStart.iRow, oStart.iColumn, oEnd.iRow, oEnd.iColumn);
 
     // Set new selection.
-    if (oStart.row == oEnd.row && oStart.column == oEnd.column)
+    if (oStart.iRow == oEnd.iRow && oStart.iColumn == oEnd.iColumn)
     {
         oNewRange.end.column += 1;
         oMarkers[oEvent.sPeerID] = oEditSession.addMarker(oNewRange, 'codr_peer_selection_collapsed', 'text', true);
@@ -72,23 +72,73 @@ function onPeerCursorMove(oEvent)
 
 // EDITOR EVENTS ///////////////////////////////////////
 var oLastSelectionRange = null;
-function onSelectionChange(oEvent)
+function onSelectionChange()
 {
     var oSelectionRange = oEditor.getSelectionRange();
     if (!oLastSelectionRange || !oSelectionRange.isEqual(oLastSelectionRange))
     {
         oSocket.send(JSON.stringify(
         {
-            type: 'selectionChange',
-            data: oSelectionRange
+            sType: 'selectionChange',
+            oRange: normRange(oSelectionRange)
         }));
         oLastSelectionRange = oSelectionRange;
     }
     
 }
 
-function onDocumentChange(oEvent)
+function onDocumentChange(oACEEvent)
 {
-    if (!bApplyingExternalEvent)
-        oSocket.send(JSON.stringify(oEvent.data));
+    if (bApplyingExternalEvent)
+        return;
+    
+    var oNormEvent = {
+        sType: oACEEvent.data.action,
+        oRange: normRange(oACEEvent.data.range)
+    }
+    
+    if (oACEEvent.data.action == 'insertText')
+        oNormEvent.sText = oACEEvent.data.text;
+    else if (oACEEvent.data.action == 'insertLines')
+        oNormEvent.aLines = oACEEvent.data.lines;
+    
+    oSocket.send(JSON.stringify(oNormEvent));
+}
+
+function normRange(oACERange)
+{
+    return {
+        oStart: {
+            iRow: oACERange.start.row,
+            iColumn: oACERange.start.column
+        },
+        oEnd: {
+            iRow: oACERange.end.row,
+            iColumn: oACERange.end.column
+        }
+    }
+}
+
+function getACEDeltaFromDelta(oDelta)
+{
+    var oACEDelta = {
+        action: oDelta.sType,
+        range: {
+            start: {
+                row: oDelta.oRange.oStart.iRow,
+                column: oDelta.oRange.oStart.iColumn,
+            },
+            end: {
+                row: oDelta.oRange.oEnd.iRow,
+                column: oDelta.oRange.oEnd.iColumn,
+            }
+        }
+    };
+    
+    if (oDelta.sType == 'insertText')
+        oACEDelta.text = oDelta.sText;
+    else if (oDelta.sType == 'insertLines')
+        oACEDelta.lines = oDelta.aLines
+        
+    return oACEDelta;
 }
