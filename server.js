@@ -79,6 +79,42 @@ var EventQueue = oHelpers.createClass({
         this._aEvents.push(oEvent);
         // TODO: Do magic here.
     },
+    
+    getText: function(oEvent)
+    {
+        var aLines = [];
+        for (var iEvent = 0; iEvent < this._aEvents.length; iEvent++)
+        {
+            var oDelta = this._aEvents[iEvent].oEventData;
+            if (oDelta.sType == 'insertLines')
+            {
+                this.insertLines(aLines, oDelta.aLines, oDelta.oRange.oStart.iRow);
+            }
+            else if (oDelta.sType == 'insertText')
+            {
+                var oStart = oDelta.oRange.oStart;
+                var sLine = aLines[oStart.iRow] || '';
+                var sNewLine = sLine.substring(0, oStart.iColumn) + oDelta.sText + sLine.substring(oStart.iColumn);
+                
+                var aNewLines = sNewLine.split('\n');
+                var sFirstLine = aNewLines[0];
+                aLines[oStart.iRow] = sFirstLine;
+                
+                if (aNewLines.length > 1)
+                    self.insertLines(aLines, aNewLines.slice(1), oStart.iRow + 1);
+            }
+        }
+        return aLines.join('\n');
+//        else if (delta.action == "removeLines")
+//        else if (delta.action == "removeText")
+    },
+    
+    insertLines: function (aDocument, aNewLines, iRow)
+    {
+        var args = [iRow, 0];
+        args.push.apply(args, aNewLines);
+        aDocument.splice.apply(aDocument, args);
+    }
 });
 
 var Client = oHelpers.createClass({
@@ -133,3 +169,92 @@ var Client = oHelpers.createClass({
         this._oSocket.send(JSON.stringify(oEvent));
     }
 });
+
+var UnitTest = oHelpers.createClass({
+    iSuccesses: 0,
+    iErrors: 0,
+    oErrors: {},
+    oEventQueue: null,
+    
+    testInsertInsert: function()
+    {
+        this.insertText(0, 'abc', 0, 0);
+        this.insertText(0, '123', 1, 0);
+        this.insertText(1, 'ABC', 1, 1);
+
+        this.assertEqual('123aABCbc', this.oEventQueue.getText());
+    },
+    
+    assertEqual: function(left, right)
+    {
+        if (left != right)
+            throw left + ' != ' + right;
+    },
+    
+    insertText: function(iUser, sText, iPos, iState)
+    {
+        this.oEventQueue.push({
+            'oClient': iUser,
+            'oEventData': {
+                'sType': 'insertText',
+                'oRange': {
+                    'oStart': {
+                        'iRow': 0,
+                        'iColumn': iPos
+                    },
+                    'oEnd': {
+                        'iRow': 0,
+                        'iColumn': iPos + sText.length
+                    }
+                },
+                'iState': iState,
+                'sText': sText
+            }
+        });
+    },
+    
+    _setup: function()
+    {
+        this.oEventQueue = new EventQueue();
+    },
+    
+    _tearDown: function()
+    {
+        this.oEventQueue = null;
+    },
+    
+    _run: function(sTest)
+    {
+        this._setup();
+        var bSuccess = false;
+        try
+        {
+            this[sTest]();
+            bSuccess = true;
+        }
+        catch (e)
+        {
+            this.iErrors++;
+            this.oErrors[sTest] = e;
+        }
+        if (bSuccess)
+            this.iSuccesses++;
+
+        this._tearDown();
+    },
+    
+    run: function()
+    {
+        for (var sMethod in this)
+            if (sMethod.indexOf('test') == 0)
+                this._run(sMethod);
+        
+        console.log('UnitTests: ' + this.iSuccesses + ' succeeded and ' + this.iErrors + ' failed.')
+        for (var sTest in this.oErrors)
+            console.log(sTest, ': ', this.oErrors[sTest]);
+    },
+
+});
+
+var tests = new UnitTest();
+tests.run();
