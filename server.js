@@ -188,6 +188,14 @@ var UnitTest = oHelpers.createClass({
         
         this.assertEqual('a\nnew line\nbc', this.oEventQueue.getText());
     },
+    
+    testSimpleInsertLines: function()
+    {
+        this.insertText('me', 'Line One\nLine Four', 0, 0);
+        this.insertLines('me', ['Line Two', 'Line Three'], 1, 1);
+        
+        this.assertEqual('Line One\nLine Two\nLine Three\nLine Four', this.oEventQueue.getText());
+    },
 
     testMergeInserts: function()
     {
@@ -222,6 +230,28 @@ var UnitTest = oHelpers.createClass({
                 },
                 'iState': iState,
                 'sText': sText
+            }
+        });
+    },
+
+    insertLines: function(sUser, aLines, iRow, iState)
+    {
+        this.oEventQueue.push({
+            'oClient': sUser,
+            'oEventData': {
+                'sType': 'insertLines',
+                'oRange': {
+                    'oStart': {
+                        'iRow': iRow,
+                        'iColumn': 0
+                    },
+                    'oEnd': {
+                        'iRow': iRow + aLines.length,
+                        'iColumn': 0
+                    }
+                },
+                'iState': iState,
+                'aLines': aLines
             }
         });
     },
