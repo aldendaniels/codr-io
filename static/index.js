@@ -31,8 +31,16 @@ $(document).on('ready', function()
 });
 
 // SERVER EVENTS //////////////////////////////
-function onSocketMessage(oMessage)
+function onSocketMessage(oMessage, bForce)
 {
+    if (getLatency() && !bForce)
+    {
+        window.setTimeout(function(){
+            onSocketMessage(oMessage, true);
+        }, getLatency());
+        return;
+    }
+    
     var oEvent = JSON.parse(oMessage.data);
     if (oEvent.sType == 'selectionChange')
         onPeerCursorMove(oEvent);
@@ -141,4 +149,13 @@ function getACEDeltaFromDelta(oDelta)
         oACEDelta.lines = oDelta.aLines
         
     return oACEDelta;
+}
+
+function getLatency()
+{
+    var iLatency = parseInt($('#latencyBox')[0].value);
+    
+    if (isNaN(iLatency))
+        return 0;
+    return iLatency;
 }

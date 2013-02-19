@@ -5,7 +5,7 @@
         <style type="text/css" media="screen">
             #editor { 
                 position: absolute;
-                top: 0;
+                top: 50px;
                 right: 0;
                 bottom: 0;
                 left: 0;
@@ -28,7 +28,8 @@
             }
         </style>
     </head>
-    <body>    
+    <body>
+        Latency (ms): <input id="latencyBox" type="text" value="0"/>
         <div id="editor">function foo(items)\n{\nvar x = "All this is syntax highlighted";\nreturn x;\n}</div>
         <script src="jquery-1.9.1.min.js" type="text/javascript" charset="utf-8"></script>            
         <script src="ace/ace.js" type="text/javascript" charset="utf-8"></script>
