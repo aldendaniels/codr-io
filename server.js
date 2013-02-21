@@ -4,6 +4,7 @@ var oExpress = require('express');
 var oWS = require('ws');
 var oHTTP = require('http');
 var oHelpers = require('./helpers');
+var EventQueue = require('./eventQueue').EventQueue;
 
 // Create express app.
 var oApp = oExpress();
@@ -27,7 +28,6 @@ oWsServer.on('connection', function(oSocket)
 });
 
 var g_oDocuments = {}; // sID to Document instance.
-
 
 var Document = oHelpers.createClass(
 {
@@ -90,80 +90,6 @@ var Document = oHelpers.createClass(
     }
 });
 
-var EventQueue = oHelpers.createClass({
-
-    _aEvents: null,
-    
-    __init__: function()
-    {
-        this._aEvents = [];
-    },
-
-    push: function(oEvent)
-    {
-        this._aEvents.push(oEvent);
-        // TODO: Do magic here.
-    },
-    
-    getText: function(oEvent)
-    {
-        var aLines = [];
-        for (var iEvent = 0; iEvent < this._aEvents.length; iEvent++)
-        {
-            var oDelta = this._aEvents[iEvent].oEventData;
-            if (oDelta.sType == 'insertLines')
-            {
-                this.insertLines(aLines, oDelta.aLines, oDelta.oRange.oStart.iRow);
-            }
-            else if (oDelta.sType == 'insertText')
-            {
-                var oStart = oDelta.oRange.oStart;
-                var sLine = aLines[oStart.iRow] || '';
-                var sNewLine = sLine.substring(0, oStart.iColumn) + oDelta.sText + sLine.substring(oStart.iColumn);
-                
-                var aNewLines = sNewLine.split('\n');
-                var sFirstLine = aNewLines[0];
-                aLines[oStart.iRow] = sFirstLine;
-                
-                if (aNewLines.length > 1)
-                    this.insertLines(aLines, aNewLines.slice(1), oStart.iRow + 1);
-            }
-            else if (oDelta.sType == "removeText")
-            {
-                var oStart = oDelta.oRange.oStart;
-                var oEnd = oDelta.oRange.oEnd;
-                
-                // Simple delete.
-                if (oStart.iRow == oEnd.iRow)
-                {
-                    var sLine = aLines[oStart.iRow]
-                    aLines[oStart.iRow] = sLine.substring(0, oStart.iColumn) + sLine.substring(oEnd.iColumn);
-                }                
-                // Handle a multi-line delete.
-                else
-                {
-                    aLines[oStart.iRow] = aLines[oStart.iRow].substring(0, oStart.iColumn) + aLines[oEnd.iRow].substring(oEnd.iColumn);;
-                    
-                    // Remove the full middle lines.
-                    aLines.splice(oStart.iRow + 1, oEnd.iRow - oStart.iRow)
-                }
-            }
-            else if (oDelta.sType == 'removeLines')
-            {
-                aLines.splice(oDelta.oRange.oStart.iRow, oDelta.oRange.oEnd.iRow - oDelta.oRange.oStart.iRow);
-            }
-        }
-        return aLines.join('\n');
-    },
-    
-    insertLines: function (aDocument, aNewLines, iRow)
-    {
-        var args = [iRow, 0];
-        args.push.apply(args, aNewLines);
-        aDocument.splice.apply(aDocument, args);
-    }
-});
-
 var Client = oHelpers.createClass({
 
     _oSocket: null,
@@ -222,167 +148,4 @@ var Client = oHelpers.createClass({
     }
 });
 
-var UnitTest = oHelpers.createClass({
-    iSuccesses: 0,
-    iErrors: 0,
-    oErrors: {},
-    oEventQueue: null,
-    
-    testSimpleInsertText: function()
-    {
-        this.insertText('me', 'abc', 0, 0);
-        this.insertText('me', '\nnew line\n', 1, 1);
-        
-        this.assertEqual('a\nnew line\nbc', this.oEventQueue.getText());
-    },
-    
-    testSimpleInsertLines: function()
-    {
-        this.insertText('me', 'Line One\nLine Four', 0, 0);
-        this.insertLines('me', ['Line Two', 'Line Three'], 1, 1);
-        
-        this.assertEqual('Line One\nLine Two\nLine Three\nLine Four', this.oEventQueue.getText());
-    },
-    
-    testSimpleRemoveText: function()
-    {
-        this.insertText('me', 'Hello World', 0, 0);
-        this.removeText('me', 0, 2, 0, 5, 1);
-        this.assertEqual('He World', this.oEventQueue.getText());
-        
-        this.insertLines('me', ['Line Two', 'Line Three', 'Line Four'], 1, 2);
-        this.removeText('me', 0, 6, 2, 5, 3);
-        this.assertEqual('He WorThree\nLine Four', this.oEventQueue.getText());
-    },
-    
-    testSimpleRemoveLiens: function()
-    {
-        this.insertLines('me', ['Line One', 'Line Two', 'Line Three', 'Line Four'], 0);
-        this.removeLines('me', 1, 3, 1);
-        this.assertEqual('Line One\nLine Four', this.oEventQueue.getText());
-    },
-
-    testMergeInserts: function()
-    {
-        this.insertText('me', 'abc', 0, 0);
-        this.insertText('me', '123', 0, 1);
-        this.insertText('you', 'ABC', 1, 0);
-
-        this.assertEqual('123aABCbc', this.oEventQueue.getText());
-    },
-    
-    assertEqual: function(left, right)
-    {
-        if (left != right)
-            throw '\'' + left + '\' != \'' + right + '\'';
-    },
-    
-    insertText: function(sUser, sText, iPos, iState)
-    {
-        this.oEventQueue.push({
-            'oClient': sUser,
-            'oEventData': {
-                'sType': 'insertText',
-                'oRange': this._createRange(0, iPos, 0, iPos + sText.length),
-                'iState': iState,
-                'sText': sText
-            }
-        });
-    },
-
-    insertLines: function(sUser, aLines, iRow, iState)
-    {
-        this.oEventQueue.push({
-            'oClient': sUser,
-            'oEventData': {
-                'sType': 'insertLines',
-                'oRange': this._createRange(iRow, 0, iRow + aLines.length, 0),
-                'iState': iState,
-                'aLines': aLines
-            },
-        });
-    },
-    
-    removeText: function(sUser, iStartRow, iStartCol, iEndRow, iEndCol, iState)
-    {
-        this.oEventQueue.push({
-            'oClient': sUser,
-            'oEventData': {
-                'sType': 'removeText',
-                'oRange': this._createRange(iStartRow, iStartCol, iEndRow, iEndCol),
-                'iState': iState
-            },
-        });
-    },
-    
-    removeLines: function(sUser, iStartRow, iEndRow, iState)
-    {
-        this.oEventQueue.push({
-            'oClient': sUser,
-            'oEventData': {
-                'sType': 'removeLines',
-                'oRange': this._createRange(iStartRow, 0, iEndRow, 0),
-                'iState': iState
-            }
-        });
-    },
-    
-    _createRange: function(iStartRow, iStartCol, iEndRow, iEndCol)
-    {
-        return {
-            'oStart': {
-                'iRow': iStartRow,
-                'iColumn': iStartCol
-            },
-            'oEnd': {
-                'iRow': iEndRow,
-                'iColumn': iEndCol
-            }
-        };
-    },
-    
-    _setup: function()
-    {
-        this.oEventQueue = new EventQueue();
-    },
-    
-    _tearDown: function()
-    {
-        this.oEventQueue = null;
-    },
-    
-    _run: function(sTest)
-    {
-        this._setup();
-        var bSuccess = false;
-        try
-        {
-            this[sTest]();
-            bSuccess = true;
-        }
-        catch (e)
-        {
-            this.iErrors++;
-            this.oErrors[sTest] = e;
-        }
-        if (bSuccess)
-            this.iSuccesses++;
-
-        this._tearDown();
-    },
-    
-    run: function()
-    {
-        for (var sMethod in this)
-            if (sMethod.indexOf('test') == 0)
-                this._run(sMethod);
-        
-        console.log('UnitTests: ' + this.iSuccesses + ' succeeded and ' + this.iErrors + ' failed.')
-        for (var sTest in this.oErrors)
-            console.log(sTest, ': ', this.oErrors[sTest]);
-    },
-
-});
-
-var tests = new UnitTest();
-tests.run();
+require('./test').runTests();
