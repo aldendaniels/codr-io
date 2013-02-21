@@ -3,7 +3,7 @@
 var oExpress = require('express');
 var oWS = require('ws');
 var oHTTP = require('http');
-var oHelpers = require('helpers');
+var oHelpers = require('./helpers');
 
 // Create express app.
 var oApp = oExpress();
