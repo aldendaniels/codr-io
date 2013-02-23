@@ -6,7 +6,7 @@ function validateFileID(sID)
     return sID.match('^[a-zA-Z0-9]+$')
 }
 
-var oDatabase = {
+var oFileDatabase = {
     // Takes a document ID, and calls fnOnResponse with (oErr, sDocument)
     getDocument: function(sID, oScope, fnOnResponse)
     {
@@ -21,8 +21,6 @@ var oDatabase = {
     {
         fs.writeFile(this._getPathFromID(sID), sText, oHelpers.createCallback(oScope, fnOnResponse));
     },
-
-        
     
     // Calls fnOnResposne with (true)
     documentExists: function(sID, oScope, fnOnResponse)
@@ -39,4 +37,27 @@ var oDatabase = {
     }
 };
 
-module.exports = oDatabase;
+var oMemoryDatabase = {
+    oData: {},
+
+    // Takes a document ID, and calls fnOnResponse with (oErr, sDocument)
+    getDocument: function(sID, oScope, fnOnResponse)
+    {
+        oHelpers.createCallback(oScope, fnOnResponse)('', this.oData[sID] || '');
+    },
+
+    // Takes a document ID, document text, and calls fnOnResponse with (oErr)
+    saveDocument: function(sID, sText, oScope, fnOnResponse)
+    {
+        this.oData[sID] = sText;
+        oHelpers.createCallback(oScope, fnOnResponse)('');
+    },
+
+    // Calls fnOnResposne with (true)
+    documentExists: function(sID, oScope, fnOnResponse)
+    {
+        oHelpers.createCallback(oScope, fnOnResponse)(sID in this.oData);
+    }
+};
+
+module.exports = oMemoryDatabase;

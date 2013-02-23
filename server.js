@@ -118,6 +118,21 @@ var Document = oHelpers.createClass(
         var iIndex = this._aClients.indexOf(oClient);
         this._aClients.splice(iIndex, 1);
 
+        if (oClient == this._oCurrentEditingClient)
+        {
+            this._oCurrentEditingClient = null;
+            if (this._aClients.length > 0)
+            {
+                this._oCurrentEditingClient = this._aClients[0];
+                this._oCurrentEditingClient.sendEvent({
+                    oClient: oClient,
+                    oEventData: {
+                        sType: 'editRightsGranted'
+                    }
+                });
+            }
+        }
+
         if (this._aClients.length === 0)
         {
             this.save(oHelpers.createCallback(this, function(){
