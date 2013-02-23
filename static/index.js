@@ -22,7 +22,7 @@ $(document).on('ready', function()
     oDocument.setValue(sDocText);
     
     // Receive events.
-    oSocket = new WebSocket('ws://' + window.document.location.host);
+    oSocket = new WebSocket('ws://' + window.document.location.host + window.document.location.pathname);
     oSocket.onmessage = onSocketMessage;
     
     // Handle editor events.

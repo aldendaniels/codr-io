@@ -10,7 +10,21 @@ var oDatabase = require('./database');
 
 // Create express app.
 var oApp = oExpress();
-oApp.use(oExpress.static(__dirname + '/static'));
+
+// Handle landing on the root.
+oApp.get('^/$', function(req, res)
+{
+    generateIDAndRedirect(res);
+});
+
+// Normal entrypoint.
+oApp.get('/[a-zA-Z0-9]+/?$', function(req, res)
+{
+    res.sendfile('static/index.html');
+});
+
+// Static files.
+oApp.use('/static/', oExpress.static(__dirname + '/static'));
 
 // Instantiate server.
 var oServer = oHTTP.createServer(oApp);
@@ -20,14 +34,39 @@ oServer.listen(8080);
 var oWsServer = new oWS.Server({server: oServer});
 oWsServer.on('connection', function(oSocket)
 {
+    var aMatch = oSocket.upgradeReq.url.match('^/([a-zA-Z0-9]+)/?$')
+    if (!aMatch)
+    {
+        oSocket.close();
+        return;
+    }
+
+    var sID = aMatch[1];
+
     // Create new doc (if necessary).
-    var sID = 'abcd'; // Get this from URL.
     if (!(sID in g_oDocuments))
         g_oDocuments[sID] = new Document(sID);
 
     // Register client.
     g_oDocuments[sID].registerClient(oSocket);    
 });
+
+function generateIDAndRedirect(res)
+{
+    var sID = "";
+    var sChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    for (var i = 0; i < 6; i++ )
+        sID += sChars.charAt(Math.floor(Math.random() * sChars.length));
+
+    oDatabase.documentExists(sID, this, function(bExists)
+    {
+        if (!bExists)
+            res.redirect('/' + sID);
+        else
+            generateIDAndRedirect(res);
+    });
+}
 
 var g_oDocuments = {}; // sID to Document instance.
 
