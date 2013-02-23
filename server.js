@@ -5,6 +5,7 @@ var oWS = require('ws');
 var oHTTP = require('http');
 var oHelpers = require('./helpers');
 var EventQueue = require('./eventQueue').EventQueue;
+var oAceDocument = require('./aceDocument').Document;
 
 // Create express app.
 var oApp = oExpress();
@@ -34,10 +35,12 @@ var Document = oHelpers.createClass(
     _aLines: [],
     _oEventQueue: null,
     _aClients: [],
+    _oAceDocument: null,
     
     __init__: function()
     {
         this._oEventQueue = new EventQueue();
+        this._oAceDocument = new oAceDocument('');
     },
     
     registerClient: function(oSocket)
@@ -53,18 +56,20 @@ var Document = oHelpers.createClass(
     
     onClientEvent: function(oEvent)
     {
-        this._oEventQueue.push(oEvent);
+        var oMungeredEvent = this._oEventQueue.push(oEvent);
         for (var i = 0; i < this._aClients.length; i++)
         {
             var oClient = this._aClients[i];
-            if(oEvent.oClient != oClient)
-                oClient.sendEvent(oEvent)
+            if(oMungeredEvent.oClient != oClient)
+                oClient.sendEvent(oMungeredEvent)
         }
+        if (oMungeredEvent.oEventData.sType == 'aceDelta')
+            this._oAceDocument.applyDeltas([oMungeredEvent.oEventData.oDelta.data])
     },
     
     getText: function()
     {
-        return "You idoit!!! Did you really think this would work????";
+        return this._oAceDocument.getValue();
     }
 });
 

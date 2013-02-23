@@ -101,7 +101,7 @@ function onDocumentChange(oEvent)
         return;
     
     var oNormEvent = {
-        sType: 'dataDelta',
+        sType: 'aceDelta',
         oDelta: oEvent
     }
     oSocket.send(JSON.stringify(oNormEvent));
