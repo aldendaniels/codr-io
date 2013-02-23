@@ -14,7 +14,7 @@ $(document).on('ready', function()
     oEditSession = oEditor.getSession();
     oEditor.setTheme("ace/theme/monokai");
     oEditSession.setMode("ace/mode/javascript");
-    oEditor.setReadOnly(true);
+    setReadonly(true);
     
     // Set initial text.
     var sDocText = '';
@@ -29,6 +29,14 @@ $(document).on('ready', function()
     oEditor.on("change", onDocumentChange);
     oEditor.selection.on("changeCursor", onSelectionChange);
     oEditor.selection.on("changeSelection", onSelectionChange);
+
+
+    // Dom Events.
+    $('#editButton').click(function(){
+        oSocket.send(JSON.stringify({
+            'sType': 'requestEditRights'
+        }));
+    });
 });
 
 // SERVER EVENTS //////////////////////////////
@@ -40,11 +48,22 @@ function onSocketMessage(oMessage, bForce)
         bApplyingExternalEvent = true;
         oDocument.setValue(oEvent.sData);
         bApplyingExternalEvent = false;
-        oEditor.setReadOnly(false);
+        setReadonly(oEvent.bReadonly);
     }
     else if (oEvent.sType == 'selectionChange')
     {
         onPeerCursorMove(oEvent);
+    }
+    else if (oEvent.sType == 'removeEditRights')
+    {
+        setReadonly(true);
+        oSocket.send(JSON.stringify({
+            sType: 'releaseEditRights'
+        }));
+    }
+    else if (oEvent.sType == 'editRightsGranted')
+    {
+        setReadonly(false);
     }
     else
     {
@@ -107,4 +126,19 @@ function onDocumentChange(oEvent)
         oDelta: oEvent
     }
     oSocket.send(JSON.stringify(oNormEvent));
+}
+
+function setReadonly(bReadonly)
+{
+    oEditor.setReadOnly(bReadonly);
+    if (bReadonly)
+    {
+        $('#editButtonWrapper').addClass('inReadonlyMode');
+        $('#editButtonWrapper').removeClass('inEditMode');
+    }
+    else
+    {
+        $('#editButtonWrapper').addClass('inEditMode');
+        $('#editButtonWrapper').removeClass('inReadonlyMode');
+    }
 }

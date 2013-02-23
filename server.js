@@ -81,6 +81,7 @@ var Document = oHelpers.createClass(
     _aPreInitClients: null,
     _oLastSavedTime: null,
     _iSaveTimeout: null,
+    _oCurrentEditingClient: null,
     
     __init__: function(sID)
     {
@@ -94,15 +95,21 @@ var Document = oHelpers.createClass(
             else
                 this._onInit('', '');
         });
-        
     },
     
     registerClient: function(oSocket)
     {
         if (!this._bInitialized)
+        {
             this._aPreInitClients.push(oSocket);
-        else
-            this._aClients.push(new Client(oSocket, this));
+            return;
+        }
+
+        var bReadonly = !!this._oCurrentEditingClient;
+        var oNewClient = new Client(oSocket, this, bReadonly)
+        this._aClients.push(oNewClient);
+        if (!bReadonly)
+            this._oCurrentEditingClient = oNewClient;
     },
     
     removeClient: function(oClient)
@@ -128,7 +135,30 @@ var Document = oHelpers.createClass(
     {
         this._assertInit();
         
+        if (oEvent.oEventData.sType == 'requestEditRights')
+        {
+            this._oCurrentEditingClient.sendEvent({
+                oClient: oEvent.oClient,
+                oEventData: {
+                    sType: 'removeEditRights'
+                }
+            });
+            this._oCurrentEditingClient = oEvent.oClient;
+            return;
+        }
+        else if (oEvent.oEventData.sType == 'releaseEditRights')
+        {
+            this._oCurrentEditingClient.sendEvent({
+                oClient: oEvent.oClient,
+                oEventData: {
+                    sType: 'editRightsGranted'
+                }
+            });
+            return;
+        }
+
         var oMungeredEvent = this._oEventQueue.push(oEvent);
+
         for (var i = 0; i < this._aClients.length; i++)
         {
             var oClient = this._aClients[i];
@@ -195,7 +225,7 @@ var Client = oHelpers.createClass({
     _oDocument: null,
     _sID: '1234',
     
-    __init__: function(oSocket, oDocument)
+    __init__: function(oSocket, oDocument, bReadonly)
     {
         this._oSocket = oSocket;
         this._oDocument = oDocument;
@@ -208,7 +238,8 @@ var Client = oHelpers.createClass({
         
         oSocket.send(JSON.stringify({
             'sType': 'setInitialValue',
-            'sData': this._oDocument.getText()
+            'sData': this._oDocument.getText(),
+            'bReadonly': bReadonly
         }));
     },
     

@@ -5,7 +5,7 @@
         <style type="text/css" media="screen">
             #editor { 
                 position: absolute;
-                top: 0px;
+                top: 50px;
                 right: 0;
                 bottom: 0;
                 left: 0;
@@ -26,9 +26,23 @@
                 background: transparent;
                 border-left: 2px orange solid;
             }
+
+            #editButtonWrapper.inEditMode #editButton
+            {
+                display: none;
+            }
+
+            #editButtonWrapper.inReadonlyMode #editModeButton
+            {
+                display: none;
+            }
         </style>
     </head>
     <body>
+        <div id="editButtonWrapper">
+            <button id="editButton">Edit</button>
+            <button id="editModeButton" disabled="disabled">Editing...</button>
+         </div>
         <div id="editor">function foo(items)\n{\nvar x = "All this is syntax highlighted";\nreturn x;\n}</div>
         <script src="/static/jquery-1.9.1.min.js" type="text/javascript" charset="utf-8"></script>            
         <script src="/static/ace/ace.js" type="text/javascript" charset="utf-8"></script>
