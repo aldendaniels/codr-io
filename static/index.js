@@ -14,6 +14,7 @@ $(document).on('ready', function()
     oEditSession = oEditor.getSession();
     oEditor.setTheme("ace/theme/monokai");
     oEditSession.setMode("ace/mode/javascript");
+    oEditor.setReadOnly(true);
     
     // Set initial text.
     var sDocText = '';
@@ -39,6 +40,7 @@ function onSocketMessage(oMessage, bForce)
         bApplyingExternalEvent = true;
         oDocument.setValue(oEvent.sData);
         bApplyingExternalEvent = false;
+        oEditor.setReadOnly(false);
     }
     else if (oEvent.sType == 'selectionChange')
     {

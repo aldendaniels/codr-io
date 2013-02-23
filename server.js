@@ -6,6 +6,7 @@ var oHTTP = require('http');
 var oHelpers = require('./helpers');
 var EventQueue = require('./eventQueue').EventQueue;
 var oAceDocument = require('./aceDocument').Document;
+var oDatabase = require('./database');
 
 // Create express app.
 var oApp = oExpress();
@@ -22,7 +23,7 @@ oWsServer.on('connection', function(oSocket)
     // Create new doc (if necessary).
     var sID = 'abcd'; // Get this from URL.
     if (!(sID in g_oDocuments))
-        g_oDocuments[sID] = new Document();
+        g_oDocuments[sID] = new Document(sID);
 
     // Register client.
     g_oDocuments[sID].registerClient(oSocket);    
@@ -36,26 +37,58 @@ var Document = oHelpers.createClass(
     _oEventQueue: null,
     _aClients: [],
     _oAceDocument: null,
+    _bInitialized: false,
+    _sID: '',
+    _aPreInitClients: null,
+    _oLastSavedTime: null,
+    _iSaveTimeout: null,
     
-    __init__: function()
+    __init__: function(sID)
     {
+        this._sID = sID;
         this._oEventQueue = new EventQueue();
-        this._oAceDocument = new oAceDocument('');
+        this._aPreInitClients = [];
+        
+        oDatabase.documentExists(sID, this, function(bExists){
+            if (bExists)
+                oDatabase.getDocument(sID, this, this._onInit);
+            else
+                this._onInit('', '');
+        });
+        
     },
     
     registerClient: function(oSocket)
     {
-        this._aClients.push(new Client(oSocket, this));
+        if (!this._bInitialized)
+            this._aPreInitClients.push(oSocket);
+        else
+            this._aClients.push(new Client(oSocket, this));
     },
     
     removeClient: function(oClient)
     {
+        this._assertInit();
         var iIndex = this._aClients.indexOf(oClient);
         this._aClients.splice(iIndex, 1);
+
+        if (this._aClients.length === 0)
+        {
+            this.save(oHelpers.createCallback(this, function(){
+                if (this._aClients.length === 0)
+                {
+                    if (this._iSaveTimeout)
+                        clearTimeout(this._iSaveTimeout);
+                    delete g_oDocuments[this._sID];
+                }
+            }));
+        }
     },
     
     onClientEvent: function(oEvent)
     {
+        this._assertInit();
+        
         var oMungeredEvent = this._oEventQueue.push(oEvent);
         for (var i = 0; i < this._aClients.length; i++)
         {
@@ -64,12 +97,56 @@ var Document = oHelpers.createClass(
                 oClient.sendEvent(oMungeredEvent)
         }
         if (oMungeredEvent.oEventData.sType == 'aceDelta')
-            this._oAceDocument.applyDeltas([oMungeredEvent.oEventData.oDelta.data])
+        {
+            this._oAceDocument.applyDeltas([oMungeredEvent.oEventData.oDelta.data]);
+            
+            if (this._iSaveTimeout === null)
+            {
+                this._iSaveTimeout = setTimeout(oHelpers.createCallback(this, function(){
+                    this.save(oHelpers.createCallback(this, function(oErr){
+                        this._iSaveTimeout = null;
+                    }));
+                }), 30000);
+            }
+        }
     },
     
     getText: function()
     {
+        this._assertInit();
         return this._oAceDocument.getValue();
+    },
+    
+    save: function(fnOnResponse)
+    {
+        this._assertInit();
+        
+        function fnOnSave(oErr)
+        {
+            this._oLastSavedTime = new Date();
+            fnOnResponse(oErr);
+        }
+        
+        oDatabase.saveDocument(this._sID, this.getText(), this, fnOnResponse || function(){});
+    },
+    
+    _onInit: function(oErr, sDocument)
+    {
+        this._oAceDocument = new oAceDocument(sDocument);
+        this._bInitialized = true;
+        
+        var oSocket = this._aPreInitClients.pop();
+        while (oSocket)
+        {
+            this.registerClient(oSocket);
+            oSocket = this._aPreInitClients.pop();
+        }
+    },
+    
+    _assertInit: function()
+    {
+        if (!this._bInitialized)
+            throw 'Document not yet initialized.';
     }
 });
 
