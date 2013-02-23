@@ -28,33 +28,13 @@ $(document).on('ready', function()
     oEditor.on("change", onDocumentChange);
     oEditor.selection.on("changeCursor", onSelectionChange);
     oEditor.selection.on("changeSelection", onSelectionChange);
-    
-    $('#ValidateButton').click(function()
-    {
-        oSocket.send(JSON.stringify({
-            'sType': 'requestValidate',
-            'sData': ''
-        }));
-    });
 });
 
 // SERVER EVENTS //////////////////////////////
 function onSocketMessage(oMessage, bForce)
 {
-    if (getLatency() && !bForce)
-    {
-        window.setTimeout(function(){
-            onSocketMessage(oMessage, true);
-        }, getLatency());
-        return;
-    }
-    
     var oEvent = JSON.parse(oMessage.data);
-    if (oEvent.sType == 'validateDocument')
-    {
-        onValidateDocument(oEvent);
-    }
-    else if (oEvent.sType == 'setInitialValue')
+    if (oEvent.sType == 'setInitialValue')
     {
         bApplyingExternalEvent = true;
         oDocument.setValue(oEvent.sData);
@@ -64,24 +44,11 @@ function onSocketMessage(oMessage, bForce)
     {
         onPeerCursorMove(oEvent);
     }
-    else if (oEvent.sType != 'eventProcessed')
+    else
     {
         bApplyingExternalEvent = true;
-        oDocument.applyDeltas([getACEDeltaFromDelta(oEvent)]);
+        oDocument.applyDeltas([oEvent.oDelta.data]);
         bApplyingExternalEvent = false;
-    }
-}
-
-function onValidateDocument(oEvent)
-{
-    var sServerDocument = oEvent.sDocument;
-    var sClientDocument = oDocument.getAllLines().join('\n');
-    
-    if (sServerDocument != sClientDocument)
-    {
-        console.log('sServerDocument:\n', sServerDocument);
-        console.log('sClientDocument:\n', sClientDocument);
-        alert('The server document does not match what we have. Please check the log for details.');
     }
 }
 
@@ -95,12 +62,12 @@ function onPeerCursorMove(oEvent)
     }
     
     // Add new.
-    var oStart = oEvent.oRange.oStart;
-    var oEnd = oEvent.oRange.oEnd;
-    var oNewRange = new Range(oStart.iRow, oStart.iColumn, oEnd.iRow, oEnd.iColumn);
+    var oStart = oEvent.oRange.start;
+    var oEnd = oEvent.oRange.end;
+    var oNewRange = new Range(oStart.row, oStart.column, oEnd.row, oEnd.column);
 
     // Set new selection.
-    if (oStart.iRow == oEnd.iRow && oStart.iColumn == oEnd.iColumn)
+    if (oStart.row == oEnd.row && oStart.column == oEnd.column)
     {
         oNewRange.end.column += 1;
         oMarkers[oEvent.sPeerID] = oEditSession.addMarker(oNewRange, 'codr_peer_selection_collapsed', 'text', true);
@@ -121,74 +88,21 @@ function onSelectionChange()
         oSocket.send(JSON.stringify(
         {
             sType: 'selectionChange',
-            oRange: normRange(oSelectionRange)
+            oRange: oSelectionRange
         }));
         oLastSelectionRange = oSelectionRange;
     }
     
 }
 
-function onDocumentChange(oACEEvent)
+function onDocumentChange(oEvent)
 {
     if (bApplyingExternalEvent)
         return;
     
     var oNormEvent = {
-        sType: oACEEvent.data.action,
-        oRange: normRange(oACEEvent.data.range)
+        sType: 'dataDelta',
+        oDelta: oEvent
     }
-    
-    if (oACEEvent.data.action == 'insertText')
-        oNormEvent.sText = oACEEvent.data.text;
-    else if (oACEEvent.data.action == 'insertLines')
-        oNormEvent.aLines = oACEEvent.data.lines;
-    
     oSocket.send(JSON.stringify(oNormEvent));
-}
-
-function normRange(oACERange)
-{
-    return {
-        oStart: {
-            iRow: oACERange.start.row,
-            iColumn: oACERange.start.column
-        },
-        oEnd: {
-            iRow: oACERange.end.row,
-            iColumn: oACERange.end.column
-        }
-    }
-}
-
-function getACEDeltaFromDelta(oDelta)
-{
-    var oACEDelta = {
-        action: oDelta.sType,
-        range: {
-            start: {
-                row: oDelta.oRange.oStart.iRow,
-                column: oDelta.oRange.oStart.iColumn,
-            },
-            end: {
-                row: oDelta.oRange.oEnd.iRow,
-                column: oDelta.oRange.oEnd.iColumn,
-            }
-        }
-    };
-    
-    if (oDelta.sType == 'insertText')
-        oACEDelta.text = oDelta.sText;
-    else if (oDelta.sType == 'insertLines')
-        oACEDelta.lines = oDelta.aLines
-        
-    return oACEDelta;
-}
-
-function getLatency()
-{
-    var iLatency = parseInt($('#latencyBox')[0].value);
-    
-    if (isNaN(iLatency))
-        return 0;
-    return iLatency;
 }

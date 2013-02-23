@@ -53,40 +53,18 @@ var Document = oHelpers.createClass(
     
     onClientEvent: function(oEvent)
     {
-        if (oEvent.oEventData.sType == 'requestValidate') //Testing only, don't add to the Q.
-        {
-            var sDocument = this._oEventQueue.getText();
-            for (var i = 0; i < this._aClients.length; i++)
-            {
-                this._aClients[i].sendEvent({
-                    oEventData: {
-                        sType: 'validateDocument',
-                        sDocument: sDocument
-                    }
-                })
-            }
-            return;
-        }
-        
         this._oEventQueue.push(oEvent);
         for (var i = 0; i < this._aClients.length; i++)
         {
             var oClient = this._aClients[i];
-            if(oEvent.oClient == oClient)
-            {
-                if (oEvent.sType != 'selectionChange')
-                    oClient.notifyEventProcessed();
-            }
-            else
-            {
+            if(oEvent.oClient != oClient)
                 oClient.sendEvent(oEvent)
-            }
         }
     },
     
     getText: function()
     {
-        return this._oEventQueue.getText();
+        return "You idoit!!! Did you really think this would work????";
     }
 });
 
@@ -116,15 +94,6 @@ var Client = oHelpers.createClass({
     sendEvent: function(oEvent)
     {
         this._send(oEvent.oEventData);
-    },
-    
-    notifyEventProcessed: function()
-    {
-        this._send(
-        {
-            sType: 'eventProcessed',
-            oData: ''
-        });
     },
     
     _onClientEvent: function(sEventData)
