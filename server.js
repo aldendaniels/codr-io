@@ -18,7 +18,7 @@ oApp.get('^/$', function(req, res)
 });
 
 // Normal entrypoint.
-oApp.get('/[a-zA-Z0-9]+/?$', function(req, res)
+oApp.get('/[a-z0-9]+/?$', function(req, res)
 {
     res.sendfile('static/index.html');
 });
@@ -34,7 +34,7 @@ oServer.listen(8080);
 var oWsServer = new oWS.Server({server: oServer});
 oWsServer.on('connection', function(oSocket)
 {
-    var aMatch = oSocket.upgradeReq.url.match('^/([a-zA-Z0-9]+)/?$')
+    var aMatch = oSocket.upgradeReq.url.match('^/([a-z0-9]+)/?$')
     if (!aMatch)
     {
         oSocket.close();
@@ -80,6 +80,7 @@ var Document = oHelpers.createClass(
     _iSaveTimeout: null,
     _oCurrentEditingClient: null,
     _oLastSelEvent: null,
+    _sLanguage: 'text',
     
     __init__: function(sID)
     {
@@ -104,16 +105,31 @@ var Document = oHelpers.createClass(
         }
 
         // Create client.
-        var bIsEdting = !this._oCurrentEditingClient;
-        var oNewClient = new Client(oSocket, this, bIsEdting);
+        var bIsEditing = !this._oCurrentEditingClient;
+        var oNewClient = new Client(oSocket, this);
         this._aClients.push(oNewClient);
         
         // Set as primary editor.
-        if (bIsEdting)
+        if (bIsEditing)
             this._oCurrentEditingClient = oNewClient;
+            
+        // Set language.
+        oSocket.send(JSON.stringify(
+        {
+            'sType': 'languageChange',
+            'sLang': this._sLanguage
+        }));
+        
+        // Send text.
+        oSocket.send(JSON.stringify(
+        {
+            'sType': 'setInitialValue',
+            'sData': this.getText(),
+            'bIsEditing': bIsEditing
+        }));
         
         // Show selection to non-primary (readonly) editors.
-        if (!bIsEdting && this._oLastSelEvent)
+        if (!bIsEditing && this._oLastSelEvent)
         	oNewClient.sendEvent(this._oLastSelEvent);
     },
     
@@ -173,6 +189,11 @@ var Document = oHelpers.createClass(
                 oEventData: {sType: 'editRightsGranted'}
             });
             return;
+        }
+        
+        if (oEvent.oEventData.sType == 'languageChange')
+        {
+            this._sLanguage = oEvent.oEventData.sLang;
         }
 
         // Send events to all other clients.
@@ -258,7 +279,7 @@ var Client = oHelpers.createClass({
     _oDocument: null,
     _sID: '1234',
     
-    __init__: function(oSocket, oDocument, bIsEdting)
+    __init__: function(oSocket, oDocument)
     {
         this._oSocket = oSocket;
         this._oDocument = oDocument;
@@ -267,14 +288,7 @@ var Client = oHelpers.createClass({
         oSocket.on('close', oHelpers.createCallback(this, function()
         {
             this._oDocument.removeClient(this);
-        }));
-        
-        oSocket.send(JSON.stringify(
-        {
-            'sType': 'setInitialValue',
-            'sData': this._oDocument.getText(),
-            'bIsEdting': bIsEdting
-        }));
+        }));        
     },
     
     sendEvent: function(oEvent)

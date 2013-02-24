@@ -3,7 +3,7 @@ var oHelpers = require('./helpers');
 
 function validateFileID(sID)
 {
-    return sID.match('^[a-zA-Z0-9]+$')
+    return sID.match('^[a-z0-9]+$')
 }
 
 var oFileDatabase = {
