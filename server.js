@@ -88,11 +88,18 @@ var Document = oHelpers.createClass(
         this._aPreInitClients = [];
         this._aClients = [];
         
-        oDatabase.documentExists(sID, this, function(bExists){
+        oDatabase.documentExists(sID, this, function(bExists)
+        {
             if (bExists)
                 oDatabase.getDocument(sID, this, this._onInit);
             else
-                this._onInit('', '');
+            {
+                this._onInit('',
+                {
+                    sText: '',
+                    sLanguage: this._sLanguage
+                });
+            }
         });
     },
     
@@ -231,7 +238,11 @@ var Document = oHelpers.createClass(
         this._assertInit();
                 
         this._clearSaveTimeout();
-        oDatabase.saveDocument(this._sID, this.getText(), this, fnOnResponse || function(){});
+        oDatabase.saveDocument(this._sID,
+        {
+            'sText': this.getText(),
+            'sLanguage': this._sLanguage
+        }, this, fnOnResponse || function(){});
     },
     
     _setSaveTimeout: function()
@@ -253,11 +264,14 @@ var Document = oHelpers.createClass(
             clearTimeout(this._iSaveTimeout);
     },
     
-    _onInit: function(oErr, sDocument)
+    _onInit: function(oErr, oDocument)
     {
-        this._oAceDocument = new oAceDocument(sDocument);
-        this._bInitialized = true;
-        
+        // Load document data.
+        this._oAceDocument = new oAceDocument(oDocument.sText);
+        this._sLanguage = oDocument.sLanguage;
+
+        // Register client.
+        this._bInitialized = true;        
         var oSocket = this._aPreInitClients.pop();
         while (oSocket)
         {

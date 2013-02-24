@@ -7,22 +7,22 @@ function validateFileID(sID)
 }
 
 var oFileDatabase = {
-    // Takes a document ID, and calls fnOnResponse with (oErr, sDocument)
+
     getDocument: function(sID, oScope, fnOnResponse)
     {
         fs.readFile(this._getPathFromID(sID), function(oErr, oDocument)
         {
-            oHelpers.createCallback(oScope, fnOnResponse)(oErr, oDocument.toString());
+            var oData = JSON.parse(oDocument.toString());
+            oHelpers.createCallback(oScope, fnOnResponse)(oErr, oData);
         });
     },
 
-    // Takes a document ID, document text, and calls fnOnResponse with (oErr)
-    saveDocument: function(sID, sText, oScope, fnOnResponse)
+    saveDocument: function(sID, oData, oScope, fnOnResponse)
     {
-        fs.writeFile(this._getPathFromID(sID), sText, oHelpers.createCallback(oScope, fnOnResponse));
+        var sJSONData = JSON.stringify(oData);
+        fs.writeFile(this._getPathFromID(sID), sJSONData, oHelpers.createCallback(oScope, fnOnResponse));
     },
     
-    // Calls fnOnResposne with (true)
     documentExists: function(sID, oScope, fnOnResponse)
     {
         fs.exists(this._getPathFromID(sID), oHelpers.createCallback(oScope, fnOnResponse));
@@ -43,13 +43,13 @@ var oMemoryDatabase = {
     // Takes a document ID, and calls fnOnResponse with (oErr, sDocument)
     getDocument: function(sID, oScope, fnOnResponse)
     {
-        oHelpers.createCallback(oScope, fnOnResponse)('', this.oData[sID] || '');
+        oHelpers.createCallback(oScope, fnOnResponse)('', this.oData[sID] || null);
     },
 
     // Takes a document ID, document text, and calls fnOnResponse with (oErr)
-    saveDocument: function(sID, sText, oScope, fnOnResponse)
+    saveDocument: function(sID, oData, oScope, fnOnResponse)
     {
-        this.oData[sID] = sText;
+        this.oData[sID] = oData;
         oHelpers.createCallback(oScope, fnOnResponse)('');
     },
 
