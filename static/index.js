@@ -1,7 +1,7 @@
 
 var oEditor = null;
 var oEditSession = null;
-var oMarkers = {};
+var iRemoteCursorMarkerID = null;
 var oSocket = null;
 var oDocument = null;
 var Range = ace.require('ace/range').Range;
@@ -14,7 +14,7 @@ $(document).on('ready', function()
     oEditSession = oEditor.getSession();
     oEditor.setTheme("ace/theme/monokai");
     oEditSession.setMode("ace/mode/javascript");
-    setReadonly(true);
+    setEditMode(false);
     
     // Set initial text.
     var sDocText = '';
@@ -24,16 +24,12 @@ $(document).on('ready', function()
     // Receive events.
     oSocket = new WebSocket('ws://' + window.document.location.host + window.document.location.pathname);
     oSocket.onmessage = onSocketMessage;
-    
-    // Handle editor events.
-    oEditor.on("change", onDocumentChange);
-    oEditor.selection.on("changeCursor", onSelectionChange);
-    oEditor.selection.on("changeSelection", onSelectionChange);
-
 
     // Dom Events.
-    $('#editButton').click(function(){
-        oSocket.send(JSON.stringify({
+    $('#editButton').click(function()
+    {
+        oSocket.send(JSON.stringify(
+        {
             'sType': 'requestEditRights'
         }));
     });
@@ -48,22 +44,24 @@ function onSocketMessage(oMessage, bForce)
         bApplyingExternalEvent = true;
         oDocument.setValue(oEvent.sData);
         bApplyingExternalEvent = false;
-        setReadonly(oEvent.bReadonly);
+        setEditMode(oEvent.bIsEdting);
     }
     else if (oEvent.sType == 'selectionChange')
     {
-        onPeerCursorMove(oEvent);
+        onRemoteCursorMove(oEvent);
     }
     else if (oEvent.sType == 'removeEditRights')
     {
-        setReadonly(true);
-        oSocket.send(JSON.stringify({
+        setEditMode(false);        
+        // Notify server of event receipt.
+        oSocket.send(JSON.stringify(
+        {
             sType: 'releaseEditRights'
         }));
     }
     else if (oEvent.sType == 'editRightsGranted')
     {
-        setReadonly(false);
+        setEditMode(true);
     }
     else
     {
@@ -73,14 +71,10 @@ function onSocketMessage(oMessage, bForce)
     }
 }
 
-function onPeerCursorMove(oEvent)
+function onRemoteCursorMove(oEvent)
 {
     // Remove old selection.
-    if (oEvent.sPeerID in oMarkers)
-    {
-        var iOldMarkerID = oMarkers[oEvent.sPeerID];
-        oEditSession.removeMarker(iOldMarkerID);
-    }
+    oEditSession.removeMarker(iRemoteCursorMarkerID);
     
     // Add new.
     var oStart = oEvent.oRange.start;
@@ -91,11 +85,11 @@ function onPeerCursorMove(oEvent)
     if (oStart.row == oEnd.row && oStart.column == oEnd.column)
     {
         oNewRange.end.column += 1;
-        oMarkers[oEvent.sPeerID] = oEditSession.addMarker(oNewRange, 'codr_peer_selection_collapsed', 'text', true);
+        iRemoteCursorMarkerID = oEditSession.addMarker(oNewRange, 'codr_peer_selection_collapsed', 'text', true);
     }
     else
     {
-        oMarkers[oEvent.sPeerID] = oEditSession.addMarker(oNewRange, 'codr_peer_selection', 'text', true);   
+        iRemoteCursorMarkerID = oEditSession.addMarker(oNewRange, 'codr_peer_selection', 'text', true);   
     }
 }
 
@@ -128,17 +122,36 @@ function onDocumentChange(oEvent)
     oSocket.send(JSON.stringify(oNormEvent));
 }
 
-function setReadonly(bReadonly)
+function setEditMode(bIsEdting)
 {
-    oEditor.setReadOnly(bReadonly);
-    if (bReadonly)
+    oEditor.setReadOnly(!bIsEdting);
+    if (bIsEdting)
     {
-        $('#editButtonWrapper').addClass('inReadonlyMode');
-        $('#editButtonWrapper').removeClass('inEditMode');
+        // Remove remote cursor.
+        oEditSession.removeMarker(iRemoteCursorMarkerID);
+        iRemoteCursorMarkerID = null;
+
+        // Attach editor events.
+        oEditor.on("change", onDocumentChange);
+        oEditor.selection.on("changeCursor", onSelectionChange);
+        oEditor.selection.on("changeSelection", onSelectionChange);
+
+        // Update UI.
+        $('#editButtonWrapper').addClass('inEditMode');
+        $('#editButtonWrapper').removeClass('inReadonlyMode');
+        
+        // Notify server of selection position.
+        onSelectionChange();
     }
     else
     {
-        $('#editButtonWrapper').addClass('inEditMode');
-        $('#editButtonWrapper').removeClass('inReadonlyMode');
+        // Detach editor events.
+        oEditor.removeListener("change", onDocumentChange);
+        oEditor.selection.removeListener("changeCursor", onSelectionChange);
+        oEditor.selection.removeListener("changeSelection", onSelectionChange);
+
+        // Update UI.
+        $('#editButtonWrapper').addClass('inReadonlyMode');
+        $('#editButtonWrapper').removeClass('inEditMode');
     }
 }

@@ -1,10 +1,7 @@
-var EventQueue = require('./eventQueue').EventQueue;
 
 var iSuccesses = 0;
 var iErrors = 0;
 var oErrors = {};
-var oEventQueue = null;
-var oAceDocument = null;
 
 function assertStrEqual(sVal1, sVal2)
 {
@@ -14,7 +11,6 @@ function assertStrEqual(sVal1, sVal2)
 
 function runTest(sTestName)
 {
-    oEventQueue = new EventQueue();
     try
     {
         oTests[sTestName]();

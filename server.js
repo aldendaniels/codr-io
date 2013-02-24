@@ -4,9 +4,9 @@ var oExpress = require('express');
 var oWS = require('ws');
 var oHTTP = require('http');
 var oHelpers = require('./helpers');
-var EventQueue = require('./eventQueue').EventQueue;
 var oAceDocument = require('./aceDocument').Document;
 var oDatabase = require('./database');
+var assert = require('assert');
 
 // Create express app.
 var oApp = oExpress();
@@ -72,22 +72,20 @@ var g_oDocuments = {}; // sID to Document instance.
 
 var Document = oHelpers.createClass(
 {
-    _aLines: [],
-    _oEventQueue: null,
-    _aClients: [],
+    _aClients: null,
     _oAceDocument: null,
     _bInitialized: false,
     _sID: '',
     _aPreInitClients: null,
-    _oLastSavedTime: null,
     _iSaveTimeout: null,
     _oCurrentEditingClient: null,
+    _oLastSelEvent: null,
     
     __init__: function(sID)
     {
         this._sID = sID;
-        this._oEventQueue = new EventQueue();
         this._aPreInitClients = [];
+        this._aClients = [];
         
         oDatabase.documentExists(sID, this, function(bExists){
             if (bExists)
@@ -105,11 +103,18 @@ var Document = oHelpers.createClass(
             return;
         }
 
-        var bReadonly = !!this._oCurrentEditingClient;
-        var oNewClient = new Client(oSocket, this, bReadonly)
+        // Create client.
+        var bIsEdting = !this._oCurrentEditingClient;
+        var oNewClient = new Client(oSocket, this, bIsEdting);
         this._aClients.push(oNewClient);
-        if (!bReadonly)
+        
+        // Set as primary editor.
+        if (bIsEdting)
             this._oCurrentEditingClient = oNewClient;
+        
+        // Show selection to non-primary (readonly) editors.
+        if (!bIsEdting && this._oLastSelEvent)
+        	oNewClient.sendEvent(this._oLastSelEvent);
     },
     
     removeClient: function(oClient)
@@ -119,79 +124,78 @@ var Document = oHelpers.createClass(
         this._aClients.splice(iIndex, 1);
 
         if (oClient == this._oCurrentEditingClient)
-        {
             this._oCurrentEditingClient = null;
-            if (this._aClients.length > 0)
-            {
-                this._oCurrentEditingClient = this._aClients[0];
-                this._oCurrentEditingClient.sendEvent({
-                    oClient: oClient,
-                    oEventData: {
-                        sType: 'editRightsGranted'
-                    }
-                });
-            }
-        }
 
         if (this._aClients.length === 0)
         {
-            this.save(oHelpers.createCallback(this, function(){
+            this.save(oHelpers.createCallback(this, function()
+            {
                 if (this._aClients.length === 0)
-                {
-                    if (this._iSaveTimeout)
-                        clearTimeout(this._iSaveTimeout);
                     delete g_oDocuments[this._sID];
-                }
             }));
         }
     },
-    
+        
     onClientEvent: function(oEvent)
     {
         this._assertInit();
         
+        // TODO: This is special.
         if (oEvent.oEventData.sType == 'requestEditRights')
         {
-            this._oCurrentEditingClient.sendEvent({
-                oClient: oEvent.oClient,
-                oEventData: {
-                    sType: 'removeEditRights'
-                }
-            });
+            if (this._oCurrentEditingClient)
+            {
+                this._oCurrentEditingClient.sendEvent(
+                {
+                    oClient: oEvent.oClient,
+                    oEventData: {sType: 'removeEditRights'}
+                });                
+            }
+            else
+            {
+                this._oCurrentEditingClient.sendEvent(
+                {
+                    oClient: oEvent.oClient,
+                    oEventData: {sType: 'editRightsGranted'}
+                });                
+            }
+            
             this._oCurrentEditingClient = oEvent.oClient;
             return;
         }
-        else if (oEvent.oEventData.sType == 'releaseEditRights')
+        
+        // TODO: This is special.
+        if (oEvent.oEventData.sType == 'releaseEditRights')
         {
-            this._oCurrentEditingClient.sendEvent({
+            this._oCurrentEditingClient.sendEvent(
+            {
                 oClient: oEvent.oClient,
-                oEventData: {
-                    sType: 'editRightsGranted'
-                }
+                oEventData: {sType: 'editRightsGranted'}
             });
             return;
         }
 
-        var oMungeredEvent = this._oEventQueue.push(oEvent);
-
+        // Send events to all other clients.
         for (var i = 0; i < this._aClients.length; i++)
         {
             var oClient = this._aClients[i];
-            if(oMungeredEvent.oClient != oClient)
-                oClient.sendEvent(oMungeredEvent)
+            if(oEvent.oClient != oClient)
+                oClient.sendEvent(oEvent)
         }
-        if (oMungeredEvent.oEventData.sType == 'aceDelta')
+        
+        // Update stored selection.
+        if (oEvent.oEventData.sType == 'selectionChange')
         {
-            this._oAceDocument.applyDeltas([oMungeredEvent.oEventData.oDelta.data]);
+            this._oLastSelEvent = oEvent;
+        }
+        
+        // Update stored document.
+        if (oEvent.oEventData.sType == 'aceDelta')
+        {
+            this._oAceDocument.applyDeltas([oEvent.oEventData.oDelta.data]);
             
             if (this._iSaveTimeout === null)
-            {
-                this._iSaveTimeout = setTimeout(oHelpers.createCallback(this, function(){
-                    this.save(oHelpers.createCallback(this, function(oErr){
-                        this._iSaveTimeout = null;
-                    }));
-                }), 30000);
-            }
+                this._setSaveTimeout();
         }
     },
     
@@ -204,14 +208,28 @@ var Document = oHelpers.createClass(
     save: function(fnOnResponse)
     {
         this._assertInit();
-        
-        function fnOnSave(oErr)
-        {
-            this._oLastSavedTime = new Date();
-            fnOnResponse(oErr);
-        }
-        
+                
+        this._clearSaveTimeout();
         oDatabase.saveDocument(this._sID, this.getText(), this, fnOnResponse || function(){});
+    },
+    
+    _setSaveTimeout: function()
+    {
+        this._assertInit();
+        
+        assert(this._iSaveTimeout === null);
+        this._iSaveTimeout = setTimeout(oHelpers.createCallback(this, function()
+        {
+            this.save(oHelpers.createCallback(this, this._clearSaveTimeout));
+        }), 30000);
+    },
+    
+    _clearSaveTimeout: function()
+    {
+        this._assertInit();
+        
+        if (this._iSaveTimeout)
+            clearTimeout(this._iSaveTimeout);
     },
     
     _onInit: function(oErr, sDocument)
@@ -240,7 +258,7 @@ var Client = oHelpers.createClass({
     _oDocument: null,
     _sID: '1234',
     
-    __init__: function(oSocket, oDocument, bReadonly)
+    __init__: function(oSocket, oDocument, bIsEdting)
     {
         this._oSocket = oSocket;
         this._oDocument = oDocument;
@@ -251,10 +269,11 @@ var Client = oHelpers.createClass({
             this._oDocument.removeClient(this);
         }));
         
-        oSocket.send(JSON.stringify({
+        oSocket.send(JSON.stringify(
+        {
             'sType': 'setInitialValue',
             'sData': this._oDocument.getText(),
-            'bReadonly': bReadonly
+            'bIsEdting': bIsEdting
         }));
     },
     

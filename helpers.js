@@ -75,5 +75,10 @@ module.exports =
     {
         aOptionalArguments = aOptionalArguments || [];
         return Callback.create(oObject, fnCallback, aOptionalArguments);
-    }
+    },
+	
+	assert: function(bCondition, sMessage)
+	{
+		
+	}
 };
