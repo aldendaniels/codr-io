@@ -54,9 +54,9 @@ oWsServer.on('connection', function(oSocket)
 function generateIDAndRedirect(res)
 {
     var sID = "";
-    var sChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    var sChars = "abcdefghijklmnopqrstuvwxyz0123456789";
 
-    for (var i = 0; i < 6; i++ )
+    for (var i = 0; i < 7; i++ )
         sID += sChars.charAt(Math.floor(Math.random() * sChars.length));
 
     oDatabase.documentExists(sID, this, function(bExists)
