@@ -15,7 +15,7 @@ $(document).on('ready', function()
     // Create editor.
     g_oEditor = ace.edit("editor");
     g_oEditSession = g_oEditor.getSession();
-    g_oEditor.setTheme("ace/theme/monokai");
+    g_oEditor.setFontSize(14);
     setLang('text');
     setEditMode(false);
     

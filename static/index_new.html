@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Codr</title>
+        <link rel=StyleSheet href="index_new.css" type="text/css" />
+        <link href='http://fonts.googleapis.com/css?family=Open+Sans+Condensed:300' rel='stylesheet' type='text/css'>   
+        <link href='http://fonts.googleapis.com/css?family=Unica+One' rel='stylesheet' type='text/css'>
+
+    </head>
+    <body>
+        <div id="lang-wrap">
+            <h3>CODR<span class="io">.IO</span></h3>
+            <div class="btn">HTML</div>
+            <div class="or">OR</div>
+            <div class="btn">Plain text</div>
+            <div class="or">OR</div>
+            <div id="languages">
+                <input id="search" typx="text" placeholder="Choose a language" autocomplete="off"/>
+                <div id="options">
+                    <div id="favorites">
+                        <div class="option keyable" id="javascript">JavaScript</div>
+                        <div class="option keyable" id="css">CSS</div>
+                        <div class="option keyable" id="python">Python</div>
+                        <div class="option keyable" id="sql">SQL</div>
+                    </div>
+                    <div class="option keyable" id="abap">ABAP</div>
+                    <div class="option keyable" id="asciidoc">AsciiDoc</div>
+                    <div class="option keyable" id="coffee">CoffeeScript</div>
+                    <div class="option keyable" id="coldfusion">ColdFusion</div>
+                    <div class="option keyable" id="csharp">C#</div>
+                    <div class="option keyable" id="curly">Curly</div>
+                    <div class="option keyable" id="dart">Dart</div>
+                    <div class="option keyable" id="diff">Diff</div>
+                    <div class="option keyable" id="dot">Dot</div>
+                    <div class="option keyable" id="glsl">Glsl</div>
+                    <div class="option keyable" id="golang">Go</div>
+                    <div class="option keyable" id="groovy">Groovy</div>
+                    <div class="option keyable" id="haxe">haXe</div>
+                    <div class="option keyable" id="haml">HAML</div>
+                    <div class="option keyable" id="c_cpp">C++</div>
+                    <div class="option keyable" id="clojure">Clojure</div>
+                    <div class="option keyable" id="jade">Jade</div>
+                    <div class="option keyable" id="java">Java</div>
+                    <div class="option keyable" id="jsp">JSP</div>
+                    <div class="option keyable" id="json">JSON</div>
+                    <div class="option keyable" id="jsx">JSX</div>
+                    <div class="option keyable" id="latex">LaTeX</div>
+                    <div class="option keyable" id="less">LESS</div>
+                    <div class="option keyable" id="lisp">Lisp</div>
+                    <div class="option keyable" id="liquid">Liquid</div>
+                    <div class="option keyable" id="lua">Lua</div>
+                    <div class="option keyable" id="luapage">LuaPage</div>
+                    <div class="option keyable" id="lucene">Lucene</div>
+                    <div class="option keyable" id="makefile">Makefile</div>
+                    <div class="option keyable" id="markdown">Markdown</div>
+                    <div class="option keyable" id="objectivec">Objective-C</div>
+                    <div class="option keyable" id="ocaml">OCaml</div>
+                    <div class="option keyable" id="perl">Perl</div>
+                    <div class="option keyable" id="pgsql">pgSQL</div>
+                    <div class="option keyable" id="php">PHP</div>
+                    <div class="option keyable" id="powershell">Powershell</div>
+                    <div class="option keyable" id="r">R</div>
+                    <div class="option keyable" id="rdoc">RDoc</div>
+                    <div class="option keyable" id="rhtml">RHTML</div>
+                    <div class="option keyable" id="ruby">Ruby</div>
+                    <div class="option keyable" id="scad">OpenSCAD</div>
+                    <div class="option keyable" id="scala">Scala</div>
+                    <div class="option keyable" id="scss">SCSS</div>
+                    <div class="option keyable" id="sh">SH</div>
+                    <div class="option keyable" id="stylus">Stylus</div>
+                    <div class="option keyable" id="svg">SVG</div>
+                    <div class="option keyable" id="tcl">Tcl</div>
+                    <div class="option keyable" id="tex">Tex</div>
+                    <div class="option keyable" id="text">Text</div>
+                    <div class="option keyable" id="textile">Textile</div>
+                    <div class="option keyable" id="typescript">Typescript</div>
+                    <div class="option keyable" id="vbscript">VBScript</div>
+                    <div class="option keyable" id="xml">XML</div>
+                    <div class="option keyable" id="xquery">XQuery</div>
+                    <div class="option keyable" id="yaml">YAML</div>
+                </div>
+            </div>
+        </div>
+        <script src="keyable.js" type="text/javascript"></script>
+        <script src="jquery-1.9.1.min.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            
+            var oKeyable = null;
+            
+            $(document).on('ready', function()
+            {
+                oKeyable = new InvKeyable('#options', 'id');
+                oKeyable.attach();
+                
+                $('#search').focus();
+                
+                var sOldVal = '';
+                $('#search').on('keyup', function()
+                {
+                    var sVal = $(this).val();
+                    if (sVal != sOldVal)
+                    {
+                        filterLanguages($(this).val());
+                        sOldVal = sVal;    
+                    }
+                });
+            });
+            
+            $(window).on('keydown', function(oEvent)
+            {
+                switch (oEvent.which)
+				{
+				// Select next down div
+				case 40: // Down arrow
+                    console.log('move down!');
+					oKeyable.moveDown();
+					oEvent.preventDefault();
+					
+					break;
+				// Select next up div
+				case 38: // Up arrow					
+					oKeyable.moveUp();
+					oEvent.preventDefault();
+					break;
+                default:
+                    $('#search').focus();
+				}
+                
+                scrollIntoView(oKeyable.getSelected());
+            });
+            
+            function scrollIntoView(jElem)
+            {
+                // Calculate the element's position.
+                var jViewport = jElem.offsetParent();
+                var iTop = jElem.position().top - parseInt(jViewport.css('paddingTop'));
+                var iBottom = jViewport[0].clientHeight - (iTop + jElem[0].offsetHeight)
+                    
+                // Scroll element vertically into view.
+                var iScrollTop = null;
+                if (iTop < 0)
+                {
+                    iScrollTop = jViewport.scrollTop() + iTop;
+                    jViewport.scrollTop(iScrollTop);
+                }
+                else if (iBottom < 0)
+                {
+                    iScrollTop = jViewport.scrollTop() - iBottom;
+                    jViewport.scrollTop(iScrollTop);
+                }
+            }
+            
+            function filterLanguages(sSearch)
+            {
+                // Hide all languages.
+                sSearch = sSearch.toLowerCase();
+                var jOptions = $('#languages .option').hide();
+                
+                // Show languages matching filter.
+                var jVisibleOptions = jOptions.filter(function(elem)
+                {
+                    return $(this).text().toLowerCase().indexOf(sSearch) === 0;					
+                }).show();
+                
+                // Update key nav.
+                $('.option.current').removeClass('current');
+                oKeyable.update(false);
+            }
+    
+            
+        </script>
+    </body>
+</html>
+
