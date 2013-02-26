@@ -176,7 +176,7 @@ var Document = oHelpers.createClass(
             }
             else
             {
-                this._oCurrentEditingClient.sendEvent(
+                oEvent.oClient.sendEvent(
                 {
                     oClient: oEvent.oClient,
                     oEventData: {sType: 'editRightsGranted'}
