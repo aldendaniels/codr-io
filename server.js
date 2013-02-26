@@ -25,30 +25,10 @@ oApp.get(/^\/fork\/([a-z0-9]+)\/?$/, function(req, res)
 {
     var sID = req.params[0];
 
-    function doFork()
+    forkDocument(sID, false, function(sNewID)
     {
-        oDatabase.fork(sID, true, this, function(sNewID)
-        {
-            // Reload the parent.
-            if (sID in g_oDocuments)
-                g_oDocuments[sID].reload();
-
-            res.redirect('/' + sNewID);
-        });
-    }
-
-    var bDocInMemory = false;
-    for (sKey in g_oDocuments)
-    {
-        if (sKey == sID)
-        {
-            g_oDocuments[sKey].save(doFork);
-            bDocInMemory = true;
-        }
-    }
-
-    if (!bDocInMemory)
-        doFork();
+        res.redirect('/' + sNewID);
+    });
 })
 
 // Normal entrypoint.
@@ -400,5 +380,33 @@ var Client = oHelpers.createClass({
         });
     }
 });
+
+function forkDocument(sID, bReadOnly, fnOnResponse)
+{
+    function doFork()
+    {
+        oDatabase.fork(sID, bReadOnly, this, function(sNewID)
+        {
+            // Reload the parent.
+            if (sID in g_oDocuments)
+                g_oDocuments[sID].reload();
+
+            fnOnResponse(sNewID);
+        });
+    }
+
+    var bDocInMemory = false;
+    for (sKey in g_oDocuments)
+    {
+        if (sKey == sID)
+        {
+            g_oDocuments[sKey].save(doFork);
+            bDocInMemory = true;
+        }
+    }
+
+    if (!bDocInMemory)
+        doFork();
+}
 
 require('./test').runTests();

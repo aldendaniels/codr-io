@@ -37,7 +37,7 @@ function _fork(oDatabase, sID, bReadOnly, oScope, fnOnResponse)
             var oNewDocument = oHelpers.deepClone(oDocument);
             oNewDocument.bReadOnly = bReadOnly;
             oNewDocument.sParentID = sID;
-            oDatabase.saveDocument(sNewID, oDocument, this, function()
+            oDatabase.saveDocument(sNewID, oNewDocument, this, function()
             {
                 // Link the document to it's parent.
                 oDocument.aChildren = oDocument.aChildren || [];
