@@ -8,6 +8,7 @@ var g_oSocket = null;
 var g_oDocument = null;
 var g_bApplyingExternalEvent = false;
 var g_bIsEditing = false;
+var g_bIsReadOnly = true;
 
 $(document).on('ready', function()
 {
@@ -58,7 +59,10 @@ function onSocketMessage(oMessage, bForce)
         g_bApplyingExternalEvent = true;
         g_oDocument.setValue(oEvent.sData);
         g_bApplyingExternalEvent = false;
+        g_bIsReadOnly = oEvent.bReadOnly;
         setEditMode(oEvent.bIsEditing);
+        if (g_bIsReadOnly)
+            showReadOnlyMsg()
     }
     else if (oEvent.sType == 'selectionChange')
     {
@@ -142,6 +146,7 @@ function onDocumentChange(oEvent)
 
 function setEditMode(bIsEditing)
 {
+    bIsEditing = bIsEditing && !g_bIsReadOnly;
     g_oEditor.setReadOnly(!bIsEditing);
     g_bIsEditing = bIsEditing;
     
@@ -183,4 +188,10 @@ function setLang(sLang)
     g_oEditSession.setMode("ace/mode/" + sLang);
     if ($('#mode').val() != sLang)
         $('#mode').val(sLang);    
+}
+
+function showReadOnlyMsg()
+{
+    $('body').addClass('readOnly');
+    g_oSocket.close();
 }

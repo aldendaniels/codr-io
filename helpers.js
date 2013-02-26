@@ -76,9 +76,31 @@ module.exports =
         aOptionalArguments = aOptionalArguments || [];
         return Callback.create(oObject, fnCallback, aOptionalArguments);
     },
-	
-	assert: function(bCondition, sMessage)
-	{
-		
-	}
+
+    deepClone: function(oOtherObject)
+    {
+		if (typeof oOtherObject == 'object')
+		{
+			if (oOtherObject instanceof Array)
+			{
+				var oObject = [];
+				for (var i = 0; i < oOtherObject.length; i++)
+					oObject.push(this.deepClone(oOtherObject[i]));
+				return oObject;
+			}
+			else
+			{
+				if (oOtherObject === null)
+					return null;
+
+				oObject = {};
+				for (var sProperty in oOtherObject)
+				{
+                    oObject[sProperty] = this.deepClone(oOtherObject[sProperty]);
+				}
+				return oObject;
+			}
+		}
+		return oOtherObject;
+    }
 };

@@ -14,8 +14,42 @@ var oApp = oExpress();
 // Handle landing on the root.
 oApp.get('^/$', function(req, res)
 {
-    generateIDAndRedirect(res);
+    oDatabase.generateNewDocumentID(this, function(sNewID)
+    {
+        res.redirect('/' + sNewID);
+    });
 });
+
+// Forking entrypoint.
+oApp.get(/^\/fork\/([a-z0-9]+)\/?$/, function(req, res)
+{
+    var sID = req.params[0];
+
+    function doFork()
+    {
+        oDatabase.fork(sID, true, this, function(sNewID)
+        {
+            // Reload the parent.
+            if (sID in g_oDocuments)
+                g_oDocuments[sID].reload();
+
+            res.redirect('/' + sNewID);
+        });
+    }
+
+    var bDocInMemory = false;
+    for (sKey in g_oDocuments)
+    {
+        if (sKey == sID)
+        {
+            g_oDocuments[sKey].save(doFork);
+            bDocInMemory = true;
+        }
+    }
+
+    if (!bDocInMemory)
+        doFork();
+})
 
 // Normal entrypoint.
 oApp.get('/[a-z0-9]+/?$', function(req, res)
@@ -51,23 +85,6 @@ oWsServer.on('connection', function(oSocket)
     g_oDocuments[sID].registerClient(oSocket);    
 });
 
-function generateIDAndRedirect(res)
-{
-    var sID = "";
-    var sChars = "abcdefghijklmnopqrstuvwxyz0123456789";
-
-    for (var i = 0; i < 7; i++ )
-        sID += sChars.charAt(Math.floor(Math.random() * sChars.length));
-
-    oDatabase.documentExists(sID, this, function(bExists)
-    {
-        if (!bExists)
-            res.redirect('/' + sID);
-        else
-            generateIDAndRedirect(res);
-    });
-}
-
 var g_oDocuments = {}; // sID to Document instance.
 
 var Document = oHelpers.createClass(
@@ -81,12 +98,17 @@ var Document = oHelpers.createClass(
     _oCurrentEditingClient: null,
     _oLastSelEvent: null,
     _sLanguage: 'text',
+    _bReadOnly: false,
+    _aChildrenIDs: null,
+    _sParentID: '',
+    _fnOnReleaseEditRights: null,
     
     __init__: function(sID)
     {
         this._sID = sID;
         this._aPreInitClients = [];
         this._aClients = [];
+        this._aChildrenIDs = [];
         
         oDatabase.documentExists(sID, this, function(bExists)
         {
@@ -94,20 +116,23 @@ var Document = oHelpers.createClass(
                 oDatabase.getDocument(sID, this, this._onInit);
             else
             {
-                this._onInit('',
-                {
-                    sText: '',
-                    sLanguage: this._sLanguage
-                });
+                this._onInit('', this._getDocument(true));
             }
         });
     },
-    
+
     registerClient: function(oSocket)
     {
         if (!this._bInitialized)
         {
             this._aPreInitClients.push(oSocket);
+            return;
+        }
+
+        if (this._bReadOnly)
+        {
+            this._syncClient(new Client(oSocket, this), false);
+            oSocket.close();
             return;
         }
 
@@ -120,24 +145,12 @@ var Document = oHelpers.createClass(
         if (bIsEditing)
             this._oCurrentEditingClient = oNewClient;
             
-        // Set language.
-        oSocket.send(JSON.stringify(
-        {
-            'sType': 'languageChange',
-            'sLang': this._sLanguage
-        }));
-        
-        // Send text.
-        oSocket.send(JSON.stringify(
-        {
-            'sType': 'setInitialValue',
-            'sData': this.getText(),
-            'bIsEditing': bIsEditing
-        }));
-        
+        // Init client.
+        this._syncClient(oNewClient, bIsEditing);
+
         // Show selection to non-primary (readonly) editors.
         if (!bIsEditing && this._oLastSelEvent)
-        	oNewClient.sendEvent(this._oLastSelEvent);
+            oNewClient.sendEvent(this._oLastSelEvent.oEventData);
     },
     
     removeClient: function(oClient)
@@ -162,25 +175,19 @@ var Document = oHelpers.createClass(
     onClientEvent: function(oEvent)
     {
         this._assertInit();
+        if (this._bReadOnly)
+            return;
         
         // TODO: This is special.
         if (oEvent.oEventData.sType == 'requestEditRights')
         {
             if (this._oCurrentEditingClient)
             {
-                this._oCurrentEditingClient.sendEvent(
-                {
-                    oClient: oEvent.oClient,
-                    oEventData: {sType: 'removeEditRights'}
-                });                
+                this._oCurrentEditingClient.sendEvent({sType: 'removeEditRights'});                
             }
             else
             {
-                oEvent.oClient.sendEvent(
-                {
-                    oClient: oEvent.oClient,
-                    oEventData: {sType: 'editRightsGranted'}
-                });                
+                oEvent.oClient.sendEvent({sType: 'editRightsGranted'});                
             }
             
             this._oCurrentEditingClient = oEvent.oClient;
@@ -190,11 +197,10 @@ var Document = oHelpers.createClass(
         // TODO: This is special.
         if (oEvent.oEventData.sType == 'releaseEditRights')
         {
-            this._oCurrentEditingClient.sendEvent(
-            {
-                oClient: oEvent.oClient,
-                oEventData: {sType: 'editRightsGranted'}
-            });
+            if (this._fnOnReleaseEditRights)
+                this._fnOnReleaseEditRights();
+            
+            this._oCurrentEditingClient.sendEvent({sType: 'editRightsGranted'});
             return;
         }
         
@@ -208,7 +214,7 @@ var Document = oHelpers.createClass(
         {
             var oClient = this._aClients[i];
             if(oEvent.oClient != oClient)
-                oClient.sendEvent(oEvent)
+                oClient.sendEvent(oEvent.oEventData)
         }
         
         // Update stored selection.
@@ -238,11 +244,51 @@ var Document = oHelpers.createClass(
         this._assertInit();
                 
         this._clearSaveTimeout();
-        oDatabase.saveDocument(this._sID,
+        oDatabase.saveDocument(this._sID, this._getDocument(), this, fnOnResponse || function(){});
+    },
+
+    reload: function()
+    {
+        if (this._oCurrentEditingClient)
         {
-            'sText': this.getText(),
-            'sLanguage': this._sLanguage
-        }, this, fnOnResponse || function(){});
+            this._oCurrentEditingClient.sendEvent({sType: 'removeEditRights'});                
+
+            this._fnOnReleaseEditRights = oHelpers.createCallback(this, this._reload);
+        }
+        else
+            this._reload();
+    },
+
+    _reload: function()
+    {
+        oDatabase.getDocument(this._sID, this, function(oErr, oDocument)
+        {
+            this._loadFromDocument(oDocument);
+            for (var i = 0; i < this._aClients.length; i++)
+                this._syncClient(this._aClients[i]);
+
+            if (this._oCurrentEditingClient)
+                this._oCurrentEditingClient.sendEvent({sType: 'editRightsGranted'})
+        });
+    },
+
+    _syncClient: function(oClient, bIsEditing)
+    {
+        // Set language.
+        oClient.sendEvent(
+        {
+            'sType': 'languageChange',
+            'sLang': this._sLanguage
+        });
+        
+        // Send text.
+        oClient.sendEvent(
+        {
+            'sType': 'setInitialValue',
+            'sData': this.getText(),
+            'bIsEditing': bIsEditing,
+            'bReadOnly': this._bReadOnly
+        });
     },
     
     _setSaveTimeout: function()
@@ -266,9 +312,7 @@ var Document = oHelpers.createClass(
     
     _onInit: function(oErr, oDocument)
     {
-        // Load document data.
-        this._oAceDocument = new oAceDocument(oDocument.sText);
-        this._sLanguage = oDocument.sLanguage;
+        this._loadFromDocument(oDocument);
 
         // Register client.
         this._bInitialized = true;        
@@ -278,6 +322,37 @@ var Document = oHelpers.createClass(
             this.registerClient(oSocket);
             oSocket = this._aPreInitClients.pop();
         }
+    },
+
+    _getDocument: function(bEmpty)
+    {
+        if (bEmpty)
+        {
+            return {
+                'sText': '',
+                'sLanguage': this._sLanguage,
+                'bReadOnly': false,
+                'aChildren': [],
+                'sParentID': ''
+            }
+        }
+        return {
+            'sText': this.getText(),
+            'sLanguage': this._sLanguage,
+            'bReadOnly': this._bReadOnly,
+            'aChildren': this._aChildrenIDs,
+            'sParentID': this._sParentID
+        }
+    },
+
+    _loadFromDocument: function(oDocument)
+    {
+        // Load document data.
+        this._oAceDocument = new oAceDocument(oDocument.sText);
+        this._sLanguage = oDocument.sLanguage;
+        this._bReadOnly = oDocument.bReadOnly;
+        this._aChildrenIDs = oDocument.aChildren;
+        this._sParentID = oDocument.sParentID;
     },
     
     _assertInit: function()
@@ -307,7 +382,7 @@ var Client = oHelpers.createClass({
     
     sendEvent: function(oEvent)
     {
-        this._send(oEvent.oEventData);
+        this._oSocket.send(JSON.stringify(oEvent));
     },
     
     _onClientEvent: function(sEventData)
@@ -323,11 +398,6 @@ var Client = oHelpers.createClass({
             oClient: this,
             oEventData: oEventData
         });
-    },
-    
-    _send: function(oEvent)
-    {
-        this._oSocket.send(JSON.stringify(oEvent));
     }
 });
 
