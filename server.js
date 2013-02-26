@@ -255,9 +255,6 @@ var Document = oHelpers.createClass(
             this._loadFromDocument(oDocument);
             for (var i = 0; i < this._aClients.length; i++)
                 this._syncClient(this._aClients[i]);
-
-            if (this._oCurrentEditingClient)
-                this._oCurrentEditingClient.sendEvent({sType: 'editRightsGranted'})
         });
     },
 
