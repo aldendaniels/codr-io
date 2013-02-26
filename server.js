@@ -183,6 +183,15 @@ var Document = oHelpers.createClass(
             this._oCurrentEditingClient.sendEvent({sType: 'editRightsGranted'});
             return;
         }
+
+        if (oEvent.oEventData.sType == 'generateSnapshot')
+        {
+            forkDocument(this._sID, true, function(sNewID)
+            {
+                oEvent.oClient.sendEvent({sType: 'newSnapshotUrl', sUrl: '/' + sNewID});
+            });
+            return;
+        }
         
         if (oEvent.oEventData.sType == 'languageChange')
         {

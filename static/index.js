@@ -48,6 +48,18 @@ $(document).on('ready', function()
         }));
     });
     
+    $('#fork').click(function()
+    {
+        document.location.pathname = '/fork' + document.location.pathname;
+    });
+
+    $('#snapshot').click(function()
+    {
+        g_oSocket.send(JSON.stringify(
+        {
+            sType: 'generateSnapshot'
+        }));
+    });
 });
 
 // SERVER EVENTS //////////////////////////////
@@ -84,6 +96,10 @@ function onSocketMessage(oMessage, bForce)
     else if (oEvent.sType == 'editRightsGranted')
     {
         setEditMode(true);
+    }
+    else if (oEvent.sType == 'newSnapshotUrl')
+    {
+        window.alert('yourNewSnapshotUrl: ' + document.location.host + oEvent.sUrl);
     }
     else
     {
