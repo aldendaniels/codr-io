@@ -89,7 +89,7 @@ var SqlHighlightRules = function() {
 
     var keywords = (
         "select|insert|update|delete|from|where|and|or|group|by|order|limit|offset|having|as|case|" +
-        "when|else|end|type|left|right|join|on|outer|desc|asc"
+        "when|else|end|type|left|right|join|on|outer|desc|asc|is|inner|in|count|sum|if|avg|min|max|explain"
     );
 
     var builtinConstants = (
@@ -110,6 +110,10 @@ var SqlHighlightRules = function() {
         "start" : [ {
             token : "comment",
             regex : "--.*$"
+        }, {
+            token : "comment",
+            regex : "/\\*",
+            next  : "comment",
         }, {
             token : "string",           // " string
             regex : '".*?"'
@@ -134,7 +138,18 @@ var SqlHighlightRules = function() {
         }, {
             token : "text",
             regex : "\\s+"
-        } ]
+        } ],
+        "comment" : [
+            {
+                token : "comment", // closing comment
+                regex : ".*?\\*\\/",
+                next : "start"
+            }, {
+                token : "comment", // comment spanning whole line
+                regex : ".+"
+            }
+        ],
+
     };
 };
 
