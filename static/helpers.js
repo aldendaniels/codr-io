@@ -1,6 +1,11 @@
 var oHelpers = {
     
-    WebSocket: oHelpers.creatClass(
+    on: function(oElem, sEventName, oScope, fnCallback)
+    {
+        $(oElem).on(sEventName, oHelpers.createCallback(oScope, fnCallback));
+    },
+    
+    WebSocket: oHelpers.createClass(
     {
         _oSocket: null,
         _oCallbacks: {}, // Map of event to handlers.
@@ -25,10 +30,19 @@ var oHelpers = {
             });
         },
         
-        bind: function(sEventName, oContext, fnCallback)
+        bind: function(sEventName, oScope, fnCallback)
         {
             _oCallbacks[sEventName] = _oCallbacks[sEventName] || [];
             _oCallbacks[sEventName].push(createCallback(this, fnCallback));
+        },
+        
+        send: function(sEventType, oEventData)
+        {
+            this._oSocket.send(JSON.stringify(
+            {
+                sType: sEventType,
+                oData: oEventData
+            }));
         },
         
         _dispatch: function(sEventName, oOptionalData)
