@@ -27,13 +27,16 @@ var Editor = oHelpers.createClass(
         this._oAceDocument = this._oAceEditSession.getDocument();
         
         // Set initial settings.
-        g_oEditor.setFontSize(14);
+        this._oAceEditor.setFontSize(14);
         this._setMode(sMode);
         this._setEditMode(bIsEditable);
         
         // Attach events.
         this._attachDOMEvents();
         this._attachAceEvents();
+        
+        // Set focus.
+       this._oAceEditor.focus();
     },
     
     connect: function(oSocket)
@@ -92,6 +95,11 @@ var Editor = oHelpers.createClass(
                 sType: 'generateSnapshot'
             }));
         });
+    },
+
+    _setEditMode: function(bEditable)
+    {
+    
     },
     
     _setMode: function(sMode)

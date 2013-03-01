@@ -2,91 +2,98 @@
 <html lang="en">
     <head>
         <title>Codr</title>
-        <link rel=StyleSheet href="index_new.css" type="text/css" />
+        <link rel=StyleSheet href="static/index_new.css" type="text/css" />
         <link href='http://fonts.googleapis.com/css?family=Open+Sans+Condensed:300' rel='stylesheet' type='text/css'>   
         <link href='http://fonts.googleapis.com/css?family=Unica+One' rel='stylesheet' type='text/css'>
 
     </head>
-    <body>
+    <body class="selectLang">
         <div id="lang-wrap">
             <h3>CODR<span class="io">.IO</span></h3>
-            <div class="btn">HTML</div>
+            <div class="mode btn" id="html">HTML</div>
             <div class="or">OR</div>
-            <div class="btn">Plain text</div>
+            <div class="mode btn" id="text">Plain text</div>
             <div class="or">OR</div>
             <div id="languages">
                 <input id="search" typx="text" placeholder="Choose a language" autocomplete="off"/>
                 <div id="options">
                     <div id="favorites">
-                        <div class="option keyable" id="javascript">JavaScript</div>
-                        <div class="option keyable" id="css">CSS</div>
-                        <div class="option keyable" id="python">Python</div>
-                        <div class="option keyable" id="sql">SQL</div>
+                        <div class="option keyable mode" id="javascript">JavaScript</div>
+                        <div class="option keyable mode" id="css">CSS</div>
+                        <div class="option keyable mode" id="python">Python</div>
+                        <div class="option keyable mode" id="sql">SQL</div>
                     </div>
-                    <div class="option keyable" id="abap">ABAP</div>
-                    <div class="option keyable" id="asciidoc">AsciiDoc</div>
-                    <div class="option keyable" id="coffee">CoffeeScript</div>
-                    <div class="option keyable" id="coldfusion">ColdFusion</div>
-                    <div class="option keyable" id="csharp">C#</div>
-                    <div class="option keyable" id="curly">Curly</div>
-                    <div class="option keyable" id="dart">Dart</div>
-                    <div class="option keyable" id="diff">Diff</div>
-                    <div class="option keyable" id="dot">Dot</div>
-                    <div class="option keyable" id="glsl">Glsl</div>
-                    <div class="option keyable" id="golang">Go</div>
-                    <div class="option keyable" id="groovy">Groovy</div>
-                    <div class="option keyable" id="haxe">haXe</div>
-                    <div class="option keyable" id="haml">HAML</div>
-                    <div class="option keyable" id="c_cpp">C++</div>
-                    <div class="option keyable" id="clojure">Clojure</div>
-                    <div class="option keyable" id="jade">Jade</div>
-                    <div class="option keyable" id="java">Java</div>
-                    <div class="option keyable" id="jsp">JSP</div>
-                    <div class="option keyable" id="json">JSON</div>
-                    <div class="option keyable" id="jsx">JSX</div>
-                    <div class="option keyable" id="latex">LaTeX</div>
-                    <div class="option keyable" id="less">LESS</div>
-                    <div class="option keyable" id="lisp">Lisp</div>
-                    <div class="option keyable" id="liquid">Liquid</div>
-                    <div class="option keyable" id="lua">Lua</div>
-                    <div class="option keyable" id="luapage">LuaPage</div>
-                    <div class="option keyable" id="lucene">Lucene</div>
-                    <div class="option keyable" id="makefile">Makefile</div>
-                    <div class="option keyable" id="markdown">Markdown</div>
-                    <div class="option keyable" id="objectivec">Objective-C</div>
-                    <div class="option keyable" id="ocaml">OCaml</div>
-                    <div class="option keyable" id="perl">Perl</div>
-                    <div class="option keyable" id="pgsql">pgSQL</div>
-                    <div class="option keyable" id="php">PHP</div>
-                    <div class="option keyable" id="powershell">Powershell</div>
-                    <div class="option keyable" id="r">R</div>
-                    <div class="option keyable" id="rdoc">RDoc</div>
-                    <div class="option keyable" id="rhtml">RHTML</div>
-                    <div class="option keyable" id="ruby">Ruby</div>
-                    <div class="option keyable" id="scad">OpenSCAD</div>
-                    <div class="option keyable" id="scala">Scala</div>
-                    <div class="option keyable" id="scss">SCSS</div>
-                    <div class="option keyable" id="sh">SH</div>
-                    <div class="option keyable" id="stylus">Stylus</div>
-                    <div class="option keyable" id="svg">SVG</div>
-                    <div class="option keyable" id="tcl">Tcl</div>
-                    <div class="option keyable" id="tex">Tex</div>
-                    <div class="option keyable" id="text">Text</div>
-                    <div class="option keyable" id="textile">Textile</div>
-                    <div class="option keyable" id="typescript">Typescript</div>
-                    <div class="option keyable" id="vbscript">VBScript</div>
-                    <div class="option keyable" id="xml">XML</div>
-                    <div class="option keyable" id="xquery">XQuery</div>
-                    <div class="option keyable" id="yaml">YAML</div>
+                    <div class="option keyable mode" id="abap">ABAP</div>
+                    <div class="option keyable mode" id="asciidoc">AsciiDoc</div>
+                    <div class="option keyable mode" id="coffee">CoffeeScript</div>
+                    <div class="option keyable mode" id="coldfusion">ColdFusion</div>
+                    <div class="option keyable mode" id="csharp">C#</div>
+                    <div class="option keyable mode" id="curly">Curly</div>
+                    <div class="option keyable mode" id="dart">Dart</div>
+                    <div class="option keyable mode" id="diff">Diff</div>
+                    <div class="option keyable mode" id="dot">Dot</div>
+                    <div class="option keyable mode" id="glsl">Glsl</div>
+                    <div class="option keyable mode" id="golang">Go</div>
+                    <div class="option keyable mode" id="groovy">Groovy</div>
+                    <div class="option keyable mode" id="haxe">haXe</div>
+                    <div class="option keyable mode" id="haml">HAML</div>
+                    <div class="option keyable mode" id="c_cpp">C++</div>
+                    <div class="option keyable mode" id="clojure">Clojure</div>
+                    <div class="option keyable mode" id="jade">Jade</div>
+                    <div class="option keyable mode" id="java">Java</div>
+                    <div class="option keyable mode" id="jsp">JSP</div>
+                    <div class="option keyable mode" id="json">JSON</div>
+                    <div class="option keyable mode" id="jsx">JSX</div>
+                    <div class="option keyable mode" id="latex">LaTeX</div>
+                    <div class="option keyable mode" id="less">LESS</div>
+                    <div class="option keyable mode" id="lisp">Lisp</div>
+                    <div class="option keyable mode" id="liquid">Liquid</div>
+                    <div class="option keyable mode" id="lua">Lua</div>
+                    <div class="option keyable mode" id="luapage">LuaPage</div>
+                    <div class="option keyable mode" id="lucene">Lucene</div>
+                    <div class="option keyable mode" id="makefile">Makefile</div>
+                    <div class="option keyable mode" id="markdown">Markdown</div>
+                    <div class="option keyable mode" id="objectivec">Objective-C</div>
+                    <div class="option keyable mode" id="ocaml">OCaml</div>
+                    <div class="option keyable mode" id="perl">Perl</div>
+                    <div class="option keyable mode" id="pgsql">pgSQL</div>
+                    <div class="option keyable mode" id="php">PHP</div>
+                    <div class="option keyable mode" id="powershell">Powershell</div>
+                    <div class="option keyable mode" id="r">R</div>
+                    <div class="option keyable mode" id="rdoc">RDoc</div>
+                    <div class="option keyable mode" id="rhtml">RHTML</div>
+                    <div class="option keyable mode" id="ruby">Ruby</div>
+                    <div class="option keyable mode" id="scad">OpenSCAD</div>
+                    <div class="option keyable mode" id="scala">Scala</div>
+                    <div class="option keyable mode" id="scss">SCSS</div>
+                    <div class="option keyable mode" id="sh">SH</div>
+                    <div class="option keyable mode" id="stylus">Stylus</div>
+                    <div class="option keyable mode" id="svg">SVG</div>
+                    <div class="option keyable mode" id="tcl">Tcl</div>
+                    <div class="option keyable mode" id="tex">Tex</div>
+                    <div class="option keyable mode" id="text">Text</div>
+                    <div class="option keyable mode" id="textile">Textile</div>
+                    <div class="option keyable mode" id="typescript">Typescript</div>
+                    <div class="option keyable mode" id="vbscript">VBScript</div>
+                    <div class="option keyable mode" id="xml">XML</div>
+                    <div class="option keyable mode" id="xquery">XQuery</div>
+                    <div class="option keyable mode" id="yaml">YAML</div>
                 </div>
             </div>
         </div>
-        <script src="keyable.js" type="text/javascript"></script>
-        <script src="jquery-1.9.1.min.js" type="text/javascript"></script>
+        <div id="codr-toolbar">
+        </div>
+        <div id="codr-edit"></div>
+        <script src="static/jquery-1.9.1.min.js" type="text/javascript"></script>
+        <script src="static/ace/ace.js" type="text/javascript"></script>
+        <script src="static/keyable.js" type="text/javascript"></script>
+        <script src="static/helpers.js" type="text/javascript"></script>
+        <script src="static/editor.js" type="text/javascript"></script>
         <script type="text/javascript">
             
             var oKeyable = null;
-            
+            var oEditor = null;
+
             $(document).on('ready', function()
             {
                 oKeyable = new InvKeyable('#options', 'id');
@@ -105,14 +112,18 @@
                     }
                 });
             });
+
+            $('.mode').on('click', function(oEvent)
+            {
+                initEditor($(oEvent.target).attr('id'));
+            });
             
-            $(window).on('keydown', function(oEvent)
+            $(window).on('keydown.modeSelection', function(oEvent)
             {
                 switch (oEvent.which)
 				{
 				// Select next down div
 				case 40: // Down arrow
-                    console.log('move down!');
 					oKeyable.moveDown();
 					oEvent.preventDefault();
 					
@@ -122,6 +133,12 @@
 					oKeyable.moveUp();
 					oEvent.preventDefault();
 					break;
+
+                // On choice
+                case 13:
+                    var sMode = oKeyable.getSelected().attr('id');
+                    initEditor(sMode);
+                    break;
                 default:
                     $('#search').focus();
 				}
@@ -166,7 +183,14 @@
                 $('.option.current').removeClass('current');
                 oKeyable.update(false);
             }
-    
+
+            function initEditor(sMode)
+            {
+                $(window).off('keydown.modeSelection');
+                $('body').removeClass('selectLang');
+
+                oEditor = new Editor(true, sMode);
+            }
             
         </script>
     </body>

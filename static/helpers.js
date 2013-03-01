@@ -1,3 +1,19 @@
+function _createClass(oProps)
+{
+    var Class = null;
+    // Create class with constructor.
+    if ('__init__' in oProps)
+        Class = oProps['__init__'];
+    else
+        Class = function(){};
+    
+    // Add methods.
+    for (var sName in oProps)
+        Class.prototype[sName] = oProps[sName];
+    
+    return Class;
+}
+    
 var oHelpers = {
     
     on: function(oElem, sEventName, oScope, fnCallback)
@@ -5,7 +21,7 @@ var oHelpers = {
         $(oElem).on(sEventName, oHelpers.createCallback(oScope, fnCallback));
     },
     
-    WebSocket: oHelpers.createClass(
+    WebSocket: _createClass(
     {
         _oSocket: null,
         _oCallbacks: {}, // Map of event to handlers.
@@ -57,18 +73,7 @@ var oHelpers = {
     
     createClass: function(oProps)
     {
-        var Class = null;
-        // Create class with constructor.
-        if ('__init__' in oProps)
-            Class = oProps['__init__'];
-        else
-            Class = function(){};
-        
-        // Add methods.
-        for (var sName in oProps)
-            Class.prototype[sName] = oProps[sName];
-        
-        return Class;
+        return _createClass(oProps);
     },
     
     createCallback: function(oObject, fnCallback, aOptionalArguments)
@@ -107,7 +112,7 @@ var _Callback = {
     create: function(/*oObject, fnCallback, aArgumentsOverride*/)
     {
         // "this" will return the global object
-        function getClosureCache() { return Callback._aClosureCache; }
+        function getClosureCache() { return _Callback._aClosureCache; }
 
         // cache the parameters in the member variable
         var iID = getClosureCache().push(arguments)-1;

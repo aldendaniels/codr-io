@@ -53,7 +53,7 @@ oApp.get(/^\/fork\/([a-z0-9]+)\/?$/, function(req, res)
 // Normal entrypoint.
 oApp.get('/[a-z0-9]+/?$', function(req, res)
 {
-    res.sendfile('static/index.html');
+    res.sendfile('static/index_new.html');
 });
 
 // Static files.

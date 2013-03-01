@@ -5,6 +5,11 @@ body
 
 #lang-wrap
 {
+    display: none;
+}
+
+.selectLang #lang-wrap
+{
     width: 400px;
     margin-left: auto;
     margin-right: auto;
@@ -14,6 +19,7 @@ body
     border-radius: 5px;
     border: 1px #d5dae5 solid;
     padding: 15px;
+    display: block;
 }
 
 #lang-wrap h3
@@ -127,4 +133,16 @@ body
 #languages #favorites + .option
 {
     border-top: #eee 1px solid;
+}
+
+.selectLang #codr-edit
+{
+    display: none;
+}
+
+#codr-edit
+{
+    width: 100%;
+    height: 100%;
+    position: absolute;
 }
