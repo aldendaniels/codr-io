@@ -21,6 +21,12 @@ var oHelpers = {
         $(oElem).on(sEventName, oHelpers.createCallback(oScope, fnCallback));
     },
     
+    assert: function(bCondition, sMessage)
+    {
+        if (!bCondition)
+            throw sMessage;
+    },
+    
     WebSocket: _createClass(
     {
         _oSocket: null,

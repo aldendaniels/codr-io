@@ -5,7 +5,6 @@
         <link rel=StyleSheet href="static/index_new.css" type="text/css" />
         <link href='http://fonts.googleapis.com/css?family=Open+Sans+Condensed:300' rel='stylesheet' type='text/css'>   
         <link href='http://fonts.googleapis.com/css?family=Unica+One' rel='stylesheet' type='text/css'>
-
     </head>
     <body class="selectLang">
         <div id="lang-wrap">
@@ -82,118 +81,14 @@
                 </div>
             </div>
         </div>
-        <div id="codr-toolbar">
-        </div>
+        <div id="codr-toolbar"></div>
         <div id="codr-edit"></div>
-        <script src="static/jquery-1.9.1.min.js" type="text/javascript"></script>
-        <script src="static/ace/ace.js" type="text/javascript"></script>
-        <script src="static/keyable.js" type="text/javascript"></script>
-        <script src="static/helpers.js" type="text/javascript"></script>
-        <script src="static/editor.js" type="text/javascript"></script>
-        <script type="text/javascript">
-            
-            var oKeyable = null;
-            var oEditor = null;
-
-            $(document).on('ready', function()
-            {
-                oKeyable = new InvKeyable('#options', 'id');
-                oKeyable.attach();
-                
-                $('#search').focus();
-                
-                var sOldVal = '';
-                $('#search').on('keyup', function()
-                {
-                    var sVal = $(this).val();
-                    if (sVal != sOldVal)
-                    {
-                        filterLanguages($(this).val());
-                        sOldVal = sVal;    
-                    }
-                });
-            });
-
-            $('.mode').on('click', function(oEvent)
-            {
-                initEditor($(oEvent.target).attr('id'));
-            });
-            
-            $(window).on('keydown.modeSelection', function(oEvent)
-            {
-                switch (oEvent.which)
-				{
-				// Select next down div
-				case 40: // Down arrow
-					oKeyable.moveDown();
-					oEvent.preventDefault();
-					
-					break;
-				// Select next up div
-				case 38: // Up arrow					
-					oKeyable.moveUp();
-					oEvent.preventDefault();
-					break;
-
-                // On choice
-                case 13:
-                    var sMode = oKeyable.getSelected().attr('id');
-                    initEditor(sMode);
-                    break;
-                default:
-                    $('#search').focus();
-				}
-                
-                scrollIntoView(oKeyable.getSelected());
-            });
-            
-            function scrollIntoView(jElem)
-            {
-                // Calculate the element's position.
-                var jViewport = jElem.offsetParent();
-                var iTop = jElem.position().top - parseInt(jViewport.css('paddingTop'));
-                var iBottom = jViewport[0].clientHeight - (iTop + jElem[0].offsetHeight)
-                    
-                // Scroll element vertically into view.
-                var iScrollTop = null;
-                if (iTop < 0)
-                {
-                    iScrollTop = jViewport.scrollTop() + iTop;
-                    jViewport.scrollTop(iScrollTop);
-                }
-                else if (iBottom < 0)
-                {
-                    iScrollTop = jViewport.scrollTop() - iBottom;
-                    jViewport.scrollTop(iScrollTop);
-                }
-            }
-            
-            function filterLanguages(sSearch)
-            {
-                // Hide all languages.
-                sSearch = sSearch.toLowerCase();
-                var jOptions = $('#languages .option').hide();
-                
-                // Show languages matching filter.
-                var jVisibleOptions = jOptions.filter(function(elem)
-                {
-                    return $(this).text().toLowerCase().indexOf(sSearch) === 0;					
-                }).show();
-                
-                // Update key nav.
-                $('.option.current').removeClass('current');
-                oKeyable.update(false);
-            }
-
-            function initEditor(sMode)
-            {
-                $(window).off('keydown.modeSelection');
-                $('body').removeClass('selectLang');
-
-                oEditor = new Editor(true, sMode);
-            }
-            
-        </script>
+        <script type="text/javascript" src="static/jquery-1.9.1.min.js"></script>
+        <script type="text/javascript" src="static/ace/ace.js"></script>
+        <script type="text/javascript" src="static/keyable.js"></script>
+        <script type="text/javascript" src="static/helpers.js"></script>
+        <script type="text/javascript" src="static/editor.js"></script>
+        <script type="text/javascript" src="static/index_new.js"></script>
     </body>
 </html>
 

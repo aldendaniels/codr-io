@@ -15,13 +15,23 @@ var Editor = oHelpers.createClass(
     _oAceEditorSession: null,
     _oAceDocument: null,
 
-    // Document state.
+    // Editor state.
+    _sMode: '',
+    _bHasEditPerms: false,
     _bIsEditing: false,
+    
+    // Other.
     _iRemoteCursorMarkerID: null,
     _bApplyingExternalEvent: false,
 
-    __init__: function(bIsEditing, sMode)
+    __init__: function(sMode, bHasEditPerms, bIsEditing)
     {
+        // Save state.
+        oHelpers.assert(bHasEditPerms || !bIsEditing);
+        this._sMode = sMode,
+        this._bHasEditPerms = bHasEditPerms;
+        this._bIsEditing = bIsEditing;
+        
         // Create ace editor.
         this._oAceEditor = ace.edit(EDITOR_ID);
         this._oAceEditSession = this._oAceEditor.getSession();
@@ -43,24 +53,13 @@ var Editor = oHelpers.createClass(
     connect: function(oSocket)
     {
         this._oSocket = oSocket;
-        this._oSocket.bind('message', this, this._handleServerMessage);
+        this._oSocket.bind('message', this, this._handleServerEvent);
     },
     
-    _handleServerMessage: function(oMessage)
+    _handleServerEvent: function(oEvent)
     {
-        var oEvent = oMessage.data;
-        switch(oEvent)
+        switch(oEvent.sType)
         {
-            case 'setInitialValue':
-                this._bApplyingExternalEvent = true;
-                this._oAceDocument.setValue(oEvent.sData);
-                this._bApplyingExternalEvent = false;
-                if (oEvent.bReadOnly)
-                    alert('ToDo: Support readonly files.');
-    
-                this._setIsEditing(oEvent.bIsEditing);
-                break;
-            
             case 'selectionChange':
                 this._onRemoteCursorMove(oEvent);
                 break;
@@ -82,17 +81,19 @@ var Editor = oHelpers.createClass(
                 window.alert('yourNewSnapshotUrl: ' + document.location.host + oEvent.sUrl);
                 break;
             
-            default:
+            case 'aceDelta':
                 this._bApplyingExternalEvent = true;
                 this_oAceDocument.applyDeltas([oEvent.oDelta.data]);
                 this._bApplyingExternalEvent = false;
-   
+            
+            default:
+                assert(false, 'Invalid event type "' + oEvent.sType + '".');
         }        
     },
 
     _onRemoveServerMove: function(oEvent)
     {
-        assert('ToDo: Support showing selection changes');
+        window.alert('TODO: Support showing selection changes');
     },
 
     _attachAceEvents: function()
@@ -158,8 +159,7 @@ var Editor = oHelpers.createClass(
     _setIsEditing: function(bIsEditing)
     {
         this._bIsEditing = bIsEditing;
-        alert('ToDo: Support bIsEditing');
-    
+        window.alert('ToDo: Support bIsEditing');
     },
     
     _setMode: function(sMode)
