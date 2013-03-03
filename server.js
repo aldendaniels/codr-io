@@ -14,10 +14,13 @@ var oApp = oExpress();
 // Handle landing on the root.
 oApp.get('^/$', function(req, res)
 {
-    oDatabase.generateNewDocumentID(this, function(sNewID)
-    {
-        res.redirect('/' + sNewID);
-    });
+    res.sendfile('static/index_new.html');
+});
+
+// Normal entrypoint.
+oApp.get('/[a-z0-9]+/?$', function(req, res)
+{
+    // TODO
 });
 
 // Forking entrypoint.
@@ -49,12 +52,6 @@ oApp.get(/^\/fork\/([a-z0-9]+)\/?$/, function(req, res)
         });
     }
 })
-
-// Normal entrypoint.
-oApp.get('/[a-z0-9]+/?$', function(req, res)
-{
-    res.sendfile('static/index_new.html');
-});
 
 // Static files.
 oApp.use('/static/', oExpress.static(__dirname + '/static'));

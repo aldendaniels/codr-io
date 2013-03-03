@@ -1,10 +1,69 @@
-﻿function InvKeyable(jParent, sIDAttr)
+﻿var oMenu = oHelpers.createClass(
 {
-        this._jParent = $(jParent);
-		this._sIDAttr = sIDAttr;
-		this.update();	
-}
-InvKeyable.prototype = {
+    _aFavOpts: null,
+    _aNormalOpts: null,
+    _iNumFavorites: 0,
+    _fnOnSelect: null,
+    _jMenu: null,
+    
+    __init__: function(aFavOpts, aOtherOpts, oScope, fnOnSelect)
+    {
+        this._aOptions = aFavOptions.concat(aOtherOpts);
+        this._iNumFavorites(this._aOptions.length);
+        this._fnOnSelect = oHelpers.createCallback(oScope, fnOnSelect);
+    },
+    
+    _createHTML: function()
+    {
+        this._jMenu = $('\
+            <div class="menu" >\
+                <input type="text" class="menu-search" autocomplete="off"/>\
+                <div class="menu-options">\
+                </div>\
+            </div>\
+        ');
+        this._renderOptions();
+    },
+    
+    _renderOptions: function(sOptionalFilter)
+    {
+        // Clear old options.
+        var jOptsParent = this._jMenu.children('.menu-options');
+        jOptsParent.empty();
+    
+        // Filter options.
+        var sFilter = (sOptionalFilter || '').toLowerCase();
+        var aFavOpts    = this._grepOpts(this.aFavOpts    , sFilter);
+        var aNormalOpts = this._grepOpts(this._aNormalOpts, sFilter);
+        
+        // Create favorite options.
+        if (aFavOpts.length)
+        {
+            var jFavs = jOptsParent.append('<div class="menu-favs"></div>')
+            for (var i = 0; i < aFavOpts.length; i++)
+                this._appendOption(jFavs, aFavOpts[i]);
+        }
+        
+        // Create normal options.
+        for (var i = 0; i < aNormalOpts.length; i++)
+            this._appendOption(jOptsParent, aNormalOpts[i]);
+    },
+    
+    _grepOpts: function(aItems, sQuery)
+    {
+        return jQuery.filter(aItems, function(oOpt)
+        {
+            return oOpt.text.toLowerCase().indoxOf(sSearch);
+        });
+    },
+    
+    _appendOption: function(jParent, oOpt)
+    {
+        jParent.append('');
+    }
+});
+
+var oKeyable = oHelpers.createClass({
 
     // Constant members.
 	_jParent: null,
@@ -81,4 +140,4 @@ InvKeyable.prototype = {
 	{
 		return this._jSelected;
 	}
-};
+});
