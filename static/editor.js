@@ -46,51 +46,48 @@ var Editor = oHelpers.createClass(
         this._oSocket.bind('message', this, this._handleServerMessage);
     },
     
-    _handleServerMessage: function()
+    _handleServerMessage: function(oMessage)
     {
-        var oEvent = JSON.parse(oMessage.data);
-        if (oEvent.sType == 'setInitialValue')
+        var oEvent = oMessage.data;
+        switch(oEvent)
         {
-            this._bApplyingExternalEvent = true;
-            this._oAceDocument.setValue(oEvent.sData);
-            this._bApplyingExternalEvent = false;
-            if (oEvent.bReadOnly)
-                alert('ToDo: Support readonly files.');
+            case 'setInitialValue':
+                this._bApplyingExternalEvent = true;
+                this._oAceDocument.setValue(oEvent.sData);
+                this._bApplyingExternalEvent = false;
+                if (oEvent.bReadOnly)
+                    alert('ToDo: Support readonly files.');
+    
+                this._setIsEditing(oEvent.bIsEditing);
+                break;
+            
+            case 'selectionChange':
+                this._onRemoteCursorMove(oEvent);
+                break;
+            
+            case 'languageChange':
+                this._setMode(oEvent.sLang);
+                break;
+            
+            case 'removeEditRights':
+                this._setIsEditing(false);        
+                this._oSocket.send( {sType: 'releaseEditRights'} ); // Notify server of event receipt.
+                break;
 
-            this._setIsEditing(oEvent.bIsEditing);
-        }
-        else if (oEvent.sType == 'selectionChange')
-        {
-            this._onRemoteCursorMove(oEvent);
-        }
-        else if (oEvent.sType == 'languageChange')
-        {
-            this._setMode(oEvent.sLang);
-        }
-        else if (oEvent.sType == 'removeEditRights')
-        {
-            this._setIsEditing(false);        
-            // Notify server of event receipt.
-            g_oSocket.send(JSON.stringify(
-            {
-                sType: 'releaseEditRights'
-            }));
-        }
-        else if (oEvent.sType == 'editRightsGranted')
-        {
-            this._setIsEditing(true);
-        }
-        else if (oEvent.sType == 'newSnapshotUrl')
-        {
-            window.alert('yourNewSnapshotUrl: ' + document.location.host + oEvent.sUrl);
-        }
-        else
-        {
-            this._bApplyingExternalEvent = true;
-            this_oAceDocument.applyDeltas([oEvent.oDelta.data]);
-            this._bApplyingExternalEvent = false;
-        }
-        
+            case 'editRightsGranted':
+                this._setIsEditing(true);
+                break;
+
+            case 'newSnapshotUrl':
+                window.alert('yourNewSnapshotUrl: ' + document.location.host + oEvent.sUrl);
+                break;
+            
+            default:
+                this._bApplyingExternalEvent = true;
+                this_oAceDocument.applyDeltas([oEvent.oDelta.data]);
+                this._bApplyingExternalEvent = false;
+   
+        }        
     },
 
     _onRemoveServerMove: function(oEvent)
@@ -105,14 +102,14 @@ var Editor = oHelpers.createClass(
 
     _onDocumentChange: function(oEvent)
     {
-        if (g_bApplyingExternalEvent)
+        if (this._bApplyingExternalEvent)
             return;
     
         var oNormEvent = {
             sType: 'aceDelta',
             oDelta: oEvent
         }
-        this._oSocket.send(JSON.stringify(oNormEvent));
+        this._oSocket.send(oNormEvent);
 
     },
     
@@ -137,11 +134,11 @@ var Editor = oHelpers.createClass(
         $('#mode').on('change', function()
         {
             setLang($(this).val());
-            g_oSocket.send(JSON.stringify(
+            this._oSocket.send(
             {
                 'sType': 'languageChange',
                 'sLang': $(this).val()
-            }));
+            });
         });
         
         $('#fork').click(function()
@@ -151,10 +148,10 @@ var Editor = oHelpers.createClass(
     
         $('#snapshot').click(function()
         {
-            g_oSocket.send(JSON.stringify(
+            this._oSocket.send(
             {
                 sType: 'generateSnapshot'
-            }));
+            });
         });
     },
 
