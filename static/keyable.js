@@ -47,14 +47,17 @@
         this._oKeyable.update();
     },
 
-    attachEvents: function()
+    attach: function()
     {
         oHelpers.on(window, 'keydown.menu', this, this._onKeyDown);
         oHelpers.on(window, 'keyup.menu', this, this._onKeyUp);
+        oHelpers.on(this._jMenu, 'click', this, this._selectCur);
         this._oKeyable.attach();
+        this._jMenu.find('.menu-search').focus();
+
     },
 
-    detachEvents: function()
+    detach: function()
     {
         $(window).off('keydown.menu');
         $(window).off('keyup.menu');
@@ -145,8 +148,7 @@
     
             // On choice
             case 13:
-                var sKey = this._oKeyable.getSelected().attr('id');
-                this._fnOnSelect(sKey);
+                this._selectCur();
                 break;
             
             default:
@@ -159,9 +161,15 @@
         var sQuery = this._jMenu.find('.menu-search').val();
         if (this._sLastQuery != sQuery)
             this._renderOptions(sQuery);
-
+        
         this._sLastQuery = sQuery;
-    }
+    },
+    
+    _selectCur: function()
+    {
+        var sKey = this._oKeyable.getSelected().attr('id');
+        this._fnOnSelect(sKey);
+    },
 });
 
 var Keyable = oHelpers.createClass({
