@@ -1,3 +1,31 @@
+.menu
+{
+    height: 100%;
+    position: relative;
+}
+
+.menu-search
+{
+    width: 374px;
+    border: 1px #ccc solid;
+    padding: 5px;
+    margin-top: 6px;
+    outline: none;
+}
+
+.menu-options
+{
+    position: absolute;
+    left: 0;
+    top: 42px;
+    bottom: 0;
+    right: 0;
+    overflow: auto;
+    text-align: left;
+    border-top: 1px #c5cad5 solid;
+
+}
+
 .menu .option
 {
     font-size: 10pt;

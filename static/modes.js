@@ -1,3 +1,4 @@
+var aFavKeys = ['html', 'text', 'javascript', 'css', 'python', 'sql'];
 var aModes = [
     {'sKey': 'abap', 'sText': 'ABAP'},
     {'sKey': 'asciidoc', 'sText': 'AsciiDoc'},
@@ -59,6 +60,4 @@ var aModes = [
     {'sKey': 'xml', 'sText': 'XML'},
     {'sKey': 'xquery', 'sText': 'XQuery'},
     {'sKey': 'yaml', 'sText': 'YAML'}
-]
-
-var aFavModes = ['javascript', 'css', 'python', 'sql', 'html', 'text'];
+];

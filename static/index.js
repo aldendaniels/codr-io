@@ -3,7 +3,7 @@ var oEditor = null;
 
 $(document).on('ready', function()
 {
-    oMenu = new Menu(aModes, aFavModes, $('#language'), null, initEditor);
+    oMenu = new Menu(aModes, aFavKeys, $('#language'), null, initEditor);
     oMenu.attachEvents();
     
     $('#search').focus();
