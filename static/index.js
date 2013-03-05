@@ -1,10 +1,10 @@
-var oKeyable = null;
+var oMenu = null;
 var oEditor = null;
 
 $(document).on('ready', function()
 {
-    oKeyable = new Keyable('#options', 'id');
-    oKeyable.attach();
+    oMenu = new Menu(aModes, aFavModes, $('#language'), null, initEditor);
+    oMenu.attachEvents();
     
     $('#search').focus();
     
@@ -15,7 +15,7 @@ $(document).on('ready', function()
         if (sVal != sOldVal)
         {
             filterLanguages($(this).val());
-            sOldVal = sVal;    
+            sOldVal = sVal;
         }
     });
 });
@@ -24,55 +24,6 @@ $('.mode').on('click', function(oEvent)
 {
     initEditor($(oEvent.target).attr('id'));
 });
-
-$(window).on('keydown.modeSelection', function(oEvent)
-{
-    switch (oEvent.which)
-    {
-    // Select next down div
-    case 40: // Down arrow
-        oKeyable.moveDown();
-        oEvent.preventDefault();
-        
-        break;
-    // Select next up div
-    case 38: // Up arrow					
-        oKeyable.moveUp();
-        oEvent.preventDefault();
-        break;
-
-    // On choice
-    case 13:
-        var sMode = oKeyable.getSelected().attr('id');
-        initEditor(sMode);
-        break;
-    default:
-        $('#search').focus();
-    }
-    
-    scrollIntoView(oKeyable.getSelected());
-});
-
-function scrollIntoView(jElem)
-{
-    // Calculate the element's position.
-    var jViewport = jElem.offsetParent();
-    var iTop = jElem.position().top - parseInt(jViewport.css('paddingTop'));
-    var iBottom = jViewport[0].clientHeight - (iTop + jElem[0].offsetHeight)
-        
-    // Scroll element vertically into view.
-    var iScrollTop = null;
-    if (iTop < 0)
-    {
-        iScrollTop = jViewport.scrollTop() + iTop;
-        jViewport.scrollTop(iScrollTop);
-    }
-    else if (iBottom < 0)
-    {
-        iScrollTop = jViewport.scrollTop() - iBottom;
-        jViewport.scrollTop(iScrollTop);
-    }
-}
 
 function filterLanguages(sSearch)
 {
@@ -91,10 +42,10 @@ function filterLanguages(sSearch)
     oKeyable.update(false);
 }
 
-function initEditor(sMode)
+function initEditor(sKey)
 {
-    $(window).off('keydown.modeSelection');
+    oMenu.detachEvents();
     $('body').removeClass('selectLang');
 
-    oEditor = new Editor(true, sMode);
+    oEditor = new Editor(sKey, true, true);
 }

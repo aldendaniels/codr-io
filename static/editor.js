@@ -98,7 +98,7 @@ var Editor = oHelpers.createClass(
 
     _attachAceEvents: function()
     {
-        this._oAceEditor.on("change", onDocumentChange);
+        this._oAceEditor.on("change", oHelpers.createCallback(this, this._onDocumentChange));
     },
 
     _onDocumentChange: function(oEvent)
@@ -164,8 +164,6 @@ var Editor = oHelpers.createClass(
     
     _setMode: function(sMode)
     {
-        this._oAceEditSession.setMode(sMode);
-        if ($('#edit-mode').val() != '/ace/mode/' + sMode)
-            $('#edit-mode').val(sMode);    
+        this._oAceEditSession.setMode('/ace/mode/' + sMode);
     }
 });

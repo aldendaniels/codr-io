@@ -107,34 +107,6 @@ body
 
 }
 
-#languages .option
-{
-    font-size: 10pt;
-    color: #777;
-    font-weight: bold;
-    padding-left: 10px;
-    padding-top: 8px;
-    padding-bottom: 8px;
-    background-color: white;
-    border-bottom: #eee 1px solid;
-    cursor: pointer;
-}
-
-#languages .option.current
-{
-    background-color: #f7f7f7;
-}
-
-#languages #favorites
-{
-   border-bottom: 4px solid #666;
-}
-
-#languages #favorites + .option
-{
-    border-top: #eee 1px solid;
-}
-
 .selectLang #codr-edit
 {
     display: none;
