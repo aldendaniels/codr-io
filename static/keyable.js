@@ -63,7 +63,7 @@
     }
 });
 
-var oKeyable = oHelpers.createClass({
+var Keyable = oHelpers.createClass({
 
     // Constant members.
 	_jParent: null,

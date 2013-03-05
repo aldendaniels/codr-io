@@ -3,7 +3,7 @@ var oEditor = null;
 
 $(document).on('ready', function()
 {
-    oKeyable = new InvKeyable('#options', 'id');
+    oKeyable = new Keyable('#options', 'id');
     oKeyable.attach();
     
     $('#search').focus();

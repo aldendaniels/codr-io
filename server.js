@@ -14,7 +14,7 @@ var oApp = oExpress();
 // Handle landing on the root.
 oApp.get('^/$', function(req, res)
 {
-    res.sendfile('static/index_new.html');
+    res.sendfile('static/index.html');
 });
 
 // Normal entrypoint.
