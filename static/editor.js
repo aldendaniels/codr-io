@@ -28,7 +28,6 @@ var Editor = oHelpers.createClass(
     {
         // Save state.
         oHelpers.assert(bHasEditPerms || !bIsEditing);
-        this._sMode = sMode,
         this._bHasEditPerms = bHasEditPerms;
         this._bIsEditing = bIsEditing;
         
@@ -165,5 +164,6 @@ var Editor = oHelpers.createClass(
     _setMode: function(sMode)
     {
         this._oAceEditSession.setMode('/ace/mode/' + sMode);
+		this._sMode = sMode;
     }
 });

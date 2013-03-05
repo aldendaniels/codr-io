@@ -54,8 +54,8 @@ var oHelpers = {
         
         bind: function(sEventName, oScope, fnCallback)
         {
-            _oCallbacks[sEventName] = _oCallbacks[sEventName] || [];
-            _oCallbacks[sEventName].push(createCallback(this, fnCallback));
+            this._oCallbacks[sEventName] = this._oCallbacks[sEventName] || [];
+            this._oCallbacks[sEventName].push(oHelpers.createCallback(oScope, fnCallback));
         },
         
         send: function(sEventType, oEventData)
@@ -71,8 +71,8 @@ var oHelpers = {
         {
             if (sEventName in this._oCallbacks)
             {
-                for (var i in this_oCallbacks[sEventName])
-                    this_oCallbacks[sEventName](oOptionalData);
+                for (var i in this._oCallbacks[sEventName])
+                    this._oCallbacks[sEventName][i](oOptionalData);
             }
         }  
     }),
