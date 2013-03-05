@@ -97,73 +97,33 @@ var Editor = oHelpers.createClass(
 
     _attachAceEvents: function()
     {
-        this._oAceEditor.on("change", oHelpers.createCallback(this, this._onDocumentChange));
+        this._oAceEditor.on("change", oHelpers.createCallback(this, function(oEvent)
+        {
+            if (!this._bApplyingExternalEvent)
+            {
+                this._oSocket.send(
+                {
+                    sType: 'aceDelta',
+                    oDelta: oEvent
+                });
+            }        
+        }));
     },
 
-    _onDocumentChange: function(oEvent)
-    {
-        if (this._bApplyingExternalEvent)
-            return;
-    
-        var oNormEvent = {
-            sType: 'aceDelta',
-            oDelta: oEvent
-        }
-        this._oSocket.send(oNormEvent);
-
-    },
-    
     _attachDOMEvents: function()
     {
-        // Toggle edit mode.
-        oHelpers.on('#edit-btn', 'click', this, function()
-        {
-            this._oSocket.send('requestEditRights');
-        });
-
-        // Set editor language.
-        oHelpers.on('#edit-mode', 'change', this, function(oEvent)
-        {
-            // Set mode.
-            var sMode = $(oEvent.target).val();
-            this._oSocket.send('languageChange', sMode);
-            this._setMode(sMode);            
-        });
-        
-        // Change mode.
-        $('#mode').on('change', function()
-        {
-            setLang($(this).val());
-            this._oSocket.send(
-            {
-                'sType': 'languageChange',
-                'sLang': $(this).val()
-            });
-        });
-        
-        $('#fork').click(function()
-        {
-            document.location.pathname = '/fork' + document.location.pathname;
-        });
-    
-        $('#snapshot').click(function()
-        {
-            this._oSocket.send(
-            {
-                sType: 'generateSnapshot'
-            });
-        });
+        // TODO.
     },
 
     _setIsEditing: function(bIsEditing)
     {
         this._bIsEditing = bIsEditing;
-        window.alert('ToDo: Support bIsEditing');
+        // TODO: Update UI.
     },
     
     _setMode: function(sMode)
     {
-        this._oAceEditSession.setMode('/ace/mode/' + sMode);
+        this._oAceEditSession.setMode('ace/mode/' + sMode);
 		this._sMode = sMode;
     }
 });
