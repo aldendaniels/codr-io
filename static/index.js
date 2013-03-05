@@ -4,7 +4,7 @@ var oEditor = null;
 $(document).on('ready', function()
 {
     // Create the language menu.
-    var aDialogFavKeys = jQuery.grep(aFavKeys, function(i, sKey)
+    var aDialogFavKeys = jQuery.grep(aFavKeys, function(sKey)
     {
         return sKey != 'html' && sKey != 'text';
     });
