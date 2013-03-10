@@ -4,23 +4,32 @@ var oSocket = null;
 
 $(document).on('ready', function()
 {
-    // Create the language menu.
+    // Create the mode (language) menu.
     var aDialogFavKeys = jQuery.grep(aFavKeys, function(sKey)
     {
         return sKey != 'html' && sKey != 'text';
     });
     oMenu = new Menu(aModes, aDialogFavKeys, $('#language'), null, initEditor);
     oMenu.attach();
+    
+    // Attach button events.
+    $('.btn.mode').on('click', function()
+    {
+        initEditor(this.id);
+    });
+    
+    // Create Editor.
+    oEditor = new Editor(true, true);
 });
 
-function initEditor(sKey)
+function initEditor(sMode)
 {
-    // Hide language chooseer.
+    // Set editor mode.
+    oEditor.setMode(sMode);
+
+    // Hide mode chooser.
     oMenu.detach();
     $('body').removeClass('selectLang');
-
-    // Create Editor.
-    oEditor = new Editor(sKey, true, true);
     
     // Connect.
     var sURL = 'ws://' + window.document.location.host + window.document.location.pathname;

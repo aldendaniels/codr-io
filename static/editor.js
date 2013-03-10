@@ -24,7 +24,7 @@ var Editor = oHelpers.createClass(
     _iRemoteCursorMarkerID: null,
     _bApplyingExternalEvent: false,
 
-    __init__: function(sMode, bHasEditPerms, bIsEditing)
+    __init__: function(bHasEditPerms, bIsEditing)
     {
         // Save state.
         oHelpers.assert(bHasEditPerms || !bIsEditing);
@@ -38,7 +38,6 @@ var Editor = oHelpers.createClass(
         
         // Set initial settings.
         this._oAceEditor.setFontSize(14);
-        this._setMode(sMode);
         this._setIsEditing(bIsEditing);
         
         // Attach events.
@@ -55,6 +54,12 @@ var Editor = oHelpers.createClass(
         this._oSocket.bind('message', this, this._handleServerEvent);
     },
     
+    setMode: function(sMode)
+    {
+        this._oAceEditSession.setMode('ace/mode/' + sMode);
+		this._sMode = sMode;
+    },
+
     _handleServerEvent: function(oEvent)
     {
         switch(oEvent.sType)
@@ -119,11 +124,5 @@ var Editor = oHelpers.createClass(
     {
         this._bIsEditing = bIsEditing;
         // TODO: Update UI.
-    },
-    
-    _setMode: function(sMode)
-    {
-        this._oAceEditSession.setMode('ace/mode/' + sMode);
-		this._sMode = sMode;
     }
 });
