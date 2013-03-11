@@ -70,6 +70,89 @@ oWsServer.on('connection', function(oSocket)
 
 var g_oDocuments = {}; // sID to Document instance.
 
+
+var Client = oHelpers.createClass({
+
+    _oSocket: null,
+    _oDocument: null,
+    _sID: '1234',
+    _bCreatedDocument: false,
+    
+    __init__: function(oSocket)
+    {
+        this._oSocket = oSocket;
+        
+        oSocket.on('message', oHelpers.createCallback(this, this._onClientEvent));
+        oSocket.on('close', oHelpers.createCallback(this, function()
+        {
+            this._oDocument.removeClient(this);
+        }));        
+    },
+    
+    sendEvent: function(oEvent)
+    {
+        this._oSocket.send(JSON.stringify(oEvent));
+    },
+
+    _onClientEvent: function(sEventData)
+    {
+        // Get event data.
+        var oEventData = JSON.parse(sEventData);
+        if (oEventData.sType == 'createDocument')
+        {
+            oHelpers.assert(!this._oDocument, 'Client already connected.');
+            oDatabase.generateNewDocumentID(this, function(sNewID)
+            {
+                this._bCreatedDocument = true;
+                g_oDocuments[sNewID] = new Document(sNewID);
+                g_oDocuments[sNewID].onLoad(this, this._onDocumentLoad);
+            });
+        }
+        else if (oEventData.sType == 'openDocument')
+        {
+            oHelpers.assert(!this._oDocument, 'Client already connected.');
+
+            // Open the document.
+            if (!oEventData.sID in g_oDocuments)
+                g_oDocuments[sNewID] = new Document(sNewID);
+
+            g_oDocuments[sNewID].onLoad(this, this.onDocumentLoad);
+            this._bCreatedDocument = false;
+        }
+        else
+        {
+            if (oEventData.sType == 'selectionChange')
+                oEventData.sPeerID = this._sID;
+
+            // Send event to document.
+            this._oDocument.onClientEvent(
+            {
+                oClient: this,
+                oEventData: oEventData
+            });
+        }
+    },
+
+    _onDocumentLoad: function(oDocument)
+    {        
+        oHelpers.assert(!this._oDocument, 'Client already connected to a document.');
+        this._oDocument = oDocument;
+
+        if (this._bCreatedDocument)
+        {
+            this.sendEvent({
+                'sType': 'setDocumentID',
+                'sID': this._oDocument.getID()
+            });
+        }
+        else
+        {
+            this._oDocument.setClientInitialValue(this);
+        }
+    
+    }
+});
+
 var Document = oHelpers.createClass(
 {
     // Data
@@ -254,19 +337,7 @@ var Document = oHelpers.createClass(
     {
         // Set as primary editor.
         var bIsEditing = oClient === this._oCurrentEditingClient;
-            
-        // Show selection to non-primary (readonly) editors.
-        if (!bIsEditing && this._oLastSelEvent)
-            oClient.sendEvent(this._oLastSelEvent.oEventData);
-
-        // Send text.
-        oClient.sendEvent(
-        {
-            'sType': 'setInitialValue',
-            'sText': this.getText(),
-            'bIsEditing': bIsEditing
-        });
-
+        
         // Set language.
         oClient.sendEvent(
         {
@@ -274,6 +345,17 @@ var Document = oHelpers.createClass(
             'sLang': this._oDocument.getLanguage()
         });
         
+        // Send text.
+        oClient.sendEvent(
+        {
+            'sType': 'setInitialValue',
+            'sText': this.getText(),
+            'bIsEditing': bIsEditing
+        });
+                    
+        // Show selection to non-primary (readonly) editors.
+        if (!bIsEditing && this._oLastSelEvent)
+            oClient.sendEvent(this._oLastSelEvent.oEventData);
     },
     
     _setSaveTimeout: function()
@@ -319,88 +401,6 @@ var Document = oHelpers.createClass(
     {
         if (!this._bInitialized)
             throw 'Document not yet initialized.';
-    }
-});
-
-var Client = oHelpers.createClass({
-
-    _oSocket: null,
-    _oDocument: null,
-    _sID: '1234',
-    _bCreatedDocument: false,
-    
-    __init__: function(oSocket)
-    {
-        this._oSocket = oSocket;
-        
-        oSocket.on('message', oHelpers.createCallback(this, this._onClientEvent));
-        oSocket.on('close', oHelpers.createCallback(this, function()
-        {
-            this._oDocument.removeClient(this);
-        }));        
-    },
-    
-    sendEvent: function(oEvent)
-    {
-        this._oSocket.send(JSON.stringify(oEvent));
-    },
-
-    _onClientEvent: function(sEventData)
-    {
-        // Get event data.
-        var oEventData = JSON.parse(sEventData);
-        if (oEventData.sType == 'createDocument')
-        {
-            oHelpers.assert(!this._oDocument, 'Client already connected.');
-            oDatabase.generateNewDocumentID(this, function(sNewID)
-            {
-                this._bCreatedDocument = true;
-                g_oDocuments[sNewID] = new Document(sNewID);
-                g_oDocuments[sNewID].onLoad(this, this._onDocumentLoad);
-            });
-        }
-        else if (oEventData.sType == 'openDocument')
-        {
-            oHelpers.assert(!this._oDocument, 'Client already connected.');
-
-            // Open the document.
-            if (!oEventData.sID in g_oDocuments)
-                g_oDocuments[sNewID] = new Document(sNewID);
-
-            g_oDocuments[sNewID].onLoad(this, this.onDocumentLoad);
-            this._bCreatedDocument = false;
-        }
-        else
-        {
-            if (oEventData.sType == 'selectionChange')
-                oEventData.sPeerID = this._sID;
-
-            // Send event to document.
-            this._oDocument.onClientEvent(
-            {
-                oClient: this,
-                oEventData: oEventData
-            });
-        }
-    },
-
-    _onDocumentLoad: function(oDocument)
-    {        
-        oHelpers.assert(!this._oDocument, 'Client already connected to a document.');
-        this._oDocument = oDocument;
-
-        if (this._bCreatedDocument)
-        {
-            this.sendEvent({
-                'sType': 'setDocumentID',
-                'sID': this._oDocument.getID()
-            });
-        }
-        else
-        {
-            this._oDocument.setClientInitialValue(this);
-        }
-    
     }
 });
 
