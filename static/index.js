@@ -4,6 +4,19 @@ var oSocket = null;
 
 $(document).on('ready', function()
 {
+    /* Grap templates from cash before initialzing. */
+    $.get('static/templates.html', function(sData)
+    {
+        $('#template').append(sData);
+        onReady();
+    });
+});
+
+function onReady()
+{
+    // Compile templates.
+    oTemplate.init();
+
     // Create the mode (language) menu.
     var aDialogFavKeys = jQuery.grep(aFavKeys, function(sKey)
     {
@@ -19,8 +32,8 @@ $(document).on('ready', function()
     });
     
     // Create Editor.
-    oEditor = new Editor(true, true);
-});
+    oEditor = new Editor(true, true);   
+}
 
 function initEditor(sMode)
 {

@@ -54,7 +54,9 @@ oApp.get(/^\/fork\/([a-z0-9]+)\/?$/, function(req, res)
 })
 
 // Static files.
-oApp.use('/static/', oExpress.static(__dirname + '/static'));
+oApp.use('/static/', oExpress.static(__dirname + '/static', {
+    /* maxAge: 86400000 /* one day*/
+}));
 
 // Instantiate server.
 var oServer = oHTTP.createServer(oApp);
