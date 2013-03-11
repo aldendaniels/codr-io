@@ -102,5 +102,11 @@ module.exports =
 			}
 		}
 		return oOtherObject;
+    },
+
+    assert: function(bCondition, sMessage)
+    {
+        if (!bCondition)
+            throw sMessage;
     }
 };

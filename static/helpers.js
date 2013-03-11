@@ -36,9 +36,9 @@ var oHelpers = {
         {
             this._oSocket = new WebSocket(url);
             
-            this._oSocket.onmesssage = oHelpers.createCallback(this, function(oEvent)
+            this._oSocket.onmessage = oHelpers.createCallback(this, function(oEvent)
             {
-                this._dispatch(JSON.parse(oEvent.data));
+                this._dispatch('message', JSON.parse(oEvent.data));
             });
             
             this._oSocket.onopen = oHelpers.createCallback(this, function()

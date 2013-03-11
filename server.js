@@ -6,7 +6,6 @@ var oHTTP = require('http');
 var oHelpers = require('./helpers');
 var oAceDocument = require('./aceDocument').Document;
 var oDatabase = require('./database');
-var assert = require('assert');
 
 // Create express app.
 var oApp = oExpress();
@@ -66,21 +65,7 @@ oServer.listen(8080);
 var oWsServer = new oWS.Server({server: oServer});
 oWsServer.on('connection', function(oSocket)
 {
-    var aMatch = oSocket.upgradeReq.url.match('^/([a-z0-9]+)/?$')
-    if (!aMatch)
-    {
-        oSocket.close();
-        return;
-    }
-
-    var sID = aMatch[1];
-
-    // Create new doc (if necessary).
-    if (!(sID in g_oDocuments))
-        g_oDocuments[sID] = new Document(sID);
-
-    // Register client.
-    g_oDocuments[sID].registerClient(oSocket);    
+    new Client(oSocket);
 });
 
 var g_oDocuments = {}; // sID to Document instance.
@@ -95,7 +80,7 @@ var Document = oHelpers.createClass(
     // State
     _aClients: null,
     _bInitialized: false,
-    _aPreInitClients: null,
+    _aOnInitCallbacks: null,
     _iSaveTimeout: null,
     _oCurrentEditingClient: null,
     _oLastSelEvent: null,
@@ -104,7 +89,7 @@ var Document = oHelpers.createClass(
     __init__: function(sID)
     {
         this._sID = sID;
-        this._aPreInitClients = [];
+        this._aOnInitCallbacks = [];
         this._aClients = [];
         
         oDatabase.documentExists(sID, this, function(bExists)
@@ -118,36 +103,24 @@ var Document = oHelpers.createClass(
         });
     },
 
-    registerClient: function(oSocket)
+    onLoad: function(oScope, fnCallback)
     {
-        if (!this._bInitialized)
-        {
-            this._aPreInitClients.push(oSocket);
-            return;
-        }
+        var fnCallback = oHelpers.createCallback(oScope, fnCallback);
+        if (this._bInitialized)
+            fnCallback(this);
+        else
+            this._aOnInitCallbacks.push(fnCallback);
+    },
 
-        if (this._oDocument.getReadOnly())
-        {
-            this._syncClient(new Client(oSocket, this), false);
-            oSocket.close();
-            return;
-        }
+    registerClient: function(oClient)
+    {
+        this._assertInit();
+
+        if (!this._oCurrentEditingClient)
+            this._oCurrentEditingClient = oClient;
 
         // Create client.
-        var bIsEditing = !this._oCurrentEditingClient;
-        var oNewClient = new Client(oSocket, this);
-        this._aClients.push(oNewClient);
-        
-        // Set as primary editor.
-        if (bIsEditing)
-            this._oCurrentEditingClient = oNewClient;
-            
-        // Init client.
-        this._syncClient(oNewClient, bIsEditing);
-
-        // Show selection to non-primary (readonly) editors.
-        if (!bIsEditing && this._oLastSelEvent)
-            oNewClient.sendEvent(this._oLastSelEvent.oEventData);
+        this._aClients.push(oClient);
     },
     
     removeClient: function(oClient)
@@ -261,6 +234,12 @@ var Document = oHelpers.createClass(
         this.flushEventQueue();
         return this._oDocument.getText();
     },
+
+    getID: function()
+    {
+        this._assertInit();
+        return this._sID;
+    },
     
     save: function(fnOnResponse)
     {
@@ -271,8 +250,23 @@ var Document = oHelpers.createClass(
         oDatabase.saveDocument(this._oDocument, this, fnOnResponse || function(){});
     },
 
-    _syncClient: function(oClient, bIsEditing)
+    setClientInitialValue: function(oClient)
     {
+        // Set as primary editor.
+        var bIsEditing = oClient === this._oCurrentEditingClient;
+            
+        // Show selection to non-primary (readonly) editors.
+        if (!bIsEditing && this._oLastSelEvent)
+            oClient.sendEvent(this._oLastSelEvent.oEventData);
+
+        // Send text.
+        oClient.sendEvent(
+        {
+            'sType': 'setInitialValue',
+            'sText': this.getText(),
+            'bIsEditing': bIsEditing
+        });
+
         // Set language.
         oClient.sendEvent(
         {
@@ -280,21 +274,13 @@ var Document = oHelpers.createClass(
             'sLang': this._oDocument.getLanguage()
         });
         
-        // Send text.
-        oClient.sendEvent(
-        {
-            'sType': 'setInitialValue',
-            'sData': this.getText(),
-            'bIsEditing': bIsEditing,
-            'bReadOnly': this._oDocument.getReadOnly()
-        });
     },
     
     _setSaveTimeout: function()
     {
         this._assertInit();
         
-        assert(this._iSaveTimeout === null);
+        oHelpers.assert(this._iSaveTimeout === null);
         this._iSaveTimeout = setTimeout(oHelpers.createCallback(this, function()
         {
             this.save(oHelpers.createCallback(this, this._clearSaveTimeout));
@@ -320,14 +306,13 @@ var Document = oHelpers.createClass(
         this._oDocument = oDocument;
         this._oAceDocument = new oAceDocument(oDocument.getText());
 
-        // Register client.
         this._bInitialized = true;        
-        var oSocket = this._aPreInitClients.pop();
-        while (oSocket)
+        for (var i = 0; i < this._aOnInitCallbacks.length; i++)
         {
-            this.registerClient(oSocket);
-            oSocket = this._aPreInitClients.pop();
+            this._aOnInitCallbacks[i](this);
+            
         }
+        this._aOnInitCallbacks = [];
     },
 
     _assertInit: function()
@@ -342,11 +327,11 @@ var Client = oHelpers.createClass({
     _oSocket: null,
     _oDocument: null,
     _sID: '1234',
+    _bCreatedDocument: false,
     
-    __init__: function(oSocket, oDocument)
+    __init__: function(oSocket)
     {
         this._oSocket = oSocket;
-        this._oDocument = oDocument;
         
         oSocket.on('message', oHelpers.createCallback(this, this._onClientEvent));
         oSocket.on('close', oHelpers.createCallback(this, function()
@@ -359,20 +344,63 @@ var Client = oHelpers.createClass({
     {
         this._oSocket.send(JSON.stringify(oEvent));
     },
-    
+
     _onClientEvent: function(sEventData)
     {
         // Get event data.
         var oEventData = JSON.parse(sEventData);
-        if (oEventData.sType == 'selectionChange')
-            oEventData.sPeerID = this._sID;
-        
-        // Send event to document.
-        this._oDocument.onClientEvent(
+        if (oEventData.sType == 'createDocument')
         {
-            oClient: this,
-            oEventData: oEventData
-        });
+            oHelpers.assert(!this._oDocument, 'Client already connected.');
+            oDatabase.generateNewDocumentID(this, function(sNewID)
+            {
+                this._bCreatedDocument = true;
+                g_oDocuments[sNewID] = new Document(sNewID);
+                g_oDocuments[sNewID].onLoad(this, this._onDocumentLoad);
+            });
+        }
+        else if (oEventData.sType == 'openDocument')
+        {
+            oHelpers.assert(!this._oDocument, 'Client already connected.');
+
+            // Open the document.
+            if (!oEventData.sID in g_oDocuments)
+                g_oDocuments[sNewID] = new Document(sNewID);
+
+            g_oDocuments[sNewID].onLoad(this, this.onDocumentLoad);
+            this._bCreatedDocument = false;
+        }
+        else
+        {
+            if (oEventData.sType == 'selectionChange')
+                oEventData.sPeerID = this._sID;
+
+            // Send event to document.
+            this._oDocument.onClientEvent(
+            {
+                oClient: this,
+                oEventData: oEventData
+            });
+        }
+    },
+
+    _onDocumentLoad: function(oDocument)
+    {        
+        oHelpers.assert(!this._oDocument, 'Client already connected to a document.');
+        this._oDocument = oDocument;
+
+        if (this._bCreatedDocument)
+        {
+            this.sendEvent({
+                'sType': 'setDocumentID',
+                'sID': this._oDocument.getID()
+            });
+        }
+        else
+        {
+            this._oDocument.setClientInitialValue(this);
+        }
+    
     }
 });
 

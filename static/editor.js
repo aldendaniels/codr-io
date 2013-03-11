@@ -23,6 +23,7 @@ var Editor = oHelpers.createClass(
     // Other.
     _iRemoteCursorMarkerID: null,
     _bApplyingExternalEvent: false,
+    _bIsInitialized: false,
 
     __init__: function(bHasEditPerms, bIsEditing)
     {
@@ -52,6 +53,7 @@ var Editor = oHelpers.createClass(
     {
         this._oSocket = oSocket;
         this._oSocket.bind('message', this, this._handleServerEvent);
+        this._oSocket.send('createDocument');
     },
     
     setMode: function(sMode)
@@ -62,8 +64,28 @@ var Editor = oHelpers.createClass(
 
     _handleServerEvent: function(oEvent)
     {
+        // Verify initialization.
+        if (oEvent.sType == 'setInitalValue' || oEvent.sType == 'setDocumentID')
+            oHelpers.assert(!this._bIsInitialized);
+        else
+            oHelpers.assert(this._bIsInitialized);
+
+        console.log(oEvent);
+
         switch(oEvent.sType)
         {
+            case 'setInitalValue':
+                this._setInitalText(oEvent.sText);
+                this._setIsEditing(oEvent.bIsEditing);
+                break;
+
+            case 'setDocumentID':
+                // TODO: Assert not init...
+                // TODO: Handle _aInitialEventQueue here
+                this._setDocumentID(oEvent.sID);
+                this._bIsInitialized = true;
+                break;
+
             case 'selectionChange':
                 this._onRemoteCursorMove(oEvent);
                 break;
@@ -74,7 +96,7 @@ var Editor = oHelpers.createClass(
             
             case 'removeEditRights':
                 this._setIsEditing(false);        
-                this._oSocket.send( {sType: 'releaseEditRights'} ); // Notify server of event receipt.
+                this.sendEvent('releaseEditRights'); // Notify server of event receipt.
                 break;
 
             case 'editRightsGranted':
@@ -106,11 +128,7 @@ var Editor = oHelpers.createClass(
         {
             if (!this._bApplyingExternalEvent)
             {
-                this._oSocket.send(
-                {
-                    sType: 'aceDelta',
-                    oDelta: oEvent
-                });
+                this.sendEvent('aceDelta', oEvent);
             }        
         }));
     },
@@ -124,5 +142,23 @@ var Editor = oHelpers.createClass(
     {
         this._bIsEditing = bIsEditing;
         // TODO: Update UI.
+    },
+
+    _setInitalText: function(sText)
+    {
+    
+    },
+
+    _setDocumentID: function(sID)
+    {
+        alert('I got a new ID: ' + sID);
+    },
+
+    sendEvent: function(sType, oData)
+    {
+        if (!this._bIsInitialized)
+             this._aInitialEventQueue.push({sType: sType, oData: oData});
+        else
+            this._oSocket.send(sType, oData);
     }
 });
