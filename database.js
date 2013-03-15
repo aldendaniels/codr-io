@@ -7,24 +7,26 @@ function validateFileID(sID)
     return sID.match('^[a-z0-9]+$')
 }
 
-function _generateNewDocumentID(oDatabase, oScope, fnOnResponse)
+function _generateNewDocumentID(oDatabase, fnOnResponse)
 {
+    // Create a random 7 character alpha numeric string.
     var sID = "";
     var sChars = "abcdefghijklmnopqrstuvwxyz0123456789";
-
     for (var i = 0; i < 7; i++ )
         sID += sChars.charAt(Math.floor(Math.random() * sChars.length));
 
+    // Try recursively until we get a free one to avoid collisions.
     oDatabase.documentExists(sID, this, function(bExists)
     {
         if (!bExists)
-            oHelpers.createCallback(oScope, fnOnResponse)(sID);
+            oHelpers.createCallback(oDatabase, fnOnResponse)(sID);
         else
-            generateIDAndRedirect(oDatabase, oScope, fnOnResponse);
+            _generateNewDocumentID(oDatabase, fnOnResponse);
     });
 }
 
-var Document = oHelpers.createClass({
+var Document = oHelpers.createClass(
+{
     _sID: '',
     _bReadOnly: false,
     _aChildrenIDs: null,
@@ -99,12 +101,26 @@ var Document = oHelpers.createClass({
 
 var oFileDatabase = {
 
+    createDocument: function(oScope, fnCallback)
+    {
+        fnCallback = oHelpers.createCallback(oScope, fnCallback);
+        _generateNewDocumentID(this, function(sDocumentID)
+        {
+            var oDocument = new Document(sDocumentID, {});
+            this.saveDocument(oDocument, this, function()
+            {
+                fnCallback(sDocumentID);
+            });
+        });
+    },
+
     getDocument: function(sID, oScope, fnOnResponse)
     {
         fs.readFile(this._getPathFromID(sID), function(oErr, sDocument)
         {
+            // TODO: handle error.
             var oDocument = new Document(sID, JSON.parse(sDocument));
-            oHelpers.createCallback(oScope, fnOnResponse)(oErr, oDocument);
+            oHelpers.createCallback(oScope, fnOnResponse)(oDocument);
         });
     },
 
@@ -119,29 +135,38 @@ var oFileDatabase = {
         fs.exists(this._getPathFromID(sID), oHelpers.createCallback(oScope, fnOnResponse));
     },
 
-    generateNewDocumentID: function(oScope, fnOnResponse)
-    {
-        _generateNewDocumentID(this, oScope, fnOnResponse);
-    },
-    
     _getPathFromID: function(sID)
     {
         if (!validateFileID(sID))
             throw 'Invalid File ID: ' + sID;
 
         return './data/' + sID;
-    },
-    Document: Document
+    }
 };
 
-var oMemoryDatabase = {
+var oMemoryDatabase =
+{
+    
     oData: {},
+    
+    createDocument: function(oScope, fnCallback)
+    {
+        fnCallback = oHelpers.createCallback(oScope, fnCallback);
+        _generateNewDocumentID(this, function(sDocumentID)
+        {
+            var oDocument = new Document(sDocumentID, {});
+            this.saveDocument(oDocument, this, function()
+            {
+                fnCallback(sDocumentID);
+            });
+        });
+    },
 
     getDocument: function(sID, oScope, fnOnResponse)
     {
         if (!(sID in this.oData))
-            throw 'File Not Found'
-        oHelpers.createCallback(oScope, fnOnResponse)('', this.oData[sID]);
+            throw new Error('File Not Found');
+        oHelpers.createCallback(oScope, fnOnResponse)(this.oData[sID]);
     },
 
     saveDocument: function(oDocument, oScope, fnOnResponse)
@@ -156,13 +181,7 @@ var oMemoryDatabase = {
     documentExists: function(sID, oScope, fnOnResponse)
     {
         oHelpers.createCallback(oScope, fnOnResponse)(sID in this.oData);
-    },
-
-    generateNewDocumentID: function(oScope, fnOnResponse)
-    {
-        _generateNewDocumentID(this, oScope, fnOnResponse);
-    },
-    Document: Document
+    }
 };
 
 module.exports = oMemoryDatabase;
