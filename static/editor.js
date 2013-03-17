@@ -8,7 +8,6 @@ var Editor = oHelpers.createClass(
 {
     // Connection state.
     _oSocket: null,
-    _aInitialEventQueue: [],
     
     // Ace editor objects.
     _oAceEditor: null,
@@ -53,7 +52,10 @@ var Editor = oHelpers.createClass(
     {
         this._oSocket = oSocket;
         this._oSocket.bind('message', this, this._handleServerEvent);
-        this._oSocket.send('createDocument');
+        this._oSocket.send('createDocument',
+        {
+            sText: this._oAceDocument.getValue()
+        });
     },
     
     setMode: function(sMode)
@@ -81,7 +83,6 @@ var Editor = oHelpers.createClass(
 
             case 'setDocumentID':
                 // TODO: Assert not init...
-                // TODO: Handle _aInitialEventQueue here
                 this._setDocumentID(oEvent.sID);
                 this._bIsInitialized = true;
                 break;
@@ -124,12 +125,12 @@ var Editor = oHelpers.createClass(
 
     _attachAceEvents: function()
     {
-        this._oAceEditor.on("change", oHelpers.createCallback(this, function(oEvent)
+        this._oAceEditor.on("change", oHelpers.createCallback(this, function(oAceDelta)
         {
-            if (!this._bApplyingExternalEvent)
+            if (this._bIsInitialized && !this._bApplyingExternalEvent)
             {
-                this.sendEvent('aceDelta', oEvent);
-            }        
+                this.sendEvent('aceDelta', oAceDelta.data);
+            }
         }));
     },
 
@@ -156,9 +157,7 @@ var Editor = oHelpers.createClass(
 
     sendEvent: function(sType, oData)
     {
-        if (!this._bIsInitialized)
-             this._aInitialEventQueue.push({sType: sType, oData: oData});
-        else
+        if (this._bIsInitialized)
             this._oSocket.send(sType, oData);
     }
 });

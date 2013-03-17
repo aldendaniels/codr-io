@@ -7,16 +7,15 @@ $(document).on('ready', function()
     /* Grap templates from cash before initialzing. */
     $.get('static/templates.html', function(sData)
     {
+        // Compile templates.
         $('#template').append(sData);
+        oTemplate.init();
         onReady();
     });
 });
 
 function onReady()
 {
-    // Compile templates.
-    oTemplate.init();
-
     // Create the mode (language) menu.
     var aDialogFavKeys = jQuery.grep(aFavKeys, function(sKey)
     {

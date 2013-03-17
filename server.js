@@ -105,10 +105,10 @@ var Client = oHelpers.createClass(
         this._oSocket.send(JSON.stringify(oEvent));
     },
 
-    _onClientEvent: function(sEventData)
+    _onClientEvent: function(sJSONEvent)
     {
-        var oEventData = JSON.parse(sEventData);
-        switch(oEventData.sType)
+        var oEvent = JSON.parse(sJSONEvent);
+        switch(oEvent.sType)
         {
             case 'createDocument':
                 this._bCreatedDocument = true;
@@ -123,11 +123,7 @@ var Client = oHelpers.createClass(
                 break;
             
             default:
-                this._oWorkspace.onClientEvent(
-                {
-                    oClient: this,
-                    oEventData: oEventData
-                });                
+                this._oWorkspace.onClientEvent(this, oEvent);
         }
     },
     
@@ -207,20 +203,20 @@ var Workspace = oHelpers.createClass(
         }
     },
         
-    onClientEvent: function(oEvent)
+    onClientEvent: function(oClient, oEvent)
     {
         this._assertDocumentLoaded();
         if (this._oDocument.getReadOnly())
             return;
         
-        switch(oEvent.oEventData.sType)
+        switch(oEvent.sType)
         {
             case 'requestEditRights':
-                this._oCurrentEditingClient = oEvent.oClient;                
+                this._oCurrentEditingClient = oClient;                
                 if (this._oCurrentEditingClient)
                     this._oCurrentEditingClient.sendEvent({sType: 'removeEditRights'});                
                 else
-                    oEvent.oClient.sendEvent({sType: 'editRightsGranted'});                                
+                    oClient.sendEvent({sType: 'editRightsGranted'});                                
                 break;
         
             case 'releaseEditRights':
@@ -233,23 +229,23 @@ var Workspace = oHelpers.createClass(
                 this.flushEventQueue();
                 forkDocument(this._oDocument, true, oHelpers.createCallback(this, function(sNewID)
                 {
-                    oEvent.oClient.sendEvent({sType: 'newSnapshotUrl', sUrl: '/' + sNewID});
+                    oClient.sendEvent({sType: 'newSnapshotUrl', sUrl: '/' + sNewID});
                     this._ensureSaveTimeout();
                 }));
                 break;
             
             case 'languageChange':
-                this._oDocument.setLanguage(oEvent.oEventData.sLang);
+                this._oDocument.setLanguage(oEvent.oData.sLang);
                 break;
                 
             case 'selectionChange':
-                this._broadcasetEvent(oEvent);
+                this._broadcastEvent(oClient, oEvent);
                 this._oLastSelEvent = oEvent;
                 break;
             
             case 'aceDelta':
-                this._broadcasetEvent(oEvent);
-                this._oAceDocument.applyDeltas([oEvent.oEventData.oDelta.data]);            
+                this._broadcastEvent(oClient, oEvent);
+                this._oAceDocument.applyDeltas([oEvent.oData]);
                 if (this._iSaveTimeout === null)
                     this._setSaveTimeout();
                 break;
@@ -314,14 +310,14 @@ var Workspace = oHelpers.createClass(
             oClient.sendEvent(this._oLastSelEvent.oEventData);
     },
     
-    broadcastEvent: function(oEvent)
+    _broadcastEvent: function(oSendingClient, oEvent)
     {
         // Send events to all other clients.
         for (var i = 0; i < this._aClients.length; i++)
         {
             var oClient = this._aClients[i];
-            if(oEvent.oClient != oClient)
-                oClient.sendEvent(oEvent.oEventData)
+            if(oClient != oSendingClient)
+                oClient.sendEvent(oEvent)
         }
     },
     
