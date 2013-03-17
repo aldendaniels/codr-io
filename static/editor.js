@@ -16,19 +16,16 @@ var Editor = oHelpers.createClass(
 
     // Editor state.
     _sMode: '',
-    _bHasEditPerms: false,
     _bIsEditing: false,
     
     // Other.
     _iRemoteCursorMarkerID: null,
-    _bApplyingExternalEvent: false,
+    _bApplyingExternalAction: false,
     _bIsInitialized: false,
 
-    __init__: function(bHasEditPerms, bIsEditing)
+    __init__: function(bIsEditing)
     {
-        // Save state.
-        oHelpers.assert(bHasEditPerms || !bIsEditing);
-        this._bHasEditPerms = bHasEditPerms;
+        // Save editng state.
         this._bIsEditing = bIsEditing;
         
         // Create ace editor.
@@ -51,10 +48,11 @@ var Editor = oHelpers.createClass(
     connect: function(oSocket)
     {
         this._oSocket = oSocket;
-        this._oSocket.bind('message', this, this._handleServerEvent);
+        this._oSocket.bind('message', this, this._handleServerAction);
         this._oSocket.send('createDocument',
         {
-            sText: this._oAceDocument.getValue()
+            sText: this._oAceDocument.getValue(),
+            sMode: this._sMode
         });
     },
     
@@ -64,61 +62,59 @@ var Editor = oHelpers.createClass(
 		this._sMode = sMode;
     },
 
-    _handleServerEvent: function(oEvent)
+    _handleServerAction: function(oAction)
     {
         // Verify initialization.
-        if (oEvent.sType == 'setInitalValue' || oEvent.sType == 'setDocumentID')
+        if (oAction.sType == 'setInitalValue' || oAction.sType == 'setDocumentID')
             oHelpers.assert(!this._bIsInitialized);
         else
             oHelpers.assert(this._bIsInitialized);
 
-        console.log(oEvent);
+        console.log(oAction);
 
-        switch(oEvent.sType)
+        switch(oAction.sType)
         {
-            case 'setInitalValue':
-                this._setInitalText(oEvent.sText);
-                this._setIsEditing(oEvent.bIsEditing);
-                break;
-
-            case 'setDocumentID':
-                // TODO: Assert not init...
-                this._setDocumentID(oEvent.sID);
+            case 'init': // Fired after opening an existing document.
+                this._setInitalText(oAction.sText);
+                this._setIsEditing(oAction.bIsEditing);
                 this._bIsInitialized = true;
                 break;
 
-            case 'selectionChange':
-                this._onRemoteCursorMove(oEvent);
+            case 'setDocumentID': // Fired after creating a new document.
+                // TODO: Assert not init...
+                this._setDocumentID(oAction.oData.sDocumentID);
+                this._bIsInitialized = true;
+                break;
+
+            case 'setSelection':
+                this._onRemoteCursorMove(oAction);
                 break;
             
-            case 'languageChange':
-                this._setMode(oEvent.sLang);
+            case 'setMode':
+                this._setMode(oAction.oData.sMode);
                 break;
             
             case 'removeEditRights':
                 this._setIsEditing(false);        
-                this.sendEvent('releaseEditRights'); // Notify server of event receipt.
+                this.sendAction('releaseEditRights'); // Notify server of action receipt.
                 break;
 
             case 'editRightsGranted':
                 this._setIsEditing(true);
                 break;
-
-            case 'newSnapshotUrl':
-                window.alert('yourNewSnapshotUrl: ' + document.location.host + oEvent.sUrl);
-                break;
             
             case 'aceDelta':
-                this._bApplyingExternalEvent = true;
-                this_oAceDocument.applyDeltas([oEvent.oDelta.data]);
-                this._bApplyingExternalEvent = false;
+                this._bApplyingExternalAction = true;
+                this._oAceDocument.applyDeltas([oAction.oDelta.data]);
+                console.log(this._oAceDocument.getValue());
+                this._bApplyingExternalAction = false;
             
             default:
-                assert(false, 'Invalid event type "' + oEvent.sType + '".');
+                assert(false, 'Invalid event type "' + oAction.sType + '".');
         }        
     },
 
-    _onRemoveServerMove: function(oEvent)
+    _onRemoveServerMove: function(oAction)
     {
         window.alert('TODO: Support showing selection changes');
     },
@@ -127,9 +123,9 @@ var Editor = oHelpers.createClass(
     {
         this._oAceEditor.on("change", oHelpers.createCallback(this, function(oAceDelta)
         {
-            if (this._bIsInitialized && !this._bApplyingExternalEvent)
+            if (this._bIsInitialized && !this._bApplyingExternalAction)
             {
-                this.sendEvent('aceDelta', oAceDelta.data);
+                this.sendAction('aceDelta', oAceDelta.data);
             }
         }));
     },
@@ -155,7 +151,7 @@ var Editor = oHelpers.createClass(
         alert('I got a new ID: ' + sID);
     },
 
-    sendEvent: function(sType, oData)
+    sendAction: function(sType, oData)
     {
         if (this._bIsInitialized)
             this._oSocket.send(sType, oData);

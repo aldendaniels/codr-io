@@ -22,36 +22,6 @@ oApp.get('/[a-z0-9]+/?$', function(req, res)
     // TODO
 });
 
-// Forking entrypoint.
-oApp.get(/^\/fork\/([a-z0-9]+)\/?$/, function(req, res)
-{
-    var sID = req.params[0];
-
-    var redirect = function(sNewID)
-    {
-        res.redirect('/' + sNewID);
-    }
-
-    if (sID in g_oWorkspaces)
-    {
-        g_oWorkspaces[sID].fork(redirect);
-    }
-    else
-    {
-        // Get the parent document.
-        oDatabase.getDocument(sID, this, function(oErr, oDocument)
-        {
-            // Fork the documents.
-            forkDocument(oDocument, false, function(sNewID)
-            {
-                // We don't need to save the parent document because we don't
-                // update the children array for editable forks.
-                redirect(sNewID);
-            });
-        });
-    }
-})
-
 // Static files.
 oApp.use('/static/', oExpress.static(__dirname + '/static', {
     /* maxAge: 86400000 /* one day*/
@@ -79,7 +49,7 @@ var Client = oHelpers.createClass(
     __init__: function(oSocket)
     {
         this._oSocket = oSocket;
-        oSocket.on('message', oHelpers.createCallback(this, this._onClientEvent));
+        oSocket.on('message', oHelpers.createCallback(this, this._onClientAction));
         oSocket.on('close', oHelpers.createCallback(this, function()
         {
             this._oWorkspace.removeClient(this);
@@ -89,41 +59,39 @@ var Client = oHelpers.createClass(
     onDocumentLoad: function()
     {
         if (this._bCreatedDocument)
-        {
-            this.sendEvent(
-            {
-                'sType': 'setDocumentID',
-                'sID': this._oWorkspace.getDocumentID()
-            });
-        }
+            this._oWorkspace.setClientDocumentID(this);
         else
             this._oWorkspace.setClientInitialValue(this);
     },
     
-    sendEvent: function(oEvent)
+    sendAction: function(sType, oData)
     {
-        this._oSocket.send(JSON.stringify(oEvent));
+        this._oSocket.send(JSON.stringify(
+        {
+            sType: sType,
+            oData: oData
+        }));
     },
 
-    _onClientEvent: function(sJSONEvent)
+    _onClientAction: function(sJSONAction)
     {
-        var oEvent = JSON.parse(sJSONEvent);
-        switch(oEvent.sType)
+        var oAction = JSON.parse(sJSONAction);
+        switch(oAction.sType)
         {
             case 'createDocument':
                 this._bCreatedDocument = true;
-                oDatabase.createDocument(this, function(sDocumentID)
+                oDatabase.createDocument(JSON.stringify(oAction.oData), this, function(sDocumentID)
                 {
                     this._addToWorkspace(sDocumentID);
                 });
                 break;
             
             case 'openDocument':
-                this._addToWorkspace(oEvent.sID);
+                this._addToWorkspace(oAction.oData.sID);
                 break;
             
             default:
-                this._oWorkspace.onClientEvent(this, oEvent);
+                this._oWorkspace.onClientAction(this, oAction);
         }
     },
     
@@ -148,11 +116,14 @@ var Workspace = oHelpers.createClass(
     // Loading state
     _bDocumentLoaded: false,
     
+    // Audo save
+    _iAutoSaveTimeoutID: null,
+    _iAutoSaveTimeoutLength: 30, /* auto save every 30 seconds */
+    
     // Editing
     _aClients: null,
-    _iSaveTimeout: null,
     _oCurrentEditingClient: null,
-    _oLastSelEvent: null,
+    _oLastSelAction: null,
     _fnOnReleaseEditRights: null,
     
     __init__: function(sDocumentID)
@@ -161,11 +132,11 @@ var Workspace = oHelpers.createClass(
         this._sDocumentID = sDocumentID;
         this._aClients = [];
         
-        oDatabase.getDocument(sDocumentID, this, function(oDocument)
+        oDatabase.getDocument(sDocumentID, this, function(sDocumentJSON)
         {
             // Save pointer to document.
-            this._oDocument = oDocument;
-            this._oAceDocument = new oAceDocument(oDocument.getText());
+            this._oDocument = new Document(sDocumentJSON);
+            this._oAceDocument = new oAceDocument(this._oDocument.get('sText'));
             this._bDocumentLoaded = true;
             
             // Fire client "load" callbacks.
@@ -195,155 +166,106 @@ var Workspace = oHelpers.createClass(
         // Close the document (if no editors left).
         if (this._aClients.length === 0)
         {
-            this.save(oHelpers.createCallback(this, function()
+            this._save(oHelpers.createCallback(this, function()
             {
                 if (this._aClients.length === 0)
                     delete g_oWorkspaces[this._sDocumentID];
             }));
         }
     },
-        
-    onClientEvent: function(oClient, oEvent)
+
+    setClientInitialValue: function(oClient)
     {
         this._assertDocumentLoaded();
-        if (this._oDocument.getReadOnly())
-            return;
-        
-        switch(oEvent.sType)
+        oClient.sendAction('init',
+        {
+            sText: this._oDocument.get('sText'),
+            sMode: this._oDocument.get('sMode'),
+            bIsEditing: this._oCurrentEditingClient == oClient
+        });
+    },
+    
+    setClientDocumentID: function(oClient)
+    {
+        this._assertDocumentLoaded();
+        oClient.sendAction('setDocumentID',
+        {
+            sDocumentID: this._sDocumentID
+        });
+    },
+  
+    onClientAction: function(oClient, oAction)
+    {
+        this._assertDocumentLoaded();
+        switch(oAction.sType)
         {
             case 'requestEditRights':
                 this._oCurrentEditingClient = oClient;                
                 if (this._oCurrentEditingClient)
-                    this._oCurrentEditingClient.sendEvent({sType: 'removeEditRights'});                
+                    this._oCurrentEditingClient.sendAction('removeEditRights');
                 else
-                    oClient.sendEvent({sType: 'editRightsGranted'});                                
+                    oClient.sendAction('editRightsGranted');                                
                 break;
         
             case 'releaseEditRights':
                 if (this._fnOnReleaseEditRights)
                     this._fnOnReleaseEditRights();
-                this._oCurrentEditingClient.sendEvent({sType: 'editRightsGranted'});
+                this._oCurrentEditingClient.sendAction('editRightsGranted');
                 break;
             
-            case 'generateSnapshot':
-                this.flushEventQueue();
-                forkDocument(this._oDocument, true, oHelpers.createCallback(this, function(sNewID)
-                {
-                    oClient.sendEvent({sType: 'newSnapshotUrl', sUrl: '/' + sNewID});
-                    this._ensureSaveTimeout();
-                }));
-                break;
-            
-            case 'languageChange':
-                this._oDocument.setLanguage(oEvent.oData.sLang);
+            case 'setMode':
+                this._oDocument.set('sMode', oAction.oData.sMode);
                 break;
                 
-            case 'selectionChange':
-                this._broadcastEvent(oClient, oEvent);
-                this._oLastSelEvent = oEvent;
+            case 'setSelection':
+                this._broadcastAction(oClient, oAction);
+                this._oLastSelAction = oAction;
                 break;
             
             case 'aceDelta':
-                this._broadcastEvent(oClient, oEvent);
-                this._oAceDocument.applyDeltas([oEvent.oData]);
-                if (this._iSaveTimeout === null)
-                    this._setSaveTimeout();
+                this._broadcastAction(oClient, oAction);
+                this._oAceDocument.applyDeltas([oAction.oData]);
+                this._setAutoSaveTimeout();
                 break;
         }
     },
 
-    fork: function(fnOnResponse)
+    _broadcastAction: function(oSendingClient, oAction)
     {
-        this.flushEventQueue();
-        forkDocument(this._oDocument, false, fnOnResponse);
-    },
-
-    flushEventQueue: function()
-    {
-        this._oDocument.setText(this._oAceDocument.getValue());
-    },
-    
-    getText: function()
-    {
+        // Send actions to all other clients.
         this._assertDocumentLoaded();
-        this.flushEventQueue();
-        return this._oDocument.getText();
-    },
-
-    getDocumentID: function()
-    {
-        this._assertDocumentLoaded();
-        return this._sDocumentID;
-    },
-    
-    save: function(fnOnResponse)
-    {
-        this._assertDocumentLoaded();
-                
-        this._clearSaveTimeout();
-        this.flushEventQueue();
-        oDatabase.saveDocument(this._oDocument, this, fnOnResponse || function(){});
-    },
-
-    setClientInitialValue: function(oClient)
-    {
-        // Set as primary editor.
-        var bIsEditing = oClient === this._oCurrentEditingClient;
-        
-        // Set language.
-        oClient.sendEvent(
-        {
-            'sType': 'languageChange',
-            'sLang': this._oDocument.getLanguage()
-        });
-        
-        // Send text.
-        oClient.sendEvent(
-        {
-            'sType': 'setInitialValue',
-            'sText': this.getText(),
-            'bIsEditing': bIsEditing
-        });
-                    
-        // Show selection to non-primary (readonly) editors.
-        if (!bIsEditing && this._oLastSelEvent)
-            oClient.sendEvent(this._oLastSelEvent.oEventData);
-    },
-    
-    _broadcastEvent: function(oSendingClient, oEvent)
-    {
-        // Send events to all other clients.
         for (var i = 0; i < this._aClients.length; i++)
         {
             var oClient = this._aClients[i];
             if(oClient != oSendingClient)
-                oClient.sendEvent(oEvent)
+                oClient.sendAction(oAction)
         }
     },
-    
-    _setSaveTimeout: function()
-    {
-        this._assertDocumentLoaded();
-        
-        oHelpers.assert(this._iSaveTimeout === null);
-        this._iSaveTimeout = setTimeout(oHelpers.createCallback(this, function()
-        {
-            this.save(oHelpers.createCallback(this, this._clearSaveTimeout));
-        }), 30000);
-    },
-    
-    _clearSaveTimeout: function()
-    {
-        this._assertDocumentLoaded();
-        
-        if (this._iSaveTimeout)
-            clearTimeout(this._iSaveTimeout);
-    },
 
-    _ensureSaveTimeout: function()
+    _save: function()
     {
-        if (this._iSaveTimeout === null)
-            this._setSaveTimeout();
+        this._assertDocumentLoaded();
+        this._oDocument.set('sText', this._oAceDocument.getValue());
+        this._clearAutoSaveTimeout();
+        oDatabase.saveDocument(this._sDocumentID, this._oDocument.toJSON(), this, function(sError)
+        {
+            // Handle save errors.
+        });
+    },
+    
+    _setAutoSaveTimeout: function()
+    {
+        if (this._iAutoSaveTimeout === null)
+        {
+            var fnSave = oHelpers.createCallback(this, this._save);
+            this._iAutoSaveTimeoutID = setTimeout(fnSave, this._iAutoSaveTimeoutLength);
+        }        
+    },
+    
+    _clearAutoSaveTimeout: function()
+    {
+        clearTimeout(this._iAutoSaveTimeoutID);
+        this._iAutoSaveTimeoutID = null;        
     },
     
     _assertDocumentLoaded: function()
@@ -353,19 +275,44 @@ var Workspace = oHelpers.createClass(
 });
 
 
-function forkDocument(oDocument, bReadOnly, fnOnResponse)
+var Document = oHelpers.createClass(
 {
-    oDatabase.generateNewDocumentID(this, function(sNewID)
+    _bReadOnly:     false,
+    _aChildrenIDs:  null,
+    _sParentID:     '',
+    _sMode:         '',
+    _sText:         '',
+
+    __init__: function(sJSON)
     {
-        // Create the fork.
-        var oNewDocument = oDocument.fork(sNewID, bReadOnly);
+        var oData = JSON.parse(sJSON);
+        for (sKey in oData)
+            this.set(sKey, oData[sKey]);
+    },
+    
+    set: function(sKey, oValue)
+    {
+        var sProp = '_' + sKey;
+        oHelpers.assert (sProp in this, 'Invalid key: ' + sKey);
+        oHelpers.assert (typeof(oValue) == typeof(this[sProp]), 'Invalid type!');
+        this[sProp] = oValue;
+    },
+    
+    get: function(sKey)
+    {
+        var sProp = '_' + sKey;
+        oHelpers.assert (sProp in this, 'Invalid key: ' + sKey);
+        return JSON.parse(JSON.stringify(this[sProp])); // Deep clone.
+    },
 
-        // Save the new document.
-        oDatabase.saveDocument(oNewDocument, this, function()
+    toJSON: function()
+    {
+        var oData = {};
+        for (sProp in this)
         {
-            fnOnResponse(sNewID);
-        });
-    });
-}
-
-require('./test').runTests();
+            if (sProp.charAt(0) == '_' && typeof(this[sProp]) != 'function')
+                oData[sProp.substr(1)] = this[sProp];
+        }
+        return JSON.stringify(oData);
+    }
+});

@@ -31,7 +31,7 @@ function onReady()
     });
     
     // Create Editor.
-    oEditor = new Editor(true, true);   
+    oEditor = new Editor(true);   
 }
 
 function initEditor(sMode)
