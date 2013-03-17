@@ -19,7 +19,7 @@ oApp.get('^/$', function(req, res)
 // Normal entrypoint.
 oApp.get('/[a-z0-9]+/?$', function(req, res)
 {
-    // TODO
+    res.sendfile('static/index.html');
 });
 
 // Static files.
@@ -87,7 +87,7 @@ var Client = oHelpers.createClass(
                 break;
             
             case 'openDocument':
-                this._addToWorkspace(oAction.oData.sID);
+                this._addToWorkspace(oAction.oData.sDocumentID);
                 break;
             
             default:
@@ -177,7 +177,8 @@ var Workspace = oHelpers.createClass(
     setClientInitialValue: function(oClient)
     {
         this._assertDocumentLoaded();
-        oClient.sendAction('init',
+        this._updateDocumentText();
+        oClient.sendAction('setDocumentData',
         {
             sText: this._oDocument.get('sText'),
             sMode: this._oDocument.get('sMode'),
@@ -245,7 +246,7 @@ var Workspace = oHelpers.createClass(
     _save: function()
     {
         this._assertDocumentLoaded();
-        this._oDocument.set('sText', this._oAceDocument.getValue());
+        this._updateDocumentText();
         this._clearAutoSaveTimeout();
         oDatabase.saveDocument(this._sDocumentID, this._oDocument.toJSON(), this, function(sError)
         {
@@ -266,6 +267,11 @@ var Workspace = oHelpers.createClass(
     {
         clearTimeout(this._iAutoSaveTimeoutID);
         this._iAutoSaveTimeoutID = null;        
+    },
+    
+    _updateDocumentText: function()
+    {
+        this._oDocument.set('sText', this._oAceDocument.getValue());
     },
     
     _assertDocumentLoaded: function()

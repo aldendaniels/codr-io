@@ -1,6 +1,4 @@
-var oMenu = null;
-var oEditor = null;
-var oSocket = null;
+var g_oEditor = null;
 
 $(document).on('ready', function()
 {
@@ -16,38 +14,45 @@ $(document).on('ready', function()
 
 function onReady()
 {
-    // Create the mode (language) menu.
+    g_oEditor = new Editor(true);    
+    if (IS_NEW_DOCUMENT)
+        chooseMode();
+    else
+        connect();
+}
+
+function chooseMode()
+{
+    function fnOnModeSelect(sMode)
+    {
+        g_oEditor.setMode(sMode);
+        oMenu.detach();
+        $('BODY').removeClass('chooseMode');
+        connect();
+    }
+    
+    // Create the editor mode menu.
     var aDialogFavKeys = jQuery.grep(aFavKeys, function(sKey)
     {
         return sKey != 'html' && sKey != 'text';
     });
-    oMenu = new Menu(aModes, aDialogFavKeys, $('#language'), null, initEditor);
+    var oMenu = new Menu(aModes, aDialogFavKeys, $('#modes'), null, fnOnModeSelect);
     oMenu.attach();
     
     // Attach button events.
     $('.btn.mode').on('click', function()
     {
-        initEditor(this.id);
+        fnOnModeSelect(this.id);
     });
-    
-    // Create Editor.
-    oEditor = new Editor(true);   
 }
 
-function initEditor(sMode)
+function connect()
 {
-    // Set editor mode.
-    oEditor.setMode(sMode);
-
-    // Hide mode chooser.
-    oMenu.detach();
-    $('body').removeClass('selectLang');
-    
-    // Connect.
-    var sURL = 'ws://' + window.document.location.host + window.document.location.pathname;
-    oSocket = new oHelpers.WebSocket(sURL);
+    var sURL = 'ws://' + window.document.location.host + '/';
+    console.log(sURL);
+    var oSocket = new oHelpers.WebSocket(sURL);
     oSocket.bind('open', null, function()
     {
-        oEditor.connect(oSocket);
+        g_oEditor.connect(oSocket);
     });
 }

@@ -5,18 +5,36 @@
         <link rel=StyleSheet href="static/index.css" type="text/css" />
         <link rel=StyleSheet href="static/menu.css" type="text/css" />
         <link href='http://fonts.googleapis.com/css?family=Unica+One' rel='stylesheet' type='text/css'>
+        <style type="text/css">
+                            #modeChooser    { display: none;  }
+                            #loaderIcon     { display: block; }
+            body.chooseMode #modeChooser    { display: block; }
+            body.chooseMode #loaderIcon     { display: none;  }
+            body.chooseMode #codr-workspace { display: none;  }
+        </style>
     </head>
-    <body class="selectLang">
-        <div id="lang-wrap">
+    <body>
+        
+        <script type="text/javascript">
+            var IS_NEW_DOCUMENT = window.location.pathname === '/';
+            if (IS_NEW_DOCUMENT) // New document.
+                document.body.className = "chooseMode";
+        </script>
+        
+        <div id="modeChooser">
             <h3>CODR<span class="io">.IO</span></h3>
             <div class="mode btn" id="html">HTML</div>
             <div class="or">OR</div>
             <div class="mode btn" id="text">Plain Text</div>
             <div class="or">OR</div>
-            <div id="language"></div>
+            <div id="modes"></div>
         </div>
-        <div id="codr-toolbar"></div>
-        <div id="codr-edit"></div>
+        
+        <div id="codr-workspace">
+            <div id="codr-toolbar"></div>
+            <div id="codr-edit"></div>
+        </div>
+        
         <script type="text/javascript" src="static/jquery-1.9.1.min.js"></script>
         <script type="text/javascript" src="static/ace/ace.js"></script>
         <script type="text/javascript" src="static/helpers.js"></script>
@@ -26,8 +44,7 @@
         <script type="text/javascript" src="static/modes.js"></script>
         <script type="text/javascript" src="static/templatizer.js"></script>
         <script type="text/javascript" src="static/index.js"></script>
-        <div id="template" style="display: none;">
-        </div>
+        <div id="template" style="display: none;"></div>
     </body>
 </html>
 

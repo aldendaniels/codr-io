@@ -49,11 +49,21 @@ var Editor = oHelpers.createClass(
     {
         this._oSocket = oSocket;
         this._oSocket.bind('message', this, this._handleServerAction);
-        this._oSocket.send('createDocument',
+        if (IS_NEW_DOCUMENT)
         {
-            sText: this._oAceDocument.getValue(),
-            sMode: this._sMode
-        });
+            this._oSocket.send('createDocument',
+            {
+                sText: this._oAceDocument.getValue(),
+                sMode: this._sMode
+            });            
+        }
+        else
+        {
+            this._oSocket.send('openDocument',
+            {
+                sDocumentID: window.location.pathname.substr(1)
+            });
+        }
     },
     
     setMode: function(sMode)
@@ -65,7 +75,7 @@ var Editor = oHelpers.createClass(
     _handleServerAction: function(oAction)
     {
         // Verify initialization.
-        if (oAction.sType == 'setInitalValue' || oAction.sType == 'setDocumentID')
+        if (oAction.sType == 'setDocumentData' || oAction.sType == 'setDocumentID')
             oHelpers.assert(!this._bIsInitialized);
         else
             oHelpers.assert(this._bIsInitialized);
@@ -74,9 +84,10 @@ var Editor = oHelpers.createClass(
 
         switch(oAction.sType)
         {
-            case 'init': // Fired after opening an existing document.
-                this._setInitalText(oAction.sText);
-                this._setIsEditing(oAction.bIsEditing);
+            case 'setDocumentData': // Fired after opening an existing document.
+                this._setText(oAction.oData.sText);
+                this._setIsEditing(oAction.oData.bIsEditing);
+                this.setMode(oAction.oData.sMode);
                 this._bIsInitialized = true;
                 break;
 
@@ -87,11 +98,11 @@ var Editor = oHelpers.createClass(
                 break;
 
             case 'setSelection':
-                this._onRemoteCursorMove(oAction);
+                this._onRemoteCursorMove(oAction.oData);
                 break;
             
             case 'setMode':
-                this._setMode(oAction.oData.sMode);
+                this.setMode(oAction.oData.sMode);
                 break;
             
             case 'removeEditRights':
@@ -121,7 +132,7 @@ var Editor = oHelpers.createClass(
 
     _attachAceEvents: function()
     {
-        this._oAceEditor.on("change", oHelpers.createCallback(this, function(oAceDelta)
+        this._oAceEditor.on('change', oHelpers.createCallback(this, function(oAceDelta)
         {
             if (this._bIsInitialized && !this._bApplyingExternalAction)
             {
@@ -141,14 +152,14 @@ var Editor = oHelpers.createClass(
         // TODO: Update UI.
     },
 
-    _setInitalText: function(sText)
+    _setText: function(sText)
     {
-    
+        this._oAceDocument.setValue(sText);
     },
 
     _setDocumentID: function(sID)
     {
-        alert('I got a new ID: ' + sID);
+        window.history.replaceState(null, '', '/' + sID);
     },
 
     sendAction: function(sType, oData)

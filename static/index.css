@@ -4,12 +4,7 @@ body
     margin: 0;
 }
 
-#lang-wrap
-{
-    display: none;
-}
-
-.selectLang #lang-wrap
+#modeChooser
 {
     width: 400px;
     margin-left: auto;
@@ -20,10 +15,9 @@ body
     border-radius: 5px;
     border: 1px #d5dae5 solid;
     padding: 15px;
-    display: block;
 }
 
-#lang-wrap h3
+#modeChooser h3
 {
     font-weight: normal;
     color: #556677;
@@ -34,7 +28,7 @@ body
     margin-bottom: 15px;
 }
 
-#lang-wrap h3 span.io
+#modeChooser h3 span.io
 {
     color: #8899AA;
 }
@@ -48,7 +42,7 @@ body
     text-shadow: 1px 2px 3px rgba(255,255,255, 0.3);
 }
 
-#lang-wrap .btn
+#modeChooser .btn
 {
     font-size: 14pt;
 }
@@ -73,17 +67,12 @@ body
     background-color: #cf3a1c;
 }
 
-#language
+#modes
 {
     background: rgba(255, 255, 255, 0.95);
     height: 250px;
     position: relative;
     border: 1px #c5cad5 solid;
-}
-
-.selectLang #codr-edit
-{
-    display: none;
 }
 
 #codr-edit
