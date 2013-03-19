@@ -190,6 +190,7 @@ var Workspace = oHelpers.createClass(
         {
             sText: this._oDocument.get('sText'),
             sMode: this._oDocument.get('sMode'),
+            oSelection: this._oLastSelAction.oData,
             bIsEditing: this._oCurrentEditingClient == oClient
         });
     },

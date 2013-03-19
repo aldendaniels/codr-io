@@ -14,7 +14,7 @@ $(document).on('ready', function()
 
 function onReady()
 {
-    g_oEditor = new Editor(true);    
+    g_oEditor = new Editor(IS_NEW_DOCUMENT);    
     if (IS_NEW_DOCUMENT)
         chooseMode();
     else

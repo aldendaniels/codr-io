@@ -3,6 +3,8 @@
 var EDITOR_ID  = 'codr-edit';
 var TOOLBAR_ID = 'codr-toolbar';
 
+var Range = ace.require('ace/range').Range;
+
 // Editor object.
 var Editor = oHelpers.createClass(
 {
@@ -20,7 +22,7 @@ var Editor = oHelpers.createClass(
     
     // Other.
     _iRemoteCursorMarkerID: null,
-    _bApplyingExternalAction: false,
+    _oLastSelectionRange: null,
     _bIsInitialized: false,
 
     __init__: function(bIsEditing)
@@ -41,8 +43,9 @@ var Editor = oHelpers.createClass(
         this._attachDOMEvents();
         this._attachAceEvents();
         
-        // Set focus.
-       this._oAceEditor.focus();
+        // Set focus & notify server of selection position.
+        this._oAceEditor.focus();
+        this._onAceSelectionChange();
     },
     
     connect: function(oSocket)
@@ -80,7 +83,7 @@ var Editor = oHelpers.createClass(
         else
             oHelpers.assert(this._bIsInitialized);
 
-        console.log(oAction);
+        console.log('Action received:', oAction);
 
         switch(oAction.sType)
         {
@@ -88,6 +91,7 @@ var Editor = oHelpers.createClass(
                 this._setText(oAction.oData.sText);
                 this._setIsEditing(oAction.oData.bIsEditing);
                 this.setMode(oAction.oData.sMode);
+                this._onRemoteCursorMove(oAction.oData.oSelection);
                 this._bIsInitialized = true;
                 break;
 
@@ -115,9 +119,7 @@ var Editor = oHelpers.createClass(
                 break;
             
             case 'aceDelta':
-                this._bApplyingExternalAction = true;
                 this._oAceDocument.applyDeltas([oAction.oData]);
-                this._bApplyingExternalAction = false;
                 break;
             
             default:
@@ -125,31 +127,73 @@ var Editor = oHelpers.createClass(
         }        
     },
 
-    _onRemoveServerMove: function(oAction)
+    _onRemoteCursorMove: function(oSel)
     {
-        window.alert('TODO: Support showing selection changes');
+        // Remove old selection.
+        this._oAceEditSession.removeMarker(this._iRemoteCursorMarkerID);
+        
+        // Set new selection.
+        var oNewRange = new Range(oSel.start.row, oSel.start.column, oSel.end.row, oSel.end.column);
+        if (oSel.start.row == oSel.end.row && oSel.start.column == oSel.end.column)
+        {
+            oNewRange.end.column += 1; // Hack: Zero-width selections are not visible.
+            this._iRemoteCursorMarkerID = this._oAceEditSession.addMarker(oNewRange, 'codr-peer-selection-collapsed', 'text', true);
+        }
+        else
+        {
+            this._iRemoteCursorMarkerID = this._oAceEditSession.addMarker(oNewRange, 'codr-peer-selection', 'text', true);   
+        }
     },
 
     _attachAceEvents: function()
     {
-        this._oAceEditor.on('change', oHelpers.createCallback(this, function(oAceDelta)
-        {
-            if (this._bIsInitialized && !this._bApplyingExternalAction)
-            {
-                this.sendAction('aceDelta', oAceDelta.data);
-            }
-        }));
+        this._oAceEditor.on('change',          oHelpers.createCallback(this, this._onAceDocumentChange ));
+        this._oAceEditor.on('changeCursor',    oHelpers.createCallback(this, this._onAceSelectionChange));
+        this._oAceEditor.on('changeSelection', oHelpers.createCallback(this, this._onAceSelectionChange));
     },
 
     _attachDOMEvents: function()
     {
-        // TODO.
+        // TODO: ...
+    },
+    
+    _onAceSelectionChange: function()
+    {
+        if (this._bIsEditing)
+        {
+            var oSelectionRange = this._oAceEditor.getSelectionRange();
+            if (!this._oLastSelectionRange || !this._oLastSelectionRange.isEqual(oSelectionRange))
+            {
+                this.sendAction('setSelection', oSelectionRange);
+                this._oLastSelectionRange = oSelectionRange;
+            }            
+        }
+    },
+    
+    _onAceDocumentChange: function(oAceDelta)
+    {
+        if (this._bIsEditing)
+            this.sendAction('aceDelta', oAceDelta.data);
     },
 
     _setIsEditing: function(bIsEditing)
     {
         this._bIsEditing = bIsEditing;
-        // TODO: Update UI.
+        this._oAceEditor.setReadOnly(!bIsEditing);
+
+        if (bIsEditing)
+        {
+            // Hide remove cursor & send set the cursor position.
+            this._oAceEditSession.removeMarker(this._iRemoteCursorMarkerID);
+            this._iRemoteCursorMarkerID = null;
+            this._onAceSelectionChange();
+            
+            // TODO: Update toolbar.
+        }
+        else
+        {
+            // TODO: Update toolbar.
+        }
     },
 
     _setText: function(sText)

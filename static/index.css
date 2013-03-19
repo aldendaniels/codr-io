@@ -81,3 +81,21 @@ body
     height: 100%;
     position: absolute;
 }
+
+/***************** EDITOR *********************/
+
+.codr-peer-selection
+{
+    position: absolute;
+    z-index: 5;
+    background: orange;
+    opacity: 0.4;
+}
+
+.codr-peer-selection-collapsed
+{
+    position: absolute;
+    z-index: 5;
+    background: transparent;
+    border-left: 2px orange solid;
+}
