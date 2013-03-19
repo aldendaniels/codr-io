@@ -116,12 +116,12 @@ var Editor = oHelpers.createClass(
             
             case 'aceDelta':
                 this._bApplyingExternalAction = true;
-                this._oAceDocument.applyDeltas([oAction.oDelta.data]);
-                console.log(this._oAceDocument.getValue());
+                this._oAceDocument.applyDeltas([oAction.oData]);
                 this._bApplyingExternalAction = false;
+                break;
             
             default:
-                assert(false, 'Invalid event type "' + oAction.sType + '".');
+                oHelpers.assert(false, 'Invalid event type "' + oAction.sType + '".');
         }        
     },
 

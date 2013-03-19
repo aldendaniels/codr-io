@@ -64,13 +64,21 @@ var Client = oHelpers.createClass(
             this._oWorkspace.setClientInitialValue(this);
     },
     
-    sendAction: function(sType, oData)
+    sendAction: function(param1, param2) /* either sendAction(sType, oData) or sendAction(oAction)*/
     {
-        this._oSocket.send(JSON.stringify(
+        if (typeof(param1) == 'string')
         {
-            sType: sType,
-            oData: oData
-        }));
+            this._oSocket.send(JSON.stringify(
+            {
+                sType: param1,
+                oData: param2
+            }));     
+        }
+        else
+        {
+            oHelpers.assert(typeof(param1) == 'object', 'Invalid parameter type');
+            this._oSocket.send(JSON.stringify(param1));
+        }
     },
 
     _onClientAction: function(sJSONAction)
