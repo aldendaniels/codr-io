@@ -155,22 +155,34 @@ var Workspace = oHelpers.createClass(
 
     addClient: function(oClient)
     {
+		// Automatically start editing if you're the only client.
+        if (!this._aClients.length)
+            this._oCurrentEditingClient = oClient;
+
+		// Add the client.
         this._aClients.push(oClient);
-        this._oCurrentEditingClient = this._oCurrentEditingClient || oClient;
         if (this._bDocumentLoaded)
             oClient.onDocumentLoad();
     },
     
     removeClient: function(oClient)
     {
+        // Remove editing rights.
+        if (oClient == this._oCurrentEditingClient)
+        {
+            this._oCurrentEditingClient = null;
+            this._oLastSelAction = null;
+            this._broadcastAction(oClient,
+            {
+                sType: 'removeSelection',
+                oData: null
+            });
+        }
+
         // Remove the client.
         var iIndex = this._aClients.indexOf(oClient);
         this._aClients.splice(iIndex, 1);
-
-        // Remove editing rights.
-        if (oClient == this._oCurrentEditingClient)
-            this._oCurrentEditingClient = null;
-
+        
         // Close the document (if no editors left).
         if (this._aClients.length === 0)
         {
@@ -190,7 +202,7 @@ var Workspace = oHelpers.createClass(
         {
             sText: this._oDocument.get('sText'),
             sMode: this._oDocument.get('sMode'),
-            oSelection: this._oLastSelAction.oData,
+            oSelection: (this._oLastSelAction ? this._oLastSelAction.oData : null),
             bIsEditing: this._oCurrentEditingClient == oClient
         });
     },

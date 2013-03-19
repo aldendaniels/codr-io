@@ -26,6 +26,7 @@ function chooseMode()
     function fnOnModeSelect(sMode)
     {
         g_oEditor.setMode(sMode);
+        g_oEditor.focusEditor();
         oMenu.detach();
         $('BODY').removeClass('chooseMode');
         connect();

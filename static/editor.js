@@ -44,8 +44,13 @@ var Editor = oHelpers.createClass(
         this._attachAceEvents();
         
         // Set focus & notify server of selection position.
-        this._oAceEditor.focus();
+        this.focusEditor();
         this._onAceSelectionChange();
+    },
+    
+    focusEditor: function()
+    {
+        this._oAceEditor.focus();
     },
     
     connect: function(oSocket)
@@ -91,7 +96,8 @@ var Editor = oHelpers.createClass(
                 this._setText(oAction.oData.sText);
                 this._setIsEditing(oAction.oData.bIsEditing);
                 this.setMode(oAction.oData.sMode);
-                this._onRemoteCursorMove(oAction.oData.oSelection);
+                if (oAction.oData.oSelection)
+                    this._onRemoteCursorMove(oAction.oData.oSelection);
                 this._bIsInitialized = true;
                 break;
 
@@ -103,6 +109,10 @@ var Editor = oHelpers.createClass(
 
             case 'setSelection':
                 this._onRemoteCursorMove(oAction.oData);
+                break;
+            
+            case 'removeSelection':
+                this._oAceEditSession.removeMarker(this._iRemoteCursorMarkerID);
                 break;
             
             case 'setMode':
@@ -199,6 +209,7 @@ var Editor = oHelpers.createClass(
     _setText: function(sText)
     {
         this._oAceDocument.setValue(sText);
+        this._oAceEditor.moveCursorTo(0, 0);
     },
 
     _setDocumentID: function(sID)
