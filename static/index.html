@@ -4,7 +4,7 @@
         <title>Codr</title>
         <link rel=StyleSheet href="static/index.css" type="text/css" />
         <link rel=StyleSheet href="static/menu.css" type="text/css" />
-        <link href='http://fonts.googleapis.com/css?family=Unica+One' rel='stylesheet' type='text/css'>
+        <link href='http://fonts.googleapis.com/css?family=Sanchez' rel='stylesheet' type='text/css'>
         <style type="text/css">
                             #modeChooser    { display: none;  }
                             #loaderIcon     { display: block; }
@@ -22,7 +22,7 @@
         </script>
         
         <div id="modeChooser">
-            <h3>CODR<span class="io">.IO</span></h3>
+            <h3>codr<span class="io">.io</span></h3>
             <div class="mode btn" id="html">HTML</div>
             <div class="or">OR</div>
             <div class="mode btn" id="text">Plain Text</div>
@@ -31,7 +31,24 @@
         </div>
         
         <div id="codr-workspace">
-            <div id="codr-toolbar"></div>
+            <div id="codr-toolbar">
+                <div id="toolbar-logo">codr.io</div>
+                <div class="divider"></div>
+                <div class="toolbar-item toolbar-mode">
+                    <div class="toolbar-caption">Language</div>
+                    <div class="toolbar-selection">Text</div>
+                </div>
+                <div class="divider"></div>
+                <div class="toolbar-item toolbar-title">
+                    <div class="toolbar-caption">Document Title</div>
+                    <div class="toolbar-selection"><i>Choose a Title...</i></div>
+                </div>
+                <div class="divider"></div>
+                <div class="toolbar-item" id="toolbar-edit">
+                    <div id="toolbar-edit-btn" class="btnNew">Edit</div>
+                </div>
+                <div class="divider" style="float: right;"></div>
+            </div>
             <div id="codr-edit"></div>
         </div>
         

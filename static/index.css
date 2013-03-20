@@ -22,9 +22,9 @@ body
     font-weight: normal;
     color: #556677;
     text-shadow: 1px 2px 3px rgba(255,255,255, 0.3);
-    font-size: 46pt;
+    font-size: 56pt;
     margin-top: 10px;
-    font-family: 'Unica One';
+    font-family: Sanchez;
     margin-bottom: 15px;
 }
 
@@ -75,13 +75,6 @@ body
     border: 1px #c5cad5 solid;
 }
 
-#codr-edit
-{
-    width: 100%;
-    height: 100%;
-    position: absolute;
-}
-
 /***************** EDITOR *********************/
 
 .codr-peer-selection
@@ -98,4 +91,110 @@ body
     z-index: 5;
     background: transparent;
     border-left: 2px orange solid;
+}
+
+/***************** TOOLBAR *********************/
+
+#codr-edit
+{
+    position: absolute;
+    top: 50px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+#codr-toolbar
+{
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    height: 48px;
+    background: -webkit-linear-gradient(#eaeaea, #dadada);
+    border-bottom: 1px #aaa solid;
+    border-top: 1px #f5f5f5 solid;
+    overflow: hidden;
+}
+
+#toolbar-logo
+{
+    font-family: sanchez, arial;
+    font-size: 40pt;
+    margin-top: -12px;
+    margin-left: 15px;
+    margin-right: 15px;
+    color: #319ac2;
+    text-shadow: 1px 2px 3px white;
+    float: left;
+}
+
+.toolbar-item
+{
+    float: left;
+    height: 100%;
+    cursor: pointer;
+    padding-left: 10px;
+    padding-right: 10px;
+    transition: background-color 0.2s;
+}
+
+.toolbar-item:hover
+{
+    background-color: rgba(255, 255, 255, 0.5);
+
+}
+
+.divider
+{
+    height: 50px;
+    border-right: 1px #f5f5f5 solid;
+    border-left: 1px #ccc solid;
+    float: left;
+}
+
+.toolbar-mode
+{
+    width: 120px;
+}
+
+.toolbar-caption
+{
+    color: #666;
+    font-size: 14px;
+    text-shadow: 1px 2px 3px white;
+    font-family: sanchez;
+    margin-top: 5px;
+}
+
+.toolbar-selection
+{
+    font-family: verdana;
+    color: #555;
+    font-size: 18px;
+    text-shadow: 1px 2px 3px white;
+}
+
+.toolbar-title
+{
+    width: 400px;
+}
+
+#toolbar-edit
+{
+    width: 300px;
+    float: right;
+}
+
+#toolbar-edit-btn
+{
+    text-align: center;
+    margin-top: 3px;
+    border-radius: 4px;
+    padding: 10px;
+    background-color: #cf3a1c;
+    font-size: 12pt;
+    color: white;
+    font-weight: bold;
+    text-shadow: 1px 2px 3px rgba(0, 0, 0, 0.1);
 }
