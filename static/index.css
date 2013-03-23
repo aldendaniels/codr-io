@@ -122,6 +122,17 @@ body
     width: 49px !important;
 }
 
+.ace-tm .ace_gutter-active-line,
+.ace-tm .ace_marker-layer .ace_active-line
+{
+    background: rgba(0, 0, 0, 0.05) !important;
+}
+
+.ace-tm .ace_marker-layer .ace_selection
+{
+    background: #e5e5e5 !important;
+}
+
 #codr-edit
 {
     position: absolute;
