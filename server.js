@@ -47,6 +47,7 @@ var Client = oHelpers.createClass(
     _bCreatedDocument: false,
     _aPreInitActionQueue: null,
     _bInitialized: false,
+    _bClosed: false,
     
     __init__: function(oSocket)
     {
@@ -55,7 +56,10 @@ var Client = oHelpers.createClass(
         oSocket.on('message', oHelpers.createCallback(this, this._onClientAction));
         oSocket.on('close', oHelpers.createCallback(this, function()
         {
-            this._oWorkspace.removeClient(this);
+            if (this._oWorkspace)
+                this._oWorkspace.removeClient(this);
+            else
+                this._bClosed = true;
         }));        
     },
     
@@ -111,6 +115,9 @@ var Client = oHelpers.createClass(
     
     _addToWorkspace: function(sDocumentID)
     {
+        if (this._bClosed)
+            return;
+
         oHelpers.assert(!this._oWorkspace, 'Client already connected.');        
         if (sDocumentID in g_oWorkspaces)
             this._oWorkspace = g_oWorkspaces[sDocumentID];
@@ -249,11 +256,11 @@ var Workspace = oHelpers.createClass(
         switch(oAction.sType)
         {
             case 'requestEditRights':
-                this._oCurrentEditingClient = oClient;                
                 if (this._oCurrentEditingClient)
                     this._oCurrentEditingClient.sendAction('removeEditRights');
                 else
-                    oClient.sendAction('editRightsGranted');                                
+                    oClient.sendAction('editRightsGranted');
+                this._oCurrentEditingClient = oClient;
                 break;
         
             case 'releaseEditRights':

@@ -5,7 +5,9 @@ var Workspace = oHelpers.createClass({
 
     __init__: function()
     {
-        this._oEditor = new Editor();
+        var bIsEditing = IS_NEW_DOCUMENT
+        this._oEditor = new Editor(bIsEditing);
+        this._setIsEditing(bIsEditing);
     },
 
     connect: function(oSocket)
@@ -42,6 +44,14 @@ var Workspace = oHelpers.createClass({
             $('#codr-toolbar #documentTitle').text(this._sTitle);
         }));
 
+        $('#edit-btn').on('click', oHelpers.createCallback(this, function()
+        {
+            if ($('#edit-btn').hasClass('disabled'))
+                return;
+
+            this._oSocket.send('requestEditRights');
+        }));
+
         this._oEditor.connect(oSocket);
     },
 
@@ -70,12 +80,12 @@ var Workspace = oHelpers.createClass({
                 break;
 
             case 'removeEditRights':
-                this._oEditor.setIsEditing(false);        
+                this._setIsEditing(false);
                 this._oSocket.send('releaseEditRights'); // Notify server of action receipt.
                 break;
 
             case 'editRightsGranted':
-                this._oEditor.setIsEditing(true);
+                this._setIsEditing(true);
                 break;
 
             case 'setDocumentID': // Fired after creating a new document.
@@ -92,5 +102,18 @@ var Workspace = oHelpers.createClass({
     _setDocumentID: function(sID)
     {
         window.history.replaceState(null, '', '/' + sID);
+    },
+
+    _setIsEditing: function(bIsEditing)
+    {
+        this._oEditor.setIsEditing(bIsEditing);
+        if (bIsEditing)
+        {
+            $('#edit-btn').text('Editing...').addClass('disabled'); 
+        }
+        else
+        {
+            $('#edit-btn').text('Start Editing').removeClass('disabled'); 
+        }
     }
 });

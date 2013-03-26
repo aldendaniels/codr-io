@@ -24,10 +24,10 @@ var Editor = oHelpers.createClass(
     _iRemoteCursorMarkerID: null,
     _oLastSelectionRange: null,
 
-    __init__: function()
+    __init__: function(bIsEditing)
     {
-        // Save editng state.
-        this._bIsEditing = IS_NEW_DOCUMENT;
+        // Save editing state.
+        this._bIsEditing = bIsEditing;
         
         // Create ace editor.
         this._oAceEditor = ace.edit(EDITOR_ID);
