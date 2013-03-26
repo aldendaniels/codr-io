@@ -258,6 +258,14 @@ body
     background-color: #277a99;
 }
 
+#edit-btn.disabled,
+#edit-btn.disabled:hover
+{
+    opacity: 0.5;
+    background-color: #319ac2;
+    cursor: default;
+}
+
 /***************** TOOLBAR DROPDOWNS *********************/
 
 .toolbar-item.open
