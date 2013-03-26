@@ -38,7 +38,7 @@ var Workspace = oHelpers.createClass({
         this._oEditor.setMode(sMode);
         $('#codr-toolbar #documentMode').text(sMode);
     },
-
+    
     focusEditor: function()
     {
         this._oEditor.focusEditor();
@@ -46,16 +46,22 @@ var Workspace = oHelpers.createClass({
     
     _attachDOMEvents: function()
     {
-        oHelpers.on('#documentTitleSave', 'click', this, function()
-        {
-            var sTitle = $('#documentTitleInput').val();
-            $('#documentTitle').text(sTitle);
-            this._oSocket.send('setDocumentTitle', { 'sTitle': sTitle });
-        });
-        
         oHelpers.on('.toolbar-item-btn', 'click', this, function(oEvent)
         {
-            $(oEvent.currentTarget).parent().toggleClass('open');
+            var jToolbarItem = $(oEvent.currentTarget).parent();
+            jToolbarItem.toggleClass('open');
+            jToolbarItem.find('input[type="text"]').focus().select();
+        });
+
+        oHelpers.on('#documentTitleSave', 'click', this, function()
+        {
+            this._setTitleToLocal();
+        });
+        
+        oHelpers.on('#documentTitleInput', 'keypress', this, function(oEvent)
+        {
+            if (oEvent.which == 13 /* ENTER */)
+                this._setTitleToLocal();
         });
 
         oHelpers.on('#edit-btn', 'click', this, function()
@@ -105,6 +111,14 @@ var Workspace = oHelpers.createClass({
         return true;
     },
 
+    _setTitleToLocal: function()
+    {
+        var sTitle = $('#documentTitleInput').val();
+        $('#documentTitle').text(sTitle);
+        this._oSocket.send('setDocumentTitle', { 'sTitle': sTitle });
+        $('.toolbar-title').removeClass('open');
+    },
+    
     _setDocumentID: function(sID)
     {
         window.history.replaceState(null, '', '/' + sID);
