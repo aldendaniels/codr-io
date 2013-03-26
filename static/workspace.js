@@ -1,7 +1,6 @@
 var Workspace = oHelpers.createClass({
     _oSocket: null,
     _oEditor: null,
-    _sTitle: '',
 
     __init__: function()
     {
@@ -30,28 +29,7 @@ var Workspace = oHelpers.createClass({
                 sDocumentID: window.location.pathname.substr(1)
             });
         }
-
-        $('#documentTitleWrapper').on('click', oHelpers.createCallback(this, function()
-        {
-            var sNew = prompt("Please enter the new document title.", this._sTitle);
-            if (sNew === null)
-                return;
-
-            this._sTitle = sNew;
-            this._oSocket.send('setDocumentTitle', {
-                'sTitle': this._sTitle
-            });
-            $('#codr-toolbar #documentTitle').text(this._sTitle);
-        }));
-
-        $('#edit-btn').on('click', oHelpers.createCallback(this, function()
-        {
-            if ($('#edit-btn').hasClass('disabled'))
-                return;
-
-            this._oSocket.send('requestEditRights');
-        }));
-
+        this._attachDOMEvents();
         this._oEditor.connect(oSocket);
     },
 
@@ -65,14 +43,35 @@ var Workspace = oHelpers.createClass({
     {
         this._oEditor.focusEditor();
     },
+    
+    _attachDOMEvents: function()
+    {
+        oHelpers.on('#documentTitleSave', 'click', this, function()
+        {
+            var sTitle = $('#documentTitleInput').val();
+            $('#documentTitle').text(sTitle);
+            this._oSocket.send('setDocumentTitle', { 'sTitle': sTitle });
+        });
+        
+        oHelpers.on('.toolbar-item-btn', 'click', this, function(oEvent)
+        {
+            $(oEvent.currentTarget).parent().toggleClass('open');
+        });
+
+        oHelpers.on('#edit-btn', 'click', this, function()
+        {
+            if (!$('#edit-btn').hasClass('disabled'))
+                this._oSocket.send('requestEditRights');
+        });
+    },
 
     _handleServerAction: function(oAction)
     {
         switch(oAction.sType)
         {
             case 'setDocumentTitle':
-                $('#codr-toolbar #documentTitle').text(oAction.oData.sTitle);
-                this._sTitle = oAction.oData.sTitle;
+                $('#documentTitle').text(oAction.oData.sTitle);
+                $('#documentTitleInput').val(oAction.oData.sTitle);
                 break;
 
             case 'setMode':

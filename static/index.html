@@ -34,19 +34,31 @@
             <div id="codr-toolbar">
                 <div id="toolbar-logo">codr.io</div>
                 <div class="divider"></div>
-                <div id="documentTitleWrapper" class="toolbar-item toolbar-title open">
-                    <div class="toolbar-caption">Document Title</div>
-                    <div id="documentTitle" class="toolbar-selection"><i>Choose a Title...</i></div>
+                <div id="documentTitleWrapper" class="toolbar-item toolbar-title">
+                    
+                    <div class="toolbar-item-btn">
+                        <div class="toolbar-caption">Document Title</div>
+                        <div id="documentTitle" class="toolbar-selection"></div>
+                    </div>
                     <div class="toolbar-dropdown-top-border"></div>
-                    <div class="toolbar-item-dropdown"></div>
+                    <div class="toolbar-item-dropdown">
+                        <input type="text" id="documentTitleInput"></input>
+                        <div class="horizontal-divider"></div>
+                        <div class="button" id="documentTitleSave">Save</div>
+                    </div>
                 </div>
+            
                 <div class="divider"></div>
+                
                 <div id="documentModeWrapper" class="toolbar-item toolbar-mode">
-                    <div class="toolbar-caption">Language</div>
-                    <div id="documentMode" class="toolbar-selection">Text</div>
+                    <div class="toolbar-item-btn">
+                        <div class="toolbar-caption">Language</div>
+                        <div id="documentMode" class="toolbar-selection">Text</div>
+                    </div>
                     <div class="toolbar-dropdown-top-border"></div>
                     <div class="toolbar-item-dropdown"></div>
                 </div>
+                
                 <div class="divider"></div>
             </div>
             <div id="codr-liveshare">

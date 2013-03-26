@@ -173,21 +173,26 @@ body
 {
     float: left;
     height: 100%;
-    cursor: pointer;
-    transition: background-color 0.2s;
     position: relative;
-    padding-left: 10px;
-    padding-right: 10px;
-    padding-top: 5px;
 }
 
-.toolbar-item:hover
+.toolbar-item-btn
+{
+    cursor: pointer;
+    transition: background-color 0.2s;
+    padding-left: 10px;
+    padding-right: 10px;
+    height: 100%;
+}
+
+.toolbar-item-btn:hover
 {
     background-color: rgba(255, 255, 255, 0.5);
 }
 
 .toolbar-caption
 {
+    padding-top: 5px;
     color: #666;
     font-size: 14px;
     font-family: sanchez;
@@ -253,14 +258,6 @@ body
     background-color: #277a99;
 }
 
-#edit-btn.disabled,
-#edit-btn.disabled:hover
-{
-    opacity: 0.5;
-    background-color: #319ac2;
-    cursor: default;
-}
-
 /***************** TOOLBAR DROPDOWNS *********************/
 
 .toolbar-item.open
@@ -269,21 +266,30 @@ body
     z-index: 10;
     margin-left: -3px;
     margin-right: -3px;
-    padding-left: 13px;
-    padding-right: 13px;
-    padding-top:3px;
     border-top: 2px #319ac2 solid;
     background-color: #fafafa;
     box-shadow: 0 0 8px #aaa;
 }
 
+.toolbar-item.open .toolbar-item-btn
+{
+    padding-left: 13px;
+}
+
+.toolbar-item.open .toolbar-caption
+{
+    padding-top: 3px;    
+}
+
 .toolbar-item.open .toolbar-dropdown-top-border
 {
     position: absolute;
-    top: 47px;
+    top: 44px;
     left: 0;
-    border-top: 3px #319ac2 solid;
-    border-bottom: 5px #fafafa solid;
+    background-color: #fafafa;
+    height: 10px;
+    z-index: 20;
+    width: 100%;
 }
 
 .toolbar-item.open .toolbar-selection
@@ -308,7 +314,7 @@ body
 {
     display: block;
     position: absolute;
-    top: 50px;
+    top: 49px;
     left: 0;
     bottom: 0;
     background-color: white;
@@ -328,12 +334,58 @@ body
 .toolbar-title .toolbar-item-dropdown
 {
     width: 500px;
-    height: 200px;
+    height: 164px;
+}
+
+.toolbar-title.open
+{
+    width: 306px;
 }
 
 .toolbar-title .toolbar-dropdown-top-border
 {
     width: 500px;
+}
+
+.toolbar-title input
+{
+    width: 432px;
+    margin-left: 20px;
+    margin-top: 20px;
+    padding: 12px;
+    border: 1px white solid;
+    box-shadow: 0 0 8px #e5e5e5 inset;
+    border-radius: 5px;
+    outline: none;
+    font-size: 12pt;
+}
+
+.toolbar-title .horizontal-divider
+{
+    margin-top: 20px;
+    margin-bottom: 19px;
+    border-top: 1px #ddd solid;
+    border-bottom: 1px white solid;
+}
+
+.toolbar-title .button
+{
+    background-color: #319ac2;
+    padding: 8px;
+    border-radius: 3px;
+    color: white;
+    margin-left: 20px;
+    margin-right: 20px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.1s
+}
+
+.toolbar-title .button:hover
+{
+    background-color: #277a99;
 }
 
 /***************** MODE OPTION *********************/
@@ -343,13 +395,13 @@ body
     width: 120px;
 }
 
+.toolbar-mode.open
+{
+    width: 126px;
+}
+
 .toolbar-mode .toolbar-item-dropdown
 {
     width: 300px;
     height: 400px;
-}
-
-.toolbar-mode .toolbar-dropdown-top-border
-{
-    width: 300px;
 }
