@@ -63,6 +63,13 @@ var Workspace = oHelpers.createClass({
             if (!$('#edit-btn').hasClass('disabled'))
                 this._oSocket.send('requestEditRights');
         });
+        
+        oHelpers.on('BODY', 'mousedown', this, function(oEvent)
+        {
+            var jOpenToolbarItem = $('.toolbar-item.open');
+            if (jOpenToolbarItem.length && !$(oEvent.target).parents('.toolbar-item.open').length)
+                jOpenToolbarItem.removeClass('open');
+        });
     },
 
     _handleServerAction: function(oAction)

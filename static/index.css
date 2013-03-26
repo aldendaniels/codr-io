@@ -185,7 +185,7 @@ body
     height: 100%;
 }
 
-.toolbar-item-btn:hover
+.toolbar-item:not(.open) .toolbar-item-btn:hover
 {
     background-color: rgba(255, 255, 255, 0.5);
 }
