@@ -399,16 +399,27 @@ body
 
 .toolbar-mode
 {
-    width: 150px;
+    width: 200px;
 }
 
 .toolbar-mode.open
 {
-    width: 156px;
+    width: 206px;
+}
+
+.toolbar-mode .menu-options
+{
+    border: 1px #ddd solid;
+}
+
+.toolbar-mode .menu-search
+{
+    width: 288px;
 }
 
 .toolbar-mode .toolbar-item-dropdown
 {
     width: 300px;
     height: 400px;
+    padding: 10px;
 }

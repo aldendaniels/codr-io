@@ -52,17 +52,24 @@ var Menu = oHelpers.createClass(
     {
         oHelpers.on(window, 'keydown.menu', this, this._onKeyDown);
         oHelpers.on(window, 'keyup.menu', this, this._onKeyUp);
-        oHelpers.on(this._jMenu, 'click', this, this._selectCur);
+        oHelpers.on(this._jMenu, 'click.menu', this, this._selectClicked);
         this._oKeyable.attach();
         this._jMenu.find('.menu-search').focus();
-
+        this._oKeyable.update();
     },
 
     detach: function()
     {
-        $(window).off('keydown.menu');
-        $(window).off('keyup.menu');
+        $(window).off('.menu');
         this._oKeyable.detach();
+    },
+    
+    highlight: function(sKey)
+    {
+        var jOption = this._jMenu.find('.option#' + sKey);
+        oHelpers.assert(jOption.length, 'Option not visible. ');
+        this._oKeyable.select(jOption);
+        this._scrollIntoView(jOption);
     },
         
     _renderOptions: function(sOptionalFilter)
@@ -171,4 +178,14 @@ var Menu = oHelpers.createClass(
         var sKey = this._oKeyable.getSelected().attr('id');
         this._fnOnSelect(sKey);
     },
+    
+    _selectClicked: function(oEvent)
+    {
+        var jOption = $(oEvent.target).closest('.option.keyable');
+        if (jOption.length)
+        {
+            this._oKeyable.select(jOption);
+            this._selectCur();
+        }
+    }
 });

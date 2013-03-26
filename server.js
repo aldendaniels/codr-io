@@ -7,6 +7,12 @@ var oHelpers = require('./helpers');
 var oAceDocument = require('./aceDocument').Document;
 var oDatabase = require('./database');
 
+// Error handling.
+process.on('uncaughtException', function (err)
+{
+    console.error(err); // Keep node from exiting.
+});
+
 // Create express app.
 var oApp = oExpress();
 
@@ -270,6 +276,7 @@ var Workspace = oHelpers.createClass(
                 break;
             
             case 'setMode':
+                this._broadcastAction(oClient, oAction);
                 this._oDocument.set('sMode', oAction.oData.sMode);
                 break;
                 
