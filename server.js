@@ -45,9 +45,12 @@ var Client = oHelpers.createClass(
     _oSocket: null,
     _oWorkspace: null,
     _bCreatedDocument: false,
+    _aPreInitActionQueue: null,
+    _bInitialized: false,
     
     __init__: function(oSocket)
     {
+        this._aPreInitActionQueue = [];
         this._oSocket = oSocket;
         oSocket.on('message', oHelpers.createCallback(this, this._onClientAction));
         oSocket.on('close', oHelpers.createCallback(this, function()
@@ -99,7 +102,10 @@ var Client = oHelpers.createClass(
                 break;
             
             default:
-                this._oWorkspace.onClientAction(this, oAction);
+                if (this._bInitialized )
+                    this._oWorkspace.onClientAction(this, oAction);
+                else
+                    this._aPreInitActionQueue.push(sJSONAction);
         }
     },
     
@@ -111,6 +117,10 @@ var Client = oHelpers.createClass(
         else
             this._oWorkspace = new Workspace(sDocumentID);
         this._oWorkspace.addClient(this);
+
+        this._bInitialized = true;
+        for (var i = 0; i < this._aPreInitActionQueue.length; i++)
+            this._onClientAction(this._aPreInitActionQueue[i]);
     }
 });
 
@@ -200,10 +210,22 @@ var Workspace = oHelpers.createClass(
         this._updateDocumentText();
         oClient.sendAction('setDocumentData',
         {
-            sText: this._oDocument.get('sText'),
-            sMode: this._oDocument.get('sMode'),
-            oSelection: (this._oLastSelAction ? this._oLastSelAction.oData : null),
-            bIsEditing: this._oCurrentEditingClient == oClient
+            sText: this._oDocument.get('sText')
+        });
+
+        if (this._oCurrentEditingClient == oClient)
+            oClient.sendAction('editRightsGranted');
+
+        if (this._oLastSelAction)
+            oClient.sendAction('setSelection', this._oLastSelAction);
+
+        oClient.sendAction('setMode', {
+            sMode: this._oDocument.get('sMode')
+        });
+
+        oClient.sendAction('setDocumentTitle', 
+        {
+            sTitle: this._oDocument.get('sTitle')
         });
     },
     
@@ -213,6 +235,11 @@ var Workspace = oHelpers.createClass(
         oClient.sendAction('setDocumentID',
         {
             sDocumentID: this._sDocumentID
+        });
+
+        oClient.sendAction('setDocumentTitle', 
+        {
+            sTitle: this._oDocument.get('sTitle')
         });
     },
   
@@ -242,6 +269,11 @@ var Workspace = oHelpers.createClass(
             case 'setSelection':
                 this._broadcastAction(oClient, oAction);
                 this._oLastSelAction = oAction;
+                break;
+            
+            case 'setDocumentTitle':
+                this._broadcastAction(oClient, oAction);
+                this._oDocument.set('sTitle', oAction.oData.sTitle);
                 break;
             
             case 'aceDelta':
@@ -309,6 +341,7 @@ var Document = oHelpers.createClass(
     _sParentID:     '',
     _sMode:         '',
     _sText:         '',
+    _sTitle:        'Untitled',
 
     __init__: function(sJSON)
     {
@@ -319,9 +352,12 @@ var Document = oHelpers.createClass(
     
     set: function(sKey, oValue)
     {
+        if (oValue === null)
+            oValue = '';
+
         var sProp = '_' + sKey;
         oHelpers.assert (sProp in this, 'Invalid key: ' + sKey);
-        oHelpers.assert (typeof(oValue) == typeof(this[sProp]), 'Invalid type!');
+        oHelpers.assert (typeof(oValue) == typeof(this[sProp]), 'Invalid type: ' + typeof(oValue));
         this[sProp] = oValue;
     },
     

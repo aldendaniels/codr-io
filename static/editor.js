@@ -23,12 +23,11 @@ var Editor = oHelpers.createClass(
     // Other.
     _iRemoteCursorMarkerID: null,
     _oLastSelectionRange: null,
-    _bIsInitialized: false,
 
-    __init__: function(bIsEditing)
+    __init__: function()
     {
         // Save editng state.
-        this._bIsEditing = bIsEditing;
+        this._bIsEditing = IS_NEW_DOCUMENT;
         
         // Create ace editor.
         this._oAceEditor = ace.edit(EDITOR_ID);
@@ -38,15 +37,13 @@ var Editor = oHelpers.createClass(
         // Set initial settings.
         this._oAceEditor.setFontSize(14);
         this._oAceEditor.setShowPrintMargin(false);
-        this._setIsEditing(bIsEditing);
+        this.setIsEditing(this._bIsEditing);
         
         // Attach events.
         this._attachDOMEvents();
-        this._attachAceEvents();
         
         // Set focus & notify server of selection position.
         this.focusEditor();
-        this._onAceSelectionChange();
     },
     
     focusEditor: function()
@@ -58,22 +55,10 @@ var Editor = oHelpers.createClass(
     {
         this._oSocket = oSocket;
         this._oSocket.bind('message', this, this._handleServerAction);
-        if (IS_NEW_DOCUMENT)
-        {
-            this._oSocket.send('createDocument',
-            {
-                sText: this._oAceDocument.getValue(),
-                sMode: this._sMode
-            });
-            // TODO: Send initial selection.
-        }
-        else
-        {
-            this._oSocket.send('openDocument',
-            {
-                sDocumentID: window.location.pathname.substr(1)
-            });
-        }
+
+        this._attachAceEvents();
+        if (this._bIsEditing)
+            this._onAceSelectionChange();
     },
     
     setMode: function(sMode)
@@ -82,31 +67,22 @@ var Editor = oHelpers.createClass(
 		this._sMode = sMode;
     },
 
+    getMode: function()
+    {
+        return this._sMode;
+    },
+
+    getText: function()
+    {
+        return this._oAceDocument.getValue();
+    },
+
     _handleServerAction: function(oAction)
     {
-        // Verify initialization.
-        if (oAction.sType == 'setDocumentData' || oAction.sType == 'setDocumentID')
-            oHelpers.assert(!this._bIsInitialized);
-        else
-            oHelpers.assert(this._bIsInitialized);
-
-        console.log('Action received:', oAction);
-
         switch(oAction.sType)
         {
             case 'setDocumentData': // Fired after opening an existing document.
                 this._setText(oAction.oData.sText);
-                this._setIsEditing(oAction.oData.bIsEditing);
-                this.setMode(oAction.oData.sMode);
-                if (oAction.oData.oSelection)
-                    this._onRemoteCursorMove(oAction.oData.oSelection);
-                this._bIsInitialized = true;
-                break;
-
-            case 'setDocumentID': // Fired after creating a new document.
-                // TODO: Assert not init...
-                this._setDocumentID(oAction.oData.sDocumentID);
-                this._bIsInitialized = true;
                 break;
 
             case 'setSelection':
@@ -121,22 +97,15 @@ var Editor = oHelpers.createClass(
                 this.setMode(oAction.oData.sMode);
                 break;
             
-            case 'removeEditRights':
-                this._setIsEditing(false);        
-                this.sendAction('releaseEditRights'); // Notify server of action receipt.
-                break;
-
-            case 'editRightsGranted':
-                this._setIsEditing(true);
-                break;
-            
             case 'aceDelta':
                 this._oAceDocument.applyDeltas([oAction.oData]);
                 break;
             
             default:
-                oHelpers.assert(false, 'Invalid event type "' + oAction.sType + '".');
-        }        
+                return false;
+        }
+
+        return true;
     },
 
     _onRemoteCursorMove: function(oSel)
@@ -176,7 +145,7 @@ var Editor = oHelpers.createClass(
             var oSelectionRange = this._oAceEditor.getSelectionRange();
             if (!this._oLastSelectionRange || !this._oLastSelectionRange.isEqual(oSelectionRange))
             {
-                this.sendAction('setSelection', oSelectionRange);
+                this._oSocket.send('setSelection', oSelectionRange);
                 this._oLastSelectionRange = oSelectionRange;
             }            
         }
@@ -185,10 +154,10 @@ var Editor = oHelpers.createClass(
     _onAceDocumentChange: function(oAceDelta)
     {
         if (this._bIsEditing)
-            this.sendAction('aceDelta', oAceDelta.data);
+            this._oSocket.send('aceDelta', oAceDelta.data);
     },
 
-    _setIsEditing: function(bIsEditing)
+    setIsEditing: function(bIsEditing)
     {
         this._bIsEditing = bIsEditing;
         this._oAceEditor.setReadOnly(!bIsEditing);
@@ -198,13 +167,8 @@ var Editor = oHelpers.createClass(
             // Hide remove cursor & send set the cursor position.
             this._oAceEditSession.removeMarker(this._iRemoteCursorMarkerID);
             this._iRemoteCursorMarkerID = null;
-            this._onAceSelectionChange();
-            
-            // TODO: Update toolbar.
-        }
-        else
-        {
-            // TODO: Update toolbar.
+            if (this._oSocket)
+                this._onAceSelectionChange();
         }
     },
 
@@ -212,19 +176,5 @@ var Editor = oHelpers.createClass(
     {
         this._oAceDocument.setValue(sText);
         this._oAceEditor.moveCursorTo(0, 0);
-    },
-
-    _setDocumentID: function(sID)
-    {
-        window.history.replaceState(null, '', '/' + sID);
-    },
-
-    sendAction: function(sType, oData)
-    {
-        // TODO: Queue actions if we're connected, but not initialized.
-        // Right now, we'll get ourselves into an inconsistent state.
-        // We could alternatively queue server side.
-        if (this._bIsInitialized)
-            this._oSocket.send(sType, oData);
     }
 });

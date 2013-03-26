@@ -71,8 +71,15 @@ var oHelpers = {
         {
             if (sEventName in this._oCallbacks)
             {
+                var bHandled = false;
+
                 for (var i in this._oCallbacks[sEventName])
-                    this._oCallbacks[sEventName][i](oOptionalData);
+                {
+                    if (this._oCallbacks[sEventName][i](oOptionalData))
+                        bHandled = true;
+                }
+
+                oHelpers.assert(bHandled, 'The event had no listener: ' + sEventName)
             }
         }  
     }),

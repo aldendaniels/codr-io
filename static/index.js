@@ -1,4 +1,4 @@
-var g_oEditor = null;
+var g_oWorkspace = null;
 
 $(document).on('ready', function()
 {
@@ -14,7 +14,7 @@ $(document).on('ready', function()
 
 function onReady()
 {
-    g_oEditor = new Editor(IS_NEW_DOCUMENT);    
+    g_oWorkspace = new Workspace();    
     if (IS_NEW_DOCUMENT)
         chooseMode();
     else
@@ -25,8 +25,8 @@ function chooseMode()
 {
     function fnOnModeSelect(sMode)
     {
-        g_oEditor.setMode(sMode);
-        g_oEditor.focusEditor();
+        g_oWorkspace.setMode(sMode);
+        g_oWorkspace.focusEditor();
         oMenu.detach();
         $('BODY').removeClass('chooseMode');
         connect();
@@ -54,6 +54,7 @@ function connect()
     var oSocket = new oHelpers.WebSocket(sURL);
     oSocket.bind('open', null, function()
     {
-        g_oEditor.connect(oSocket);
+        g_oWorkspace.connect(oSocket);
+        return true;
     });
 }
