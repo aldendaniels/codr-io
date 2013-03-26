@@ -64,7 +64,8 @@ var Editor = oHelpers.createClass(
             {
                 sText: this._oAceDocument.getValue(),
                 sMode: this._sMode
-            });            
+            });
+            // TODO: Send initial selection.
         }
         else
         {
@@ -220,6 +221,9 @@ var Editor = oHelpers.createClass(
 
     sendAction: function(sType, oData)
     {
+        // TODO: Queue actions if we're connected, but not initialized.
+        // Right now, we'll get ourselves into an inconsistent state.
+        // We could alternatively queue server side.
         if (this._bIsInitialized)
             this._oSocket.send(sType, oData);
     }

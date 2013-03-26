@@ -174,15 +174,21 @@ body
     float: left;
     height: 100%;
     cursor: pointer;
+    transition: background-color 0.2s;
+    position: relative;
+}
+
+.toolbar-item-btn
+{
     padding-left: 10px;
     padding-right: 10px;
-    transition: background-color 0.2s;
+    padding-top: 5px;
+    height: 44px;
 }
 
 .toolbar-item:hover
 {
     background-color: rgba(255, 255, 255, 0.5);
-
 }
 
 .toolbar-mode
@@ -195,7 +201,6 @@ body
     color: #666;
     font-size: 14px;
     font-family: sanchez;
-    margin-top: 5px;
 }
 
 .toolbar-selection
@@ -262,3 +267,67 @@ body
 {
     background-color: #277a99;
 }
+
+/***************** TOOLBAR DROPDOWNS *********************/
+
+.toolbar-item.open
+{
+    background-color: white;
+    z-index: 10;
+    height: 500px;
+    margin-left: -3px;
+    margin-right: -3px;
+}
+
+.toolbar-item.open .toolbar-item-btn
+{
+    padding-left: 13px;
+    padding-top:3px;
+    border-top: 2px #319ac2 solid;
+    background-color: #fafafa;
+    box-shadow: 0 0 8px #aaa;
+}
+
+.toolbar-item.open .toolbar-dropdown-top-border
+{
+    position: absolute;
+    top: 49px;
+    border-top: 3px #319ac2 solid;
+    border-bottom: 5px #fafafa solid;
+    width: 500px;
+}
+
+.toolbar-item.open .toolbar-selection
+{
+    display: none;
+}
+
+.toolbar-item.open .toolbar-caption
+{
+    font-size: 22px;
+    -webkit-text-stroke: 0.5px;
+    padding-top: 5px;
+    text-shadow: 1px 2px 3px white;
+}
+
+.toolbar-item-dropdown
+{
+    display: none;
+}
+
+.toolbar-item.open .toolbar-item-dropdown
+{
+    display: block;
+    position: absolute;
+    top: 52px;
+    left: 0;
+    bottom: 0;
+    width: 500px;
+    background-color: white;
+    box-shadow: 0px 0px 8px #aaa;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    background-color: #fafafa;
+}
+
+/* Title option */
