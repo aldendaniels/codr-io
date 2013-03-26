@@ -176,24 +176,14 @@ body
     cursor: pointer;
     transition: background-color 0.2s;
     position: relative;
-}
-
-.toolbar-item-btn
-{
     padding-left: 10px;
     padding-right: 10px;
     padding-top: 5px;
-    height: 44px;
 }
 
 .toolbar-item:hover
 {
     background-color: rgba(255, 255, 255, 0.5);
-}
-
-.toolbar-mode
-{
-    width: 120px;
 }
 
 .toolbar-caption
@@ -208,11 +198,6 @@ body
     font-family: verdana;
     color: #333;
     font-size: 16px;
-}
-
-.toolbar-title
-{
-    width: 300px;
 }
 
 #codr-liveshare
@@ -274,14 +259,10 @@ body
 {
     background-color: white;
     z-index: 10;
-    height: 500px;
     margin-left: -3px;
     margin-right: -3px;
-}
-
-.toolbar-item.open .toolbar-item-btn
-{
     padding-left: 13px;
+    padding-right: 13px;
     padding-top:3px;
     border-top: 2px #319ac2 solid;
     background-color: #fafafa;
@@ -291,10 +272,10 @@ body
 .toolbar-item.open .toolbar-dropdown-top-border
 {
     position: absolute;
-    top: 49px;
+    top: 47px;
+    left: 0;
     border-top: 3px #319ac2 solid;
     border-bottom: 5px #fafafa solid;
-    width: 500px;
 }
 
 .toolbar-item.open .toolbar-selection
@@ -319,10 +300,9 @@ body
 {
     display: block;
     position: absolute;
-    top: 52px;
+    top: 50px;
     left: 0;
     bottom: 0;
-    width: 500px;
     background-color: white;
     box-shadow: 0px 0px 8px #aaa;
     border-bottom-left-radius: 5px;
@@ -330,4 +310,38 @@ body
     background-color: #fafafa;
 }
 
-/* Title option */
+/***************** TITLE OPTION *********************/
+
+.toolbar-title
+{
+    width: 300px;
+}
+
+.toolbar-title .toolbar-item-dropdown
+{
+    width: 500px;
+    height: 200px;
+}
+
+.toolbar-title .toolbar-dropdown-top-border
+{
+    width: 500px;
+}
+
+/***************** MODE OPTION *********************/
+
+.toolbar-mode
+{
+    width: 120px;
+}
+
+.toolbar-mode .toolbar-item-dropdown
+{
+    width: 300px;
+    height: 400px;
+}
+
+.toolbar-mode .toolbar-dropdown-top-border
+{
+    width: 300px;
+}
