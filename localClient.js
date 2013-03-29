@@ -36,7 +36,65 @@ function socketSend(sEventType, oEventData)
 
 function getModeFromFilePath()
 {
-    return 'javascript';
+    var sExt = oPath.extname(sFileToShare);
+    switch (sExt.toLowerCase())
+    {
+        case '.c':
+            return 'c_cpp';
+
+        case '.cpp':
+            return 'c_cpp';
+        
+        case '.coffee':
+            return 'coffee';
+        
+        case '.css':
+            return 'css';
+        
+        case '.diff':
+            return 'diff';
+        
+        case '.html':
+            return 'html';
+        
+        case '.java':
+            return 'java';
+        
+        case '.js':
+            return 'javascript';
+        
+        case '.json':
+            return 'json';
+        
+        case '.less':
+            return 'less';
+        
+        case '.make':
+            return 'makefile';
+                
+        case '.perl':
+            return 'perl';
+        
+        case '.php':
+            return 'php';
+        
+        case '.txt':
+            return 'text';
+        
+        case '.py':
+            return 'python';
+        
+        case '.sh':
+            return 'sh';
+        
+        case 'sql':
+            return 'sql';
+        
+        case '.xml':
+            return 'xml';
+    }
+        
+    return 'text';
 }
 
 function onMessage(oEvent)
