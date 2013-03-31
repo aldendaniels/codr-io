@@ -1,7 +1,7 @@
 
 // Elem IDs.
-var EDITOR_ID  = 'codr-edit';
-var TOOLBAR_ID = 'codr-toolbar';
+var EDITOR_ID  = 'edit';
+var TOOLBAR_ID = 'toolbar';
 
 var Range = ace.require('ace/range').Range;
 
@@ -118,11 +118,11 @@ var Editor = oHelpers.createClass(
         if (oSel.start.row == oSel.end.row && oSel.start.column == oSel.end.column)
         {
             oNewRange.end.column += 1; // Hack: Zero-width selections are not visible.
-            this._iRemoteCursorMarkerID = this._oAceEditSession.addMarker(oNewRange, 'codr-peer-selection-collapsed', 'text', true);
+            this._iRemoteCursorMarkerID = this._oAceEditSession.addMarker(oNewRange, 'peer-selection-collapsed', 'text', true);
         }
         else
         {
-            this._iRemoteCursorMarkerID = this._oAceEditSession.addMarker(oNewRange, 'codr-peer-selection', 'text', true);   
+            this._iRemoteCursorMarkerID = this._oAceEditSession.addMarker(oNewRange, 'peer-selection', 'text', true);   
         }
     },
 

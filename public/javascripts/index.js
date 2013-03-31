@@ -16,16 +16,12 @@ function chooseMode()
         g_oWorkspace.setMode(sMode);
         g_oWorkspace.focusEditor();
         oMenu.detach();
-        $('BODY').removeClass('chooseMode');
+        $('BODY').removeClass('home');
         connect();
     }
     
     // Create the editor mode menu.
-    var aDialogFavKeys = jQuery.grep(aFavKeys, function(sKey)
-    {
-        return sKey != 'html' && sKey != 'text';
-    });
-    var oMenu = new Menu(aModes, aDialogFavKeys, $('#modes'), null, fnOnModeSelect);
+    var oMenu = new Menu(aModes, aFavKeys, $('#modes'), null, fnOnModeSelect);
     oMenu.attach();
     
     // Attach button events.

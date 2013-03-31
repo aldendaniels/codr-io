@@ -40,7 +40,7 @@ var Workspace = oHelpers.createClass(
     {
         this._oEditor.setMode(sMode);
         this._sMode = sMode;
-        $('#codr-toolbar #documentMode').text(sMode);
+        $('#toolbar #documentMode').text(sMode);
     },
     
     focusEditor: function()
