@@ -1,6 +1,8 @@
+
 body
 {
     font-family: arial, sans-serif;
+    background: #f0f0f0;
     margin: 0;
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -8,40 +10,59 @@ body
     user-select: none;
 }
 
+.logo
+{
+    font-family: sanchez, arial;
+    -webkit-text-stroke: 1px;
+    font-size: 35px;
+    color: #319ac2;
+    text-shadow: 1px 2px 3px white;
+}
+
             #home      { display: none;  }
 body.home   #home      { display: block; }
 body.home   #workspace { display: none;  }
 
+
 #home
 {
-    width: 400px;
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 100px;
-    text-align: center;
-    background-color: #dae5ea;
-    border-radius: 5px;
-    border: 1px #d5dae5 solid;
-    padding: 15px;
-
-    h3
+    @width: 450px;
+    @height: 500px;
+    
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    height: @height;
+    width: @width;
+    margin-left: -@width / 2;
+    margin-top: -@height / 2;
+    
+    border: 1px #ccc solid;
+    background-color: white;
+    box-shadow: 0 0 4px #ccc;
+    
+    h3.logo
     {
-        font-weight: normal;
-        color: #556677;
-        text-shadow: 1px 2px 3px rgba(255,255,255, 0.3);
-        font-size: 56pt;
-        margin-top: 10px;
-        font-family: Sanchez;
-        margin-bottom: 15px;
-    }    
+        font-size: 96px;
+        margin: 0;
+        text-align: center;
+    }
     
     #modes
     {
-        background: rgba(255, 255, 255, 0.95);
-        height: 250px;
-        position: relative;
-        border: 1px #c5cad5 solid;
-    }
+        background-color: #f3f3f3;
+        position: absolute;
+        top: 130px;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        border-top: 1px #ccc solid;
+        
+        .menu-options
+        {
+            background-color: white;
+        }
+    }        
 }
 
 #workspace
@@ -51,7 +72,6 @@ body.home   #workspace { display: none;  }
     right: 0;
     top: 0;
     bottom: 0;
-    background: #f0f0f0;
     
     &.liveshare
     {
@@ -81,14 +101,9 @@ body.home   #workspace { display: none;  }
         
         #toolbar-logo
         {
-            font-family: sanchez, arial;
-             -webkit-text-stroke: 1px;
-            font-size: 35px;
             margin-top: -1px;
             width: 150px;
             text-align: center;
-            color: #319ac2;
-            text-shadow: 1px 2px 3px white;
             float: left;
         }
     
@@ -126,7 +141,7 @@ body.home   #workspace { display: none;  }
             {
                 background-color: rgba(255, 255, 255, 0.5);
             }
-
+            
             .toolbar-item-dropdown
             {
                 display: none;
@@ -266,18 +281,17 @@ body.home   #workspace { display: none;  }
                 {
                     width: 300px;
                     height: 400px;
-                    padding: 10px;
-                    
-                    .menu-options
-                    {
-                        border: 1px #ddd solid;
-                    }
-                    
-                    .menu-search
-                    {
-                        width: 288px;
-                    }
-                }                
+                }
+                
+                #toolbar-mode-menu
+                {
+                    border: 1px #ddd solid;
+                    position: absolute;
+                    left: 10px;
+                    right: 10px;
+                    bottom: 10px;
+                    top: 10px;
+                }
             }
         }
     }

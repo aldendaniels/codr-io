@@ -100,8 +100,8 @@ var Workspace = oHelpers.createClass(
             }
         });
         
-        var jModeMenuDropdown = $('.toolbar-mode .toolbar-item-dropdown');
-        this._oModeMenu = new Menu(aModes, aFavKeys, jModeMenuDropdown, this, function(sMode)
+        var jModeMenu = $('.toolbar-mode .toolbar-item-dropdown #toolbar-mode-menu');
+        this._oModeMenu = new Menu(aModes, aFavKeys, jModeMenu, this, function(sMode)
         {
             this.setMode(sMode);
             this._oSocket.send('setMode', {sMode: sMode});

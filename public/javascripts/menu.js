@@ -36,8 +36,10 @@ var Menu = oHelpers.createClass(
 
         // Init.
         this._jMenu = $(
-            '<div class="menu" >' + 
-                '<input type="text" class="menu-search" autocomplete="off"/>' + 
+            '<div class="menu" >' +
+                '<div class="menu-search">'+
+                    '<input type="text" autocomplete="off"/>' +
+                '</div>' + 
                 '<div class="menu-options">' +
                 '</div>' +
             '</div>'
@@ -54,7 +56,7 @@ var Menu = oHelpers.createClass(
         oHelpers.on(window, 'keyup.menu', this, this._onKeyUp);
         oHelpers.on(this._jMenu, 'click.menu', this, this._selectClicked);
         this._oKeyable.attach();
-        this._jMenu.find('.menu-search').focus();
+        this._jMenu.find('.menu-search input').focus();
         this._oKeyable.update();
     },
 
@@ -160,13 +162,13 @@ var Menu = oHelpers.createClass(
                 break;
             
             default:
-                this._jMenu.find('.menu-search').focus();
+                this._jMenu.find('.menu-search input').focus();
         }        
     },
 
     _onKeyUp: function()
     {
-        var sQuery = this._jMenu.find('.menu-search').val();
+        var sQuery = this._jMenu.find('.menu-search input').val();
         if (this._sLastQuery != sQuery)
             this._renderOptions(sQuery);
         

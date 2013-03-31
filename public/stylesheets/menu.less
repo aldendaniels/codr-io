@@ -2,22 +2,32 @@
 {
     height: 100%;
     position: relative;
+    width: 100%;
 }
 
 .menu-search
 {
-    width: 374px;
-    border: 1px #ccc solid;
-    padding: 5px;
-    margin-top: 6px;
-    outline: none;
+    @inputPadding: 6px;
+    @inputMargin: 8px;
+    
+    padding-right: 8px + @inputPadding + @inputMargin;
+    padding-top: @inputMargin;
+    padding-left: @inputMargin;    
+    
+    input
+    {
+        padding: @inputPadding;        
+        outline: none;
+        width: 100%;
+        border: 1px #ccc solid;
+    }
 }
 
 .menu-options
 {
     position: absolute;
     left: 0;
-    top: 42px;
+    top: 49px;
     bottom: 0;
     right: 0;
     overflow: auto;
