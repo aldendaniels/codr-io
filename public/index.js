@@ -2,24 +2,12 @@ var g_oWorkspace = null;
 
 $(document).on('ready', function()
 {
-    /* Grap templates from cash before initialzing. */
-    $.get('static/templates.html', function(sData)
-    {
-        // Compile templates.
-        $('#template').append(sData);
-        oTemplate.init();
-        onReady();
-    });
-});
-
-function onReady()
-{
     g_oWorkspace = new Workspace();    
     if (IS_NEW_DOCUMENT)
         chooseMode();
     else
         connect();
-}
+});
 
 function chooseMode()
 {

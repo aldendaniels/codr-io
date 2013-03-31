@@ -8,7 +8,7 @@
         "codr.io"
     ],
     "scripts": {
-        "start": "server.js"
+        "start": "app.js"
     },
     "engines": {
         "node": "0.8.x"

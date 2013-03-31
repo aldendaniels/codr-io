@@ -19,17 +19,17 @@ var oApp = oExpress();
 // Handle landing on the root.
 oApp.get('^/$', function(req, res)
 {
-    res.sendfile('static/index.html');
+    res.sendfile('public/index.html');
 });
 
 // Normal entrypoint.
 oApp.get('/[a-z0-9]+/?$', function(req, res)
 {
-    res.sendfile('static/index.html');
+    res.sendfile('public/index.html');
 });
 
 // Static files.
-oApp.use('/static/', oExpress.static(__dirname + '/static', {
+oApp.use('/public/', oExpress.static(__dirname + '/public', {
     /* maxAge: 86400000 /* one day*/
 }));
 
