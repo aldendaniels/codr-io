@@ -12,10 +12,10 @@ var oDatabase 		= require('./database');
 
 // Error handling.
 // TODO: This is a horrible hack.
-process.on('uncaughtException', function (err)
+/*process.on('uncaughtException', function (err)
 {
     console.error(err); // Keep node from exiting.
-});
+});*/
 
 // Create express app.
 var oApp = oExpress();
