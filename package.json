@@ -15,6 +15,7 @@
     },
     "dependencies": {
         "ws": "0.4.x",
-        "express": "3.1.x"
+        "express": "3.1.x",
+        "less-middleware": "~0.1.10"
     }
 }

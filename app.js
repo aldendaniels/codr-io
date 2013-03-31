@@ -1,13 +1,17 @@
 
 // Include Libraries.
-var oExpress = require('express');
-var oWS = require('ws');
-var oHTTP = require('http');
-var oHelpers = require('./helpers');
-var oAceDocument = require('./aceDocument').Document;
-var oDatabase = require('./database');
+var oOS = require('os');
+var oPath = require('path');
+var oExpress 		= require('express');
+var oWS 			= require('ws');
+var oHTTP 			= require('http');
+var oLessMiddleware = require('less-middleware');
+var oHelpers 		= require('./helpers');
+var oAceDocument 	= require('./aceDocument').Document;
+var oDatabase 		= require('./database');
 
 // Error handling.
+// TODO: This is a horrible hack.
 process.on('uncaughtException', function (err)
 {
     console.error(err); // Keep node from exiting.
@@ -15,27 +19,31 @@ process.on('uncaughtException', function (err)
 
 // Create express app.
 var oApp = oExpress();
-
-// Handle landing on the root.
-oApp.get('^/$', function(req, res)
+oApp.configure(function()
 {
-    res.sendfile('public/index.html');
-});
+	oApp.set('port', process.env.PORT || 8080);
+	
+    var oTempDir = oOS.tmpDir();
+	oApp.use(oLessMiddleware(
+	{
+		src: __dirname + '/public',
+		dest: oTempDir
+	}));
+	
+	oApp.use(oExpress.static(oPath.join(__dirname, 'public')));
+	oApp.use(oExpress.static(oTempDir));
 
-// Normal entrypoint.
-oApp.get('/[a-z0-9]+/?$', function(req, res)
-{
-    res.sendfile('public/index.html');
+	/* Save static index.html */
+	oApp.get('^/$', 			function(req, res) { res.sendfile('public/index.html'); });
+	oApp.get('/[a-z0-9]+/?$', 	function(req, res) { res.sendfile('public/index.html'); });
 });
-
-// Static files.
-oApp.use('/public/', oExpress.static(__dirname + '/public', {
-    /* maxAge: 86400000 /* one day*/
-}));
 
 // Instantiate server.
 var oServer = oHTTP.createServer(oApp);
-oServer.listen(8080);
+oServer.listen(oApp.get('port'), function()
+{
+	console.log("Express server listening on port " + oApp.get('port'));
+});
 
 // Instantiate websocket listener.
 var oWsServer = new oWS.Server({server: oServer});
