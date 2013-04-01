@@ -2,7 +2,6 @@
 body
 {
     font-family: arial, sans-serif;
-    background: #f0f0f0;
     margin: 0;
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -29,6 +28,7 @@ body.home   #workspace { display: none;  }
     @width: 450px;
     @height: 500px;
     
+    
     position: absolute;
     left: 50%;
     top: 50%;
@@ -38,8 +38,20 @@ body.home   #workspace { display: none;  }
     margin-top: -@height / 2;
     
     border: 1px #ccc solid;
-    background-color: white;
-    box-shadow: 0 0 4px #ccc;
+    background-color: #f0f0f0;
+    border-radius: 4px;
+    
+    #home-content
+    {
+        @homeBorderWidth: 6px;
+        position: absolute;
+        top: @homeBorderWidth;
+        left: @homeBorderWidth;
+        right: @homeBorderWidth;
+        bottom: @homeBorderWidth;
+        background-color: white;
+        border: 1px #ccc solid;
+    }
     
     h3.logo
     {
@@ -72,6 +84,7 @@ body.home   #workspace { display: none;  }
     right: 0;
     top: 0;
     bottom: 0;
+    background-color: #f0f0f0;
     
     &.liveshare
     {
@@ -303,50 +316,6 @@ body.home   #workspace { display: none;  }
         left: 0;
         right: 0;
         bottom: 0;
-        
-        .peer-selection
-        {
-            position: absolute;
-            z-index: 5;
-            background: orange;
-            opacity: 0.4;
-        }
-        
-        .peer-selection-collapsed
-        {
-            position: absolute;
-            z-index: 5;
-            background: transparent;
-            border-left: 2px orange solid;
-        }
-        
-        .ace_scroller
-        {
-           box-shadow: 0 0 5px #ccc inset;
-           margin-right: -2px;
-        }
-        
-        .ace_gutter
-        {
-            width: 49px !important;
-            border-right: 1px #ccc solid;
-        }
-        
-        .ace_gutter-layer
-        {
-            width: 49px !important;
-        }
-        
-        .ace-tm .ace_gutter-active-line,
-        .ace-tm .ace_marker-layer .ace_active-line
-        {
-            background: rgba(0, 0, 0, 0.05) !important;
-        }
-        
-        .ace-tm .ace_marker-layer .ace_selection
-        {
-            background: #e5e5e5 !important;
-        }
     }
     
     #liveshare
@@ -396,5 +365,83 @@ body.home   #workspace { display: none;  }
                 cursor: default;
             }
         }
+    }
+}
+
+
+/***************** ACE EDITOR STYLES *********************/
+
+@selectionColor: saturate(darken(#319ac2, 10%), 50%);
+@collapsedSelectionColor: darken(#319ac2, 10%);
+
+.remote-selection, .remote-selection-collapsed, .remote-selection-collapsed-hat
+{
+    position: absolute;
+    z-index: 5;    
+}
+
+.remote-selection
+{
+    background: @selectionColor;
+    opacity: 0.2;
+}
+
+.remote-selection-collapsed
+{
+    background: transparent;
+    border-left: 2px @collapsedSelectionColor solid;
+    margin-top: -1px;
+}
+
+.remote-selection-collapsed-hat
+{
+    background-color: @collapsedSelectionColor;
+    margin-top: -3px;
+    margin-left: -2px;
+    width: 6px !important;
+    height: 6px !important;
+    border-radius: 6px;
+}
+
+.ace_scroller
+{
+   box-shadow: 0 0 5px #ccc inset;
+   margin-right: -2px;
+}
+
+.ace_gutter
+{
+    width: 49px !important;
+    border-right: 1px #ccc solid;
+}
+
+.ace_gutter-layer
+{
+    width: 49px !important;
+}
+
+.ace-tm .ace_gutter-active-line,
+.ace-tm .ace_marker-layer .ace_active-line
+{
+    background: rgba(0, 0, 0, 0.03) !important;
+}
+
+.ace-tm .ace_marker-layer .ace_selection
+{
+    background: #ddd !important;
+}
+
+BODY:not(.is-editing)
+{
+        
+    .ace-tm .ace_gutter-active-line,
+    .ace-tm .ace_marker-layer .ace_active-line
+    {
+        background: transparent !important;
+    }
+    
+    .ace-tm .ace_cursor
+    {
+        border-left-color: transparent !important;
     }
 }

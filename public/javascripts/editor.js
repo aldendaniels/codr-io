@@ -21,7 +21,8 @@ var Editor = oHelpers.createClass(
     _bIsEditing: false,
     
     // Other.
-    _iRemoteCursorMarkerID: null,
+    _iRemoteCursorMarkerID1: null,
+	_iRemoteCursorMarkerID2: null,
     _oLastSelectionRange: null,
 
     __init__: function(bIsEditing)
@@ -76,6 +77,16 @@ var Editor = oHelpers.createClass(
     {
         return this._oAceDocument.getValue();
     },
+	
+	isFocused: function()
+	{
+		return this._oAceEditor.isFocused();
+	},
+	
+	isEditing: function()
+	{
+		return this._bIsEditing;
+	},
 
     _handleServerAction: function(oAction)
     {
@@ -90,7 +101,7 @@ var Editor = oHelpers.createClass(
                 break;
             
             case 'removeSelection':
-                this._oAceEditSession.removeMarker(this._iRemoteCursorMarkerID);
+				this._removeRemoteSelection();
                 break;
             
             case 'setMode':
@@ -110,27 +121,41 @@ var Editor = oHelpers.createClass(
 
     _onRemoteCursorMove: function(oSel)
     {
-        // Remove old selection.
-        this._oAceEditSession.removeMarker(this._iRemoteCursorMarkerID);
-        
-        // Set new selection.
+		this._removeRemoteSelection();
         var oNewRange = new Range(oSel.start.row, oSel.start.column, oSel.end.row, oSel.end.column);
         if (oSel.start.row == oSel.end.row && oSel.start.column == oSel.end.column)
         {
             oNewRange.end.column += 1; // Hack: Zero-width selections are not visible.
-            this._iRemoteCursorMarkerID = this._oAceEditSession.addMarker(oNewRange, 'peer-selection-collapsed', 'text', true);
+            this._iRemoteCursorMarkerID1 = this._oAceEditSession.addMarker(oNewRange, 'remote-selection-collapsed', 'text', true);
+            this._iRemoteCursorMarkerID2 = this._oAceEditSession.addMarker(oNewRange, 'remote-selection-collapsed-hat', 'text', true);
         }
         else
         {
-            this._iRemoteCursorMarkerID = this._oAceEditSession.addMarker(oNewRange, 'peer-selection', 'text', true);   
+            this._iRemoteCursorMarkerID1 = this._oAceEditSession.addMarker(oNewRange, 'remote-selection', 'text', true);   
         }
     },
+	
+	_removeRemoteSelection: function()
+	{
+        // Remove old selection.
+		if (this._iRemoteCursorMarkerID1)
+		{
+			this._oAceEditSession.removeMarker(this._iRemoteCursorMarkerID1);
+			this._iRemoteCursorMarkerID1 = null;
+		}
+		if (this._iRemoteCursorMarkerID2)
+		{
+			this._oAceEditSession.removeMarker(this._iRemoteCursorMarkerID2);
+			this._iRemoteCursorMarkerID2 = null;
+		}
+	},
 
     _attachAceEvents: function()
     {
         this._oAceEditor.on('change',          oHelpers.createCallback(this, this._onAceDocumentChange ));
         this._oAceEditor.on('changeCursor',    oHelpers.createCallback(this, this._onAceSelectionChange));
         this._oAceEditor.on('changeSelection', oHelpers.createCallback(this, this._onAceSelectionChange));
+		this._oAceEditor.on('blur', function(oEvent){ oEvent.preventDefault(); });
     },
 
     _attachDOMEvents: function()
@@ -165,8 +190,7 @@ var Editor = oHelpers.createClass(
         if (bIsEditing)
         {
             // Hide remove cursor & send set the cursor position.
-            this._oAceEditSession.removeMarker(this._iRemoteCursorMarkerID);
-            this._iRemoteCursorMarkerID = null;
+			this._removeRemoteSelection();
             if (this._oSocket)
                 this._onAceSelectionChange();
         }

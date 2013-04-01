@@ -98,7 +98,25 @@ var Workspace = oHelpers.createClass(
                 jOpenToolbarItem.removeClass('open');
                 this._oModeMenu.detach();;
             }
+            
+            // TODO: This is a hack. We should really remove focus whenever a
+            // toolbar menu is open and return focus when it is closed.
+            if (oEvent.target.tagName != 'INPUT')
+            {
+                oEvent.preventDefault(); // Keep Ace from losing focus.
+            }
         });
+        
+        // Prevent arrow keys from functioning in non-edit mode.
+        $(window).onKeyDown = null;
+        $(window)[0].addEventListener('keydown', oHelpers.createCallback(this, function(oEvent)
+        {
+            if (this._oEditor.isFocused() && !this._oEditor.isEditing())
+            {
+                oEvent.preventDefault;
+                oEvent.stopPropagation();
+            }
+        }), true /*useCapture */);
         
         var jModeMenu = $('.toolbar-mode .toolbar-item-dropdown #toolbar-mode-menu');
         this._oModeMenu = new Menu(aModes, aFavKeys, jModeMenu, this, function(sMode)
@@ -158,6 +176,7 @@ var Workspace = oHelpers.createClass(
     _setIsEditing: function(bIsEditing)
     {
         this._oEditor.setIsEditing(bIsEditing);
+        $('BODY').toggleClass('is-editing', bIsEditing);
         if (bIsEditing)
         {
             $('#edit-btn').text('Editing...').addClass('disabled'); 
