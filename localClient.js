@@ -165,7 +165,7 @@ function main()
 
     //oSocket = new oWs('ws://localhost:8080');
     oSocket = new oWs('ws://codr.io');
-    oAceDocument = new oAceDocumentClass([sInitialText]);
+    oAceDocument = new oAceDocumentClass(sInitialText);
 
     oSocket.onmessage = onMessage;
     oSocket.onopen = function()
