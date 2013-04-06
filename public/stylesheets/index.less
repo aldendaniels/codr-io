@@ -1,4 +1,7 @@
 
+@codr-blue: #319ac2;
+@share-pane-width: 170px;
+
 body
 {
     font-family: arial, sans-serif;
@@ -8,6 +11,7 @@ body
     -ms-user-select: none;
     user-select: none;
     background-color: #fafafa;
+    font-family: verdana;    
 }
 
 .logo
@@ -15,7 +19,7 @@ body
     font-family: sanchez, arial;
     -webkit-text-stroke: 1px;
     font-size: 35px;
-    color: #319ac2;
+    color: @codr-blue;
     text-shadow: 1px 2px 3px white;
 }
 
@@ -23,12 +27,37 @@ body
 body.home   #home      { display: block; }
 body.home   #workspace { display: none;  }
 
+.button
+{
+    background-color: lighten(@codr-blue, 10%);
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.4);
+    padding: 8px;
+    border-radius: 3px;
+    color: darken(@codr-blue, 30%);
+    margin-left: 5px;
+    margin-right: 5px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    &:hover
+    {
+        background-color: @codr-blue;
+    }
+
+    &.disabled, &.disabled:hover
+    {
+        background-color: lighten(@codr-blue, 20%);
+        color: @codr-blue;
+        cursor: default;
+    }
+}
 
 #home
 {
     @width: 450px;
     @height: 500px;
-    
     
     position: absolute;
     left: 50%;
@@ -87,16 +116,16 @@ body.home   #workspace { display: none;  }
     bottom: 0;
     background-color: #f0f0f0;
     
-    &.liveshare
+    &.sharing
     {
-        #liveshare
+        #people
         {
             display: block;    
         }
         
         #edit
         {
-            left: 151px !important;
+            right: @share-pane-width + 1px !important;
         }
     }
     
@@ -120,7 +149,12 @@ body.home   #workspace { display: none;  }
             text-align: center;
             float: left;
         }
-    
+        
+        #toolbar-content-right
+        {
+            float: right;
+        }
+        
         .toolbar-item
         {
             float: left;
@@ -133,12 +167,13 @@ body.home   #workspace { display: none;  }
                 transition: background-color 0.2s;
                 padding-left: 10px;
                 padding-right: 10px;
-                height: 45px;
-                padding-top: 5px;
+
+                height: 46px;
+                padding-top: 4px;
                 
                 .toolbar-caption
                 {
-                    color: #666;
+                    color: #888;
                     font-size: 14px;
                     font-family: sanchez;
                 }
@@ -149,6 +184,14 @@ body.home   #workspace { display: none;  }
                     color: #333;
                     font-size: 16px;
                 }
+                
+               
+                [class^="icon-"]
+                {
+                    font-size: 26pt;
+                    position: relative;
+                    top: -2px;
+                }                                    
             }
             
             &:not(.open) .toolbar-item-btn:hover
@@ -160,7 +203,6 @@ body.home   #workspace { display: none;  }
             {
                 display: none;
             }
-
             
             &.open
             {
@@ -174,7 +216,7 @@ body.home   #workspace { display: none;  }
                 .toolbar-item-btn
                 {
                     padding-left: 13px;
-                    border-top: 2px #319ac2 solid;
+                    border-top: 2px @codr-blue solid;
                     padding-top: 3px;    
                 }
 
@@ -213,100 +255,98 @@ body.home   #workspace { display: none;  }
                     border-bottom-left-radius: 5px;
                     border-bottom-right-radius: 5px;
                     background-color: #fafafa;
-                }
-            }
-            
-            
-            /***************** TITLE OPTION *********************/
-            
-            &.toolbar-title
-            {
-                width: 300px;
-                &.open
-                {
-                    width: 306px;                    
-                }
-                
-                .toolbar-item-dropdown
-                {
-                    width: 500px;
-                    height: 164px;
-                }
-                
-                .toolbar-dropdown-top-border
-                {
-                    width: 500px;
-                }
-                
-                input
-                {
-                    width: 432px;
-                    margin-left: 20px;
-                    margin-top: 20px;
-                    padding: 12px;
-                    border: 1px white solid;
-                    box-shadow: 0 0 8px #e5e5e5 inset;
-                    border-radius: 5px;
-                    outline: none;
-                    font-size: 12pt;
-                }
-                
-                .horizontal-divider
-                {
-                    margin-top: 20px;
-                    margin-bottom: 19px;
-                    border-top: 1px #ddd solid;
-                    border-bottom: 1px white solid;
-                }
-                
-                .button
-                {
-                    background-color: #319ac2;
-                    padding: 8px;
-                    border-radius: 3px;
-                    color: white;
-                    margin-left: 20px;
-                    margin-right: 20px;
-                    margin-top: 10px;
-                    margin-bottom: 10px;
-                    text-align: center;
-                    cursor: pointer;
-                    transition: background-color 0.1s;
                     
-                    &:hover
+                    .button
                     {
-                        background-color: #277a99;                    
+                        margin-left: 20px;
+                        margin-right: 20px;
                     }
                 }
             }
-                        
-                        
-            /***************** MODE OPTION *********************/
-            
-            &.toolbar-mode
+        }
+    
+        /***************** TITLE OPTION *********************/
+        
+        .toolbar-item.toolbar-title
+        {
+            width: 300px;
+            &.open
             {
-                width: 200px;
-                &.open
-                {
-                    width: 206px;
-                }
-                
-                .toolbar-item-dropdown
-                {
-                    width: 300px;
-                    height: 400px;
-                }
-                
-                #toolbar-mode-menu
-                {
-                    border: 1px #ddd solid;
-                    position: absolute;
-                    left: 10px;
-                    right: 10px;
-                    bottom: 10px;
-                    top: 10px;
-                }
+                width: 306px;                    
             }
+            
+            .toolbar-item-dropdown
+            {
+                width: 500px;
+                height: 164px;
+            }
+            
+            .toolbar-dropdown-top-border
+            {
+                width: 500px;
+            }
+            
+            input
+            {
+                width: 432px;
+                margin-left: 20px;
+                margin-top: 20px;
+                padding: 12px;
+                border: 1px white solid;
+                box-shadow: 0 0 8px #e5e5e5 inset;
+                border-radius: 5px;
+                outline: none;
+                font-size: 12pt;
+            }
+            
+            .horizontal-divider
+            {
+                margin-top: 20px;
+                margin-bottom: 19px;
+                border-top: 1px #ddd solid;
+                border-bottom: 1px white solid;
+            }
+        }
+                    
+                    
+        /***************** MODE OPTION *********************/
+        
+        .toolbar-item.toolbar-mode
+        {
+            width: 200px;
+            &.open
+            {
+                width: 206px;
+            }
+            
+            .toolbar-item-dropdown
+            {
+                width: 300px;
+                height: 400px;
+            }
+            
+            #toolbar-mode-menu
+            {
+                border: 1px #ddd solid;
+                position: absolute;
+                left: 10px;
+                right: 10px;
+                bottom: 10px;
+                top: 10px;
+            }
+        }
+        
+        /***************** EDIT BUTTON *********************/
+        #edit-button-wrap
+        {
+            width: @share-pane-width + 1;   
+        }
+
+        #edit-button
+        {
+            margin-left: 10px;
+            margin-right: 9px;
+            margin-top: 7px;
         }
     }
     
@@ -319,15 +359,15 @@ body.home   #workspace { display: none;  }
         bottom: 0;
     }
     
-    #liveshare
+    #people
     {
         display: none;
         position: absolute;
         top: 51px;
-        left: 0;
+        right: 0;
         bottom: 0;
-        width: 150px;
-        border-right: 1px #ccc solid;
+        width: @share-pane-width;
+        border-left: 1px #ccc solid;
         
         .divider
         {
@@ -339,41 +379,14 @@ body.home   #workspace { display: none;  }
         {
             border-top: 1px #f5f5f5 solid;
         }
-    
-        #edit-btn
-        {
-            background-color: #319ac2;
-            padding: 8px;
-            border-radius: 3px;
-            color: white;
-            margin-left: 5px;
-            margin-right: 5px;
-            margin-top: 10px;
-            margin-bottom: 10px;
-            text-align: center;
-            cursor: pointer;
-            transition: background-color 0.1s;
-            
-            &:hover
-            {
-                background-color: #277a99;
-            }
-        
-            &.disabled, &.disabled:hover
-            {
-                opacity: 0.5;
-                background-color: #319ac2;
-                cursor: default;
-            }
-        }
     }
 }
 
 
 /***************** ACE EDITOR STYLES *********************/
 
-@selectionColor: saturate(darken(#319ac2, 10%), 50%);
-@collapsedSelectionColor: darken(#319ac2, 10%);
+@selectionColor: saturate(darken(@codr-blue, 10%), 50%);
+@collapsedSelectionColor: darken(@codr-blue, 10%);
 
 .remote-selection, .remote-selection-collapsed, .remote-selection-collapsed-hat
 {

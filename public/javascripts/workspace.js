@@ -84,9 +84,9 @@ var Workspace = oHelpers.createClass(
                 this._setTitleToLocal();
         });
 
-        oHelpers.on('#edit-btn', 'click', this, function()
+        oHelpers.on('#edit-button', 'click', this, function()
         {
-            if (!$('#edit-btn').hasClass('disabled'))
+            if (!$('#edit-button').hasClass('disabled'))
                 this._oSocket.send('requestEditRights');
         });
         
@@ -179,11 +179,11 @@ var Workspace = oHelpers.createClass(
         $('BODY').toggleClass('is-editing', bIsEditing);
         if (bIsEditing)
         {
-            $('#edit-btn').text('Editing...').addClass('disabled'); 
+            $('#edit-button').text('Editing...').addClass('disabled'); 
         }
         else
         {
-            $('#edit-btn').text('Start Editing').removeClass('disabled'); 
+            $('#edit-button').text('Start Editing').removeClass('disabled'); 
         }
     }
 });
