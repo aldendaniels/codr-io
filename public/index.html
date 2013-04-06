@@ -31,7 +31,7 @@
                 <div id="documentTitleWrapper" class="toolbar-item toolbar-title">    
                     <div class="toolbar-item-btn">
                         <div class="toolbar-caption">Title</div>
-                        <div id="documentTitle" class="toolbar-selection"></div>
+                        <div id="documentTitle" class="toolbar-selection">Loading...</div>
                     </div>
                     <div class="toolbar-dropdown-top-border"></div>
                     <div class="toolbar-item-dropdown">
@@ -45,7 +45,7 @@
                 <div id="documentModeWrapper" class="toolbar-item toolbar-mode">
                     <div class="toolbar-item-btn">
                         <div class="toolbar-caption">Language</div>
-                        <div id="documentMode" class="toolbar-selection">Text</div>
+                        <div id="documentMode" class="toolbar-selection">Loading...</div>
                     </div>
                     <div class="toolbar-dropdown-top-border"></div>
                     <div class="toolbar-item-dropdown">
@@ -71,16 +71,32 @@
             <div id="edit"></div>
         </div>
         
+        <!-- Load menu chooser -->
         <script type="text/javascript" src="javascripts/jquery-1.9.1.min.js"></script>
-        <script type="text/javascript" src="javascripts/ace/ace.js"></script>
         <script type="text/javascript" src="javascripts/helpers.js"></script>
         <script type="text/javascript" src="javascripts/keyable.js"></script>
         <script type="text/javascript" src="javascripts/menu.js"></script>
-        <script type="text/javascript" src="javascripts/editor.js"></script>
-        <script type="text/javascript" src="javascripts/workspace.js"></script>
         <script type="text/javascript" src="javascripts/modes.js"></script>
         <script type="text/javascript" src="javascripts/index.js"></script>
-        <div id="template" style="display: none;"></div>
+        <script type="text/javascript">
+            if (IS_NEW_DOCUMENT)
+            {
+                oApp.initModeChooser();
+            }
+        </script>
+        
+        <!-- Load workspace -->
+        <script type="text/javascript" src="javascripts/ace/ace.js"></script>
+        <script type="text/javascript" src="javascripts/editor.js"></script>
+        <script type="text/javascript" src="javascripts/workspace.js"></script>
+        <script type="text/javascript">
+            oApp.initWorkspace();
+            if (!IS_NEW_DOCUMENT) /* A new document connects on mode choice*/
+            {            
+                oApp.initConnection();
+            }
+        </script>
+        
     </body>
 </html>
 

@@ -1,44 +1,51 @@
-var g_oWorkspace = null;
 
-$(document).on('ready', function()
+var oApp = 
 {
-    g_oWorkspace = new Workspace();    
-    if (IS_NEW_DOCUMENT)
-        chooseMode();
-    else
-        connect();
-});
+    _oWorkspace: null,
+    _sPendingMode: '', /* Caches mode if user selects one before the workspace is loaded. */
 
-function chooseMode()
-{
-    function fnOnModeSelect(sMode)
+    initModeChooser: function()
     {
-        g_oWorkspace.setMode(sMode);
-        g_oWorkspace.focusEditor();
-        oMenu.detach();
-        $('BODY').removeClass('home');
-        connect();
+        var oMenu = new Menu(aModes, aFavKeys, $('#modes'), this, function(sMode)
+        {
+            this._setWorkspaceModeAndConnect(sMode);
+            oMenu.detach();
+        });
+        oMenu.attach();
+    },
+    
+    initWorkspace: function()
+    {
+        this._oWorkspace = new Workspace();
+        if (this._sPendingMode)
+        {
+            this._setWorkspaceModeAndConnect(this._sPendingMode);
+            this._sPendingMode = '';
+        }
+    },
+    
+    initConnection: function()
+    {
+        oHelpers.assert(this._oWorkspace, 'initialize the workspace before connecting.');
+        var sURL = 'ws://' + window.document.location.host + '/';
+        var oSocket = new oHelpers.WebSocket(sURL);
+        oSocket.bind('open', this, function()
+        {
+            this._oWorkspace.connect(oSocket);
+            return true; // The "open" event is handled.
+        });
+    },
+    
+    _setWorkspaceModeAndConnect: function(sMode)
+    {
+        if (this._oWorkspace)
+        {
+            this._oWorkspace.setMode(sMode);
+            this._oWorkspace.focusEditor();
+            this.initConnection();        
+            $('BODY').removeClass('home');
+        }
+        else
+            this._sPendingMode = sMode;
     }
-    
-    // Create the editor mode menu.
-    var oMenu = new Menu(aModes, aFavKeys, $('#modes'), null, fnOnModeSelect);
-    oMenu.attach();
-    
-    // Attach button events.
-    $('.btn.mode').on('click', function()
-    {
-        fnOnModeSelect(this.id);
-    });
-}
-
-function connect()
-{
-    var sURL = 'ws://' + window.document.location.host + '/';
-    console.log(sURL);
-    var oSocket = new oHelpers.WebSocket(sURL);
-    oSocket.bind('open', null, function()
-    {
-        g_oWorkspace.connect(oSocket);
-        return true;
-    });
-}
+};

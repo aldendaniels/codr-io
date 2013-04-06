@@ -229,6 +229,7 @@ var Workspace = oHelpers.createClass(
     {
         this._assertDocumentLoaded();
         this._updateDocumentText();
+		
         oClient.sendAction('setDocumentData',
         {
             sText: this._oDocument.get('sText')
@@ -238,9 +239,10 @@ var Workspace = oHelpers.createClass(
             oClient.sendAction('editRightsGranted');
 
         if (this._oLastSelAction)
-            oClient.sendAction('setSelection', this._oLastSelAction);
+            oClient.sendAction(this._oLastSelAction);
 
-        oClient.sendAction('setMode', {
+        oClient.sendAction('setMode',
+		{
             sMode: this._oDocument.get('sMode')
         });
 
@@ -256,11 +258,6 @@ var Workspace = oHelpers.createClass(
         oClient.sendAction('setDocumentID',
         {
             sDocumentID: this._sDocumentID
-        });
-
-        oClient.sendAction('setDocumentTitle', 
-        {
-            sTitle: this._oDocument.get('sTitle')
         });
     },
   

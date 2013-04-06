@@ -1,3 +1,5 @@
+_sUNTITLED = 'Untitled';
+
 var Workspace = oHelpers.createClass(
 {
     _oSocket: null,
@@ -10,6 +12,10 @@ var Workspace = oHelpers.createClass(
         var bIsEditing = IS_NEW_DOCUMENT
         this._oEditor = new Editor(bIsEditing);
         this._setIsEditing(bIsEditing);
+        
+        // On a new document creation, default the title to "Untitled".
+        if (IS_NEW_DOCUMENT)
+            this._setTitle(_sUNTITLED);
     },
 
     connect: function(oSocket)
@@ -21,9 +27,10 @@ var Workspace = oHelpers.createClass(
         {
             this._oSocket.send('createDocument',
             {
-                sText: this._oEditor.getText(),
-                sMode: this._oEditor.getMode()
-            });            
+                sText:  this._oEditor.getText(),
+                sMode:  this._oEditor.getMode(),
+                sTitle: _sUNTITLED
+            });
         }
         else
         {
@@ -137,8 +144,7 @@ var Workspace = oHelpers.createClass(
         switch(oAction.sType)
         {
             case 'setDocumentTitle':
-                $('#documentTitle').text(oAction.oData.sTitle);
-                $('#documentTitleInput').val(oAction.oData.sTitle);
+                this._setTitle(oAction.oData.sTitle);
                 break;
 
             case 'setMode':
@@ -163,6 +169,12 @@ var Workspace = oHelpers.createClass(
         }
 
         return true;
+    },
+    
+    _setTitle: function(sTitle)
+    {
+        $('#documentTitle').text(sTitle);
+        $('#documentTitleInput').val(sTitle);
     },
 
     _setTitleToLocal: function()
