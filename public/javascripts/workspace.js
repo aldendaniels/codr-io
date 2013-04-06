@@ -99,7 +99,9 @@ var Workspace = oHelpers.createClass(
                 this._oSocket.send('releaseEditRights');
             }
             else
-                this._oSocket.send('requestEditRights');
+            {
+                this._oSocket.send('requestEditRights', this._oEditor.getSelection());
+            }
         });
         
         oHelpers.on('BODY', 'mousedown', this, function(oEvent)

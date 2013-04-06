@@ -161,7 +161,7 @@ var Workspace = oHelpers.createClass(
     
     // Editing
     _aClients: null,
-	_oPendingEditingClient: null,
+	_oRequestEditingInfo: null,
     _oCurrentEditingClient: null,
     _oLastSelAction: null,
     
@@ -201,13 +201,9 @@ var Workspace = oHelpers.createClass(
         // Remove editing rights.
         if (oClient == this._oCurrentEditingClient)
         {
+			this._removeSelection();
             this._oCurrentEditingClient = null;
             this._oLastSelAction = null;
-            this._broadcastAction(oClient,
-            {
-                sType: 'removeSelection',
-                oData: null
-            });
         }
 
         // Remove the client.
@@ -270,24 +266,24 @@ var Workspace = oHelpers.createClass(
                 if (this._oCurrentEditingClient)
 				{
                     this._oCurrentEditingClient.sendAction('removeEditRights');
-					this._oPendingEditingClient = oClient
+					this._oRequestEditingInfo = {oClient: oClient, oSelection: oAction.oSelection};
 				}
                 else
-				{
-                    oClient.sendAction('editRightsGranted');
-	                this._oCurrentEditingClient = oClient;
-				}
+					this._grantEditRights(oClient, oAction.oData);
                 break;
         
             case 'releaseEditRights':
-				if (this._oPendingEditingClient)
+				if (this._oRequestEditingInfo)
 				{
-					this._oCurrentEditingClient = this._oPendingEditingClient;
-					this._oPendingEditingClient.sendAction('editRightsGranted');
-					this._oPendingEditingClient = null;
+					this._grantEditRights( this._oRequestEditingInfo.oClient,
+										   this._oRequestEditingInfo.oSelection);
+					this._oRequestEditingInfo = null;
 				}
 				else
+				{
+					this._removeSelection();
 					this._oCurrentEditingClient = null;
+				}
                 break;
             
             case 'setMode':
@@ -324,6 +320,27 @@ var Workspace = oHelpers.createClass(
                 oClient.sendAction(oAction)
         }
     },
+	
+	_grantEditRights: function(oClient, oSelection)
+	{
+		oClient.sendAction('editRightsGranted');
+		this._oCurrentEditingClient = oClient;
+		this._broadcastAction(oClient,
+		{
+			sType: 'setSelection',
+			oData: oSelection
+		});
+	},
+	
+	_removeSelection: function()
+	{
+		oHelpers.assert(this._oCurrentEditingClient, 'You can\'t remove a selection if there\'s no editing client.')
+		this._broadcastAction(this._oCurrentEditingClient,
+		{
+			sType: 'removeSelection',
+			oData: null
+		});
+	},
 
     _save: function()
     {

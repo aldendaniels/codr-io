@@ -67,6 +67,11 @@ var Editor = oHelpers.createClass(
         this._oAceEditSession.setMode('ace/mode/' + sMode);
 		this._sMode = sMode;
     },
+	
+	getSelection: function()
+	{
+		return this._oAceEditor.getSelectionRange()
+	},
 
     getMode: function()
     {
@@ -121,6 +126,7 @@ var Editor = oHelpers.createClass(
 
     _onRemoteCursorMove: function(oSel)
     {
+		console.log('oSel:', oSel);
 		this._removeRemoteSelection();
         var oNewRange = new Range(oSel.start.row, oSel.start.column, oSel.end.row, oSel.end.column);
         if (oSel.start.row == oSel.end.row && oSel.start.column == oSel.end.column)
