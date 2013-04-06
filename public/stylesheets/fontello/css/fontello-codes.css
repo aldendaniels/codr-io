@@ -1,0 +1,3 @@
+
+.icon-check:before { content: '\2611'; } /* '☑' */
+.icon-check-empty:before { content: '\f096'; } /* '' */

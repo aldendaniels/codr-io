@@ -12,10 +12,10 @@ var oDatabase 		= require('./database');
 
 // Error handling.
 // TODO: This is a horrible hack.
-/*process.on('uncaughtException', function (err)
+process.on('uncaughtException', function (err)
 {
     console.error(err); // Keep node from exiting.
-});*/
+});
 
 // Create express app.
 var oApp = oExpress();
@@ -161,9 +161,9 @@ var Workspace = oHelpers.createClass(
     
     // Editing
     _aClients: null,
+	_oPendingEditingClient: null,
     _oCurrentEditingClient: null,
     _oLastSelAction: null,
-    _fnOnReleaseEditRights: null,
     
     __init__: function(sDocumentID)
     {
@@ -271,16 +271,26 @@ var Workspace = oHelpers.createClass(
         {
             case 'requestEditRights':
                 if (this._oCurrentEditingClient)
+				{
                     this._oCurrentEditingClient.sendAction('removeEditRights');
+					this._oPendingEditingClient = oClient
+				}
                 else
+				{
                     oClient.sendAction('editRightsGranted');
-                this._oCurrentEditingClient = oClient;
+	                this._oCurrentEditingClient = oClient;
+				}
                 break;
         
             case 'releaseEditRights':
-                if (this._fnOnReleaseEditRights)
-                    this._fnOnReleaseEditRights();
-                this._oCurrentEditingClient.sendAction('editRightsGranted');
+				if (this._oPendingEditingClient)
+				{
+					this._oCurrentEditingClient = this._oPendingEditingClient;
+					this._oPendingEditingClient.sendAction('editRightsGranted');
+					this._oPendingEditingClient = null;
+				}
+				else
+					this._oCurrentEditingClient = null;
                 break;
             
             case 'setMode':

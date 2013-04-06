@@ -1,0 +1,30 @@
+{
+  "name": "",
+  "glyphs": [
+    {
+      "search": [
+        "check"
+      ],
+      "code": 9745,
+      "from": 9745,
+      "uid": "dd6c6b221a1088ff8a9b9cd32d0b3dd5",
+      "css": "check",
+      "orig_css": "check",
+      "orig_code": 9745,
+      "src": "fontawesome"
+    },
+    {
+      "search": [
+        "check",
+        "empty"
+      ],
+      "code": 61590,
+      "uid": "4b900d04e8ab8c82f080c1cfbac5772c",
+      "css": "check-empty",
+      "orig_css": "check-empty",
+      "orig_code": 61590,
+      "src": "fontawesome",
+      "from": 61590
+    }
+  ]
+}

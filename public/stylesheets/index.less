@@ -38,10 +38,10 @@ body.home   #workspace { display: none;  }
     margin-right: 5px;
     margin-top: 10px;
     margin-bottom: 10px;
-    text-align: center;
     cursor: pointer;
     transition: background-color 0.2s;
-    &:hover
+    
+    &:hover:not(.disabled):not(.disable-hover)
     {
         background-color: @codr-blue;
     }
@@ -269,21 +269,21 @@ body.home   #workspace { display: none;  }
         
         .toolbar-item.toolbar-title
         {
-            width: 300px;
+            width: 200px;
             &.open
             {
-                width: 306px;                    
+                width: 206px;                    
             }
             
             .toolbar-item-dropdown
             {
-                width: 500px;
+                width: 400px;
                 height: 164px;
             }
             
             input
             {
-                width: 432px;
+                width: 332px;
                 margin-left: 20px;
                 margin-top: 20px;
                 padding: 12px;
@@ -316,7 +316,7 @@ body.home   #workspace { display: none;  }
             
             .toolbar-item-dropdown
             {
-                width: 300px;
+                width: 400px;
                 height: 400px;
             }
             
@@ -339,9 +339,37 @@ body.home   #workspace { display: none;  }
 
         #edit-button
         {
-            margin-left: 10px;
-            margin-right: 9px;
-            margin-top: 7px;
+            height: 30px;
+            margin-left: 15px;
+            margin-right: 14px;
+            padding-left: 11px;
+            margin-top: 7px;            
+            padding-top: 5px;
+            padding-bottom: 0;
+            
+            [class^="icon-check"]
+            {
+                font-size: 15pt;
+                line-height: 10px;
+                position: relative;
+                top: 2px;
+            }
+            
+            .text
+            {
+                margin-left: -3px;
+            }
+            
+            i.icon-check            { display: none;   }
+            i.icon-check-empty      { display: inline; }
+            &.on i.icon-check       { display: inline; }
+            &.on i.icon-check-empty { display: none;   }
+            
+            &:not(.on) 
+            {
+                background-color: lighten(desaturate(@codr-blue, 40%), 10%);
+                color: desaturate(darken(@codr-blue, 40%), 40%);
+            }
         }
     }
     

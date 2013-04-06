@@ -86,7 +86,12 @@ var Workspace = oHelpers.createClass(
 
         oHelpers.on('#edit-button', 'click', this, function()
         {
-            if (!$('#edit-button').hasClass('disabled'))
+            if (this._oEditor.isEditing())
+            {
+                this._setIsEditing(false);
+                this._oSocket.send('releaseEditRights');
+            }
+            else
                 this._oSocket.send('requestEditRights');
         });
         
@@ -177,13 +182,6 @@ var Workspace = oHelpers.createClass(
     {
         this._oEditor.setIsEditing(bIsEditing);
         $('BODY').toggleClass('is-editing', bIsEditing);
-        if (bIsEditing)
-        {
-            $('#edit-button').text('Editing...').addClass('disabled'); 
-        }
-        else
-        {
-            $('#edit-button').text('Start Editing').removeClass('disabled'); 
-        }
+        $('#edit-button').toggleClass('on', bIsEditing);
     }
 });
