@@ -100,7 +100,7 @@ var Editor = oHelpers.createClass(
             case 'setDocumentData': // Fired after opening an existing document.
                 this._setText(oAction.oData.sText);
                 break;
-
+	
             case 'setSelection':
                 this._onRemoteCursorMove(oAction.oData);
                 break;
