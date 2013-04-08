@@ -3,10 +3,10 @@ var oPath = require('path');
 var oWs = require('ws');
 var oAceDocumentClass = require('./aceDocument').Document;
 
-var sHelp = "Usage: node localClient.js ../my_file.txt";
+var sHelp = "Usage: node localClient.js ../my_file.txt [optional connection ID]";
 
 // Check input
-if (process.argv.length != 3)
+if (process.argv.length < 3 || process.argv.length > 4)
 {
     console.log('Incorrect parameters.', sHelp);
     process.exit();
@@ -14,7 +14,7 @@ if (process.argv.length != 3)
 
 // Check the file exists.
 var sFileToShare = oPath.resolve(process.argv[2]);
-if (!oFs.existsSync(sFileToShare))
+if (!(oFs.existsSync || oPath.existsSync)(sFileToShare))
 {
     console.log('Could not find file: "' + sFileToShare + '".');
     process.exit();
@@ -116,6 +116,11 @@ function onMessage(oEvent)
             socketSend('setDocumentTitle', { 'sTitle': sTitle });
             break;
 
+        case 'setDocumentData': // Fired after opening an existing document.
+            console.log('Connected');
+            oAceDocument.setValue(oAction.oData.sText);
+            break;
+
         case 'editRightsGranted':
         {
             // Reload the document.
@@ -170,11 +175,22 @@ function main()
     oSocket.onmessage = onMessage;
     oSocket.onopen = function()
     {
-        socketSend('createDocument',
+        if (process.argv.length == 4)
         {
-            sText: sInitialText,
-            sMode: getModeFromFilePath()
-        });            
+            console.log('Connecting to document...')
+            socketSend('openDocument',
+            {
+                sDocumentID: process.argv[3]
+            });            
+        }
+        else
+        {
+            socketSend('createDocument',
+            {
+                sText: sInitialText,
+                sMode: getModeFromFilePath()
+            });            
+        }
     };
 
     setInterval(save, 1000);
