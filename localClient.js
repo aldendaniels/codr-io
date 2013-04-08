@@ -149,12 +149,16 @@ function onMessage(oEvent)
 
 function save()
 {
-    if (oFs.readFileSync(sFileToShare).toString() == sLastSavedText)
+    var sFileData = oFs.readFileSync(sFileToShare).toString();
+    if (sFileData == sLastSavedText)
     {
         // Do save.
         var sText = oAceDocument.getValue();
-        oFs.writeFileSync(sFileToShare, sText);
-        sLastSavedText = sText;
+        if (sFileData != sText)
+        {
+            oFs.writeFileSync(sFileToShare, sText);
+            sLastSavedText = sText;
+        }
     }
     else
     {
