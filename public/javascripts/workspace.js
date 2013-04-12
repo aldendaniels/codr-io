@@ -73,6 +73,7 @@ var Workspace = oHelpers.createClass(
         }
         this._attachDOMEvents();
         this._oEditor.connect(oSocket);
+        this._oModeMenu = new Menu(aModes, aFavKeys, $('#mode-menu'), this, this._onModeChoice);
     },
 
     setMode: function(sMode)
@@ -89,67 +90,86 @@ var Workspace = oHelpers.createClass(
     
     _attachDOMEvents: function()
     {
-        oHelpers.on('.toolbar-item-btn', 'click', this, function(oEvent)
+        oHelpers.on(window, 'click', this, function(oEvent)
         {
-            var jToolbarItem = $(oEvent.currentTarget).parent();
-            if (jToolbarItem.hasClass('open'))
+            var jTarget = $(oEvent.target);
+            
+            // Dropdown button
+            var jToolbarBtn = jTarget.closest('.toolbar-item-btn');
+            if (jToolbarBtn.length)
             {
-                jToolbarItem.removeClass('open');
-                this._oModeMenu.detach();
-            }
-            else
-            {
-                // Open.
-                jToolbarItem.toggleClass('open');
-                jToolbarItem.find('input[type="text"]').focus().select();
-                
-                // Attach the mode menu.
-                if (jToolbarItem.is('#mode'))
+                var jToolbarItem = jToolbarBtn.parent();
+                if (jToolbarItem.hasClass('open'))
+                    jToolbarItem.removeClass('open');
+                else
                 {
-                    this._oModeMenu.attach();
-                    this._oModeMenu.highlight(this._sMode);
+                    // Open.
+                    jToolbarItem.toggleClass('open');
+                    jToolbarItem.find('input[type="text"]').focus().select();
+                    
+                    // Highlight the current mode menu.
+                    if (jToolbarItem.is('#mode'))
+                        this._oModeMenu.highlight(this._sMode);
                 }
             }
-        });
-
-        oHelpers.on('#title-save', 'click', this, function()
-        {
-            this._setTitleToLocal();
-        });
-        
-        oHelpers.on('#title-input', 'keypress', this, function(oEvent)
-        {
-            if (oEvent.which == 13 /* ENTER */)
+            
+            // Title save button
+            if (jTarget.closest('#title-save').length)
+            {
                 this._setTitleToLocal();
-        });
-
-        oHelpers.on('#edit-button', 'click', this, function()
-        {
-            if (this._oEditor.isEditing())
-            {
-                this._setIsEditing(false);
-                this._oSocket.send('releaseEditRights');
             }
-            else
+            
+            // Edit button
+            if (jTarget.closest('#edit-button').length)
             {
-                this._oSocket.send('requestEditRights', this._oEditor.getSelection());
+                if (this._oEditor.isEditing())
+                {
+                    this._setIsEditing(false);
+                    this._oSocket.send('releaseEditRights');
+                }
+                else
+                {
+                    this._oSocket.send('requestEditRights', this._oEditor.getSelection());
+                }                
             }
+            
+            // Mode menu option.
+            if (jTarget.closest('#mode-menu').length)
+                this._oModeMenu.onEvent(oEvent, jTarget);
         });
         
-        oHelpers.on('BODY', 'mousedown', this, function(oEvent)
+        oHelpers.on(window, 'keypress', this, function(oEvent)
+        {            
+            // Save title on ENTER.
+            var jTarget = $(oEvent.target);
+            if (jTarget[0] == $('#title-input')[0])
+            {
+                if (oEvent.which == 13 /* ENTER */)
+                    this._setTitleToLocal();                
+            }            
+        });
+        
+        oHelpers.on(window, 'keyup keydown', this, function(oEvent)
         {
+            // Mode menu option.
+            var jTarget = $(oEvent.target);
+            if (jTarget.closest('#mode-menu').length)
+                this._oModeMenu.onEvent(oEvent, jTarget);            
+        });
+        
+        oHelpers.on(window, 'mousedown', this, function(oEvent)
+        {
+            // Maintain focus.
+            var jTarget = $(oEvent.target);
+            if (!jTarget.is('input, textarea'))
+                oEvent.preventDefault();
+
+            // Close toolbar.
             var jOpenToolbarItem = $('.toolbar-item.open');
             if (jOpenToolbarItem.length && !$(oEvent.target).closest('.toolbar-item.open').length)
             {
                 jOpenToolbarItem.removeClass('open');
-                this._oModeMenu.detach();;
-            }
-            
-            // TODO: This is a hack. We should really remove focus whenever a
-            // toolbar menu is open and return focus when it is closed.
-            if (oEvent.target.tagName != 'INPUT')
-            {
-                oEvent.preventDefault(); // Keep Ace from losing focus.
+                this._oEditor.focusEditor()
             }
         });
         
@@ -163,14 +183,6 @@ var Workspace = oHelpers.createClass(
                 oEvent.stopPropagation();
             }
         }), true /*useCapture */);
-        
-        var jModeMenu = $('#mode-menu');
-        this._oModeMenu = new Menu(aModes, aFavKeys, jModeMenu, this, function(sMode)
-        {
-            this.setMode(sMode);
-            this._oSocket.send('setMode', {sMode: sMode});
-            $('.toolbar-item.open').removeClass('open');
-        });
     },
 
     _handleServerAction: function(oAction)
@@ -217,6 +229,7 @@ var Workspace = oHelpers.createClass(
         $('#title .toolbar-item-selection').text(sTitle);
         this._oSocket.send('setDocumentTitle', { 'sTitle': sTitle });
         $('#title').removeClass('open');
+        this._oEditor.focusEditor();
     },
     
     _setDocumentID: function(sID)
@@ -229,5 +242,13 @@ var Workspace = oHelpers.createClass(
         this._oEditor.setIsEditing(bIsEditing);
         $('BODY').toggleClass('is-editing', bIsEditing);
         $('#edit-button').toggleClass('on', bIsEditing);
+    },
+    
+    _onModeChoice: function(sMode)
+    {
+        this.setMode(sMode);
+        this._oSocket.send('setMode', {sMode: sMode});
+        $('.toolbar-item.open').removeClass('open');
+        this._oEditor.focusEditor();
     }
 });

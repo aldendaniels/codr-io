@@ -6,12 +6,31 @@ var oApp =
 
     initModeChooser: function()
     {
+        // Init menu.
         var oMenu = new Menu(aModes, aFavKeys, $('#modes'), this, function(sMode)
         {
             this._setWorkspaceModeAndConnect(sMode);
-            oMenu.detach();
         });
-        oMenu.attach();
+        oMenu.focusInput();
+        
+        // Maintain focus.
+        oHelpers.on(window, 'mousedown.home', this, function(oEvent)
+        {
+            var jTarget = $(oEvent.target);
+            if (!jTarget.is('input, textarea'))
+            {
+                console.log('stopping');
+                oEvent.preventDefault();
+            }
+        });
+        
+        // Pass events through to the menu.
+        oHelpers.on(window, 'click.home keyup.home keydown.home', this, function(oEvent)
+        {
+            var jTarget = $(oEvent.target);                        
+            if (jTarget.parents('#home #modes'))
+                oMenu.onEvent(oEvent, jTarget);
+        });
     },
     
     initWorkspace: function()
@@ -42,8 +61,9 @@ var oApp =
         {
             this._oWorkspace.setMode(sMode);
             this._oWorkspace.focusEditor();
-            this.initConnection();        
-            $('BODY').removeClass('home');
+            this.initConnection();
+            $('body').removeClass('home');
+            $(window).off('.home');
         }
         else
             this._sPendingMode = sMode;

@@ -47,23 +47,66 @@ var Menu = oHelpers.createClass(
         this._oKeyable = new Keyable(this._jMenu);
         this._renderOptions();
         jParent.append(this._jMenu);
-        this._oKeyable.update();
-    },
-
-    attach: function()
-    {
-        oHelpers.on(window, 'keydown.menu', this, this._onKeyDown);
-        oHelpers.on(window, 'keyup.menu', this, this._onKeyUp);
-        oHelpers.on(this._jMenu, 'click.menu', this, this._selectClicked);
         this._oKeyable.attach();
-        this._jMenu.find('.menu-search input').focus();
         this._oKeyable.update();
     },
-
-    detach: function()
+    
+    focusInput: function()
     {
-        $(window).off('.menu');
-        this._oKeyable.detach();
+        this._jMenu.find('.menu-search input').focus();
+    },
+    
+    onEvent: function(oEvent, jTarget)
+    {
+        switch(oEvent.type)
+        {
+            case 'click':
+                var jOption = $(oEvent.target).closest('.option');
+                if (jOption.length)
+                {
+                    this._oKeyable.select(jOption);
+                    this._selectCur();
+                }
+                break;
+            
+            case 'keyup':
+
+                this._assertInputFocus();
+                var sQuery = this._jMenu.find('.menu-search input').val();
+                if (this._sLastQuery != sQuery)
+                    this._renderOptions(sQuery);
+                this._sLastQuery = sQuery;
+                break;
+            
+            case 'keydown':
+                
+                this._assertInputFocus();
+                switch (oEvent.which)
+                {
+                    // Select next down div
+                    case 40: // Down arrow
+                        this._oKeyable.moveDown();
+                        this._scrollIntoView(this._oKeyable.getSelected());
+                        oEvent.preventDefault();
+                        break;
+                    
+                    // Select next up div
+                    case 38: // Up arrow
+                        this._oKeyable.moveUp();
+                        this._scrollIntoView(this._oKeyable.getSelected());
+                        oEvent.preventDefault();
+                        break;
+            
+                    // On choice
+                    case 13:
+                        this._selectCur();
+                        break;
+                }        
+                break;
+            
+            default:
+                console.log('Menu: unhandled event.');
+        }
     },
     
     highlight: function(sKey)
@@ -137,57 +180,20 @@ var Menu = oHelpers.createClass(
             jViewport.scrollTop(iScrollTop);
         }
     },
-
-    _onKeyDown: function(oEvent)
-    {
-        switch (oEvent.which)
-        {
-            // Select next down div
-            case 40: // Down arrow
-                this._oKeyable.moveDown();
-                this._scrollIntoView(this._oKeyable.getSelected());
-                oEvent.preventDefault();
-                
-                break;
-            // Select next up div
-            case 38: // Up arrow
-                this._oKeyable.moveUp();
-                this._scrollIntoView(this._oKeyable.getSelected());
-                oEvent.preventDefault();
-                break;
-    
-            // On choice
-            case 13:
-                this._selectCur();
-                break;
-            
-            default:
-                this._jMenu.find('.menu-search input').focus();
-        }        
-    },
-
-    _onKeyUp: function()
-    {
-        var sQuery = this._jMenu.find('.menu-search input').val();
-        if (this._sLastQuery != sQuery)
-            this._renderOptions(sQuery);
-        
-        this._sLastQuery = sQuery;
-    },
     
     _selectCur: function()
     {
         var sKey = this._oKeyable.getSelected().attr('id');
         this._fnOnSelect(sKey);
+        this._jMenu.find('input').val('');
+        this._renderOptions();
     },
     
-    _selectClicked: function(oEvent)
+    _assertInputFocus: function()
     {
-        var jOption = $(oEvent.target).closest('.option.keyable');
-        if (jOption.length)
+        if (document.activeElement != this._jMenu.find('.menu-search input')[0])
         {
-            this._oKeyable.select(jOption);
-            this._selectCur();
+            oHelpers.assert(false, 'The menu input does not have focus.');
         }
     }
 });

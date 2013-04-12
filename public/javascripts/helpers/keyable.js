@@ -32,7 +32,7 @@ var Keyable = oHelpers.createClass({
 	update: function(bMaintainSel)
 	{
 		// Maintain selection.
-		this._jKeyables = this._jParent.find('.keyable:visible');
+		this._jKeyables = this._jParent.find('.keyable');
         if (bMaintainSel && this._jSelected)
 		{
 			var sSelID = this._jSelected.attr(this._sIDAttr);
