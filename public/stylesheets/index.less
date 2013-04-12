@@ -187,14 +187,14 @@ body.home   #workspace { display: none;  }
                 height: 46px;
                 padding-top: 4px;
                 
-                .toolbar-caption
+                .toolbar-item-caption
                 {
                     color: #888;
                     font-size: 14px;
                     font-family: sanchez;
                 }
                 
-                .toolbar-selection
+                .toolbar-item-selection
                 {
                     font-family: verdana;
                     color: #333;
@@ -215,7 +215,7 @@ body.home   #workspace { display: none;  }
                 background-color: rgba(255, 255, 255, 0.5);
             }
             
-            .toolbar-item-dropdown
+            .toolbar-dropdown
             {
                 display: none;
             }
@@ -247,19 +247,19 @@ body.home   #workspace { display: none;  }
                     width: 100%;
                 }
                 
-                .toolbar-selection
+                .toolbar-item-selection
                 {
                     display: none;
                 }
                 
-                .toolbar-caption
+                .toolbar-item-caption
                 {
                     font-size: 22px;
                     -webkit-text-stroke: 0.5px;
                     text-shadow: 1px 2px 3px white;
                 }
                 
-                .toolbar-item-dropdown
+                .toolbar-dropdown
                 {
                     display: block;
                     position: absolute;
@@ -283,7 +283,7 @@ body.home   #workspace { display: none;  }
     
         /***************** TITLE OPTION *********************/
         
-        .toolbar-item.toolbar-title
+        .toolbar-item#title
         {
             width: 200px;
             &.open
@@ -291,7 +291,7 @@ body.home   #workspace { display: none;  }
                 width: 206px;                    
             }
             
-            .toolbar-item-dropdown
+            .toolbar-dropdown
             {
                 width: 400px;
                 height: 164px;
@@ -322,7 +322,7 @@ body.home   #workspace { display: none;  }
                     
         /***************** MODE OPTION *********************/
         
-        .toolbar-item.toolbar-mode
+        .toolbar-item#mode
         {
             width: 200px;
             &.open
@@ -330,13 +330,13 @@ body.home   #workspace { display: none;  }
                 width: 206px;
             }
             
-            .toolbar-item-dropdown
+            .toolbar-dropdown
             {
                 width: 400px;
                 height: 400px;
             }
             
-            #toolbar-mode-menu
+            #mode-menu
             {
                 border: 1px #ddd solid;
                 position: absolute;

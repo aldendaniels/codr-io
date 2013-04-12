@@ -1,3 +1,35 @@
+
+/*
+CODE STRUCTURE: (not implemented yet)
+
+    The App is organized into three objects:
+     1. Editor
+     2. Toolbar    (not done yet)
+     3. PeoplePane (not done yet)
+    None of the above sections know about each other.
+    
+    All of the above objects share a Socket instance.
+    When an event is received from the server each of
+    the classes (Editor, Tolbar, PeoplePane) have the
+    opportunity to handle the event. In some cases,
+    multiple objects can handle a single event. For example,
+    when the document mode is updated, we update both
+    the editor and the toolbar.
+    
+    All three are objects managed by an outer class named "Workspace."
+    The Workspace class has the following functions:
+     1. Bind DOM events and broadcast them to the appropriate objects.
+     2. Manage which section has UI focus.
+     3. Intercept actions as necessary.
+        For example, then the toolbar sends the setMode event down the socket,
+        the workspace can intercept this in order to update the edtor mode
+        before the event is sent.
+    
+    NOTE: All events should be bound on the BODY element by the workspace.
+    TODO: Change the menu element to stop attaching it's own event.
+    CAVEAT: This is not true for the ace editor.
+*/
+
 _sUNTITLED = 'Untitled';
 
 var Workspace = oHelpers.createClass(
@@ -47,7 +79,7 @@ var Workspace = oHelpers.createClass(
     {
         this._oEditor.setMode(sMode);
         this._sMode = sMode;
-        $('#toolbar #documentMode').text(sMode);
+        $('#mode .toolbar-item-selection').text(sMode);
     },
     
     focusEditor: function()
@@ -72,7 +104,7 @@ var Workspace = oHelpers.createClass(
                 jToolbarItem.find('input[type="text"]').focus().select();
                 
                 // Attach the mode menu.
-                if (jToolbarItem.hasClass('toolbar-mode'))
+                if (jToolbarItem.is('#mode'))
                 {
                     this._oModeMenu.attach();
                     this._oModeMenu.highlight(this._sMode);
@@ -80,12 +112,12 @@ var Workspace = oHelpers.createClass(
             }
         });
 
-        oHelpers.on('#documentTitleSave', 'click', this, function()
+        oHelpers.on('#title-save', 'click', this, function()
         {
             this._setTitleToLocal();
         });
         
-        oHelpers.on('#documentTitleInput', 'keypress', this, function(oEvent)
+        oHelpers.on('#title-input', 'keypress', this, function(oEvent)
         {
             if (oEvent.which == 13 /* ENTER */)
                 this._setTitleToLocal();
@@ -132,7 +164,7 @@ var Workspace = oHelpers.createClass(
             }
         }), true /*useCapture */);
         
-        var jModeMenu = $('.toolbar-mode .toolbar-item-dropdown #toolbar-mode-menu');
+        var jModeMenu = $('#mode-menu');
         this._oModeMenu = new Menu(aModes, aFavKeys, jModeMenu, this, function(sMode)
         {
             this.setMode(sMode);
@@ -175,16 +207,16 @@ var Workspace = oHelpers.createClass(
     
     _setTitle: function(sTitle)
     {
-        $('#documentTitle').text(sTitle);
-        $('#documentTitleInput').val(sTitle);
+        $('#title .toolbar-item-selection').text(sTitle);
+        $('#title-input').val(sTitle);
     },
 
     _setTitleToLocal: function()
     {
-        var sTitle = $('#documentTitleInput').val();
-        $('#documentTitle').text(sTitle);
+        var sTitle = $('#title-input').val();
+        $('#title .toolbar-item-selection').text(sTitle);
         this._oSocket.send('setDocumentTitle', { 'sTitle': sTitle });
-        $('.toolbar-title').removeClass('open');
+        $('#title').removeClass('open');
     },
     
     _setDocumentID: function(sID)
