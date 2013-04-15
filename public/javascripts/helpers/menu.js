@@ -56,12 +56,13 @@ var Menu = oHelpers.createClass(
         this._jMenu.find('.menu-search input').focus();
     },
     
-    onEvent: function(oEvent, jTarget)
+    onEvent: function(oEvent)
     {
+        var jTarget = $(oEvent.target);
         switch(oEvent.type)
         {
             case 'click':
-                var jOption = $(oEvent.target).closest('.option');
+                var jOption = jTarget.closest('.option');
                 if (jOption.length)
                 {
                     this._oKeyable.select(jOption);
@@ -105,7 +106,7 @@ var Menu = oHelpers.createClass(
                 break;
             
             default:
-                console.log('Menu: unhandled event.');
+                console.log('Menu: unhandled "' + oEvent.type + '" event.');
         }
     },
     

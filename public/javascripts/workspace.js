@@ -135,7 +135,7 @@ var Workspace = oHelpers.createClass(
             
             // Mode menu option.
             if (jTarget.closest('#mode-menu').length)
-                this._oModeMenu.onEvent(oEvent, jTarget);
+                this._oModeMenu.onEvent(oEvent);
         });
         
         oHelpers.on(window, 'keypress', this, function(oEvent)
@@ -154,7 +154,7 @@ var Workspace = oHelpers.createClass(
             // Mode menu option.
             var jTarget = $(oEvent.target);
             if (jTarget.closest('#mode-menu').length)
-                this._oModeMenu.onEvent(oEvent, jTarget);            
+                this._oModeMenu.onEvent(oEvent);            
         });
         
         oHelpers.on(window, 'mousedown', this, function(oEvent)

@@ -29,7 +29,7 @@ var oApp =
         {
             var jTarget = $(oEvent.target);                        
             if (jTarget.parents('#home #modes'))
-                oMenu.onEvent(oEvent, jTarget);
+                oMenu.onEvent(oEvent);
         });
     },
     

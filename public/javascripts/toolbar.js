@@ -1,6 +1,6 @@
 
 /*
-    TODO: This is not functional. It's just a place holder.
+    TODO: This is unused and untested code.
 */
 
 var oToolbar = oHelpers.createClass(
@@ -10,7 +10,6 @@ var oToolbar = oHelpers.createClass(
     _fnBlur: null,
     
     /* Internal state */
-    _jOpenToolbarMenu: null,
     _oModeMenu: null,
     
     __init__: function(oSocket, fnBlur)
@@ -19,69 +18,103 @@ var oToolbar = oHelpers.createClass(
         this._fnBlur = fnBlur;
         
         // Init the mode menu.
-        this._oModeMenu = new Menu(aModes, aFavKeys, '#mode-menu', this, this._onModeChoice);
+        this._oModeMenu = new Menu(aModes, aFavKeys, '#mode-menu', this, this._setMode);
     },
     
-    isOpenDropdown: function()
+    onEvent: function(oEvent)
     {
-        return !!this._jOpenToolbarMenu;
-    },
-    
-    onEvent: function(sEventName, jTarget)
-    {
-        switch (sEventName)
+        // Get data.
+        var jTarget = $(oEvent.target);
+        var jActiveElem = $(document.ActiveElement);
+        var sEventType = oEvent.type;
+
+        // Get target and active items (if any).
+        var jTargetToolbarItem = jItemBtn.parents('.toolbar-item');
+        var jActiveToolbarItem = jActiveElem.parents('.toolbarItem');
+        
+        /* Forward language events to menu. */
+        if (jActiveToolbarItem.is('#mode'))
         {
-            case 'click':
-                console.log('Toolbar click event!');
-                break;
-            
-            case 'mousedown':
-                console.log('Toolbar mousedown event!');
-                break;
-            
-            case 'focus':
-                console.log('Toolbar focus event!');
-                break;
-            
-            case 'blur':
-                console.log('Toolbar blur event!');
-                break;
-            
-            case 'keypress':
-                console.log('Toolbar keypress event.');
-            
-            default:
-                console.log('Unhandeled toolbar event!');
+            this._oModeMenu.onEvent(oEvent);
+            return;
+        }
+        
+        /* Toggle dropdown on mousedown. */
+        var jItemBtn = jTarget.closest('.toolbar-item-btn');
+        if (sEventType == 'mousedown' && jItemBtn.length)
+        {
+            if (jTargetToolbarItem == jActiveToolbarItem)
+            {
+                this._closeDropdown(jTargetToolbarItem);
+                this._fnBlur();
+            }
+            else
+            {
+                this._openDropdown(jTargetToolbarItem)
+            }
+            return;
+        }
+        
+        /* Open dropdown on focus. */
+        if (sEventType == 'focus' && jTargetToolbarItem.length)
+        {
+            this._openDropdown(jTargetToolbarItem);
+            return;
+        }
+        
+        /* Close dropdown on blur. */
+        if (sEventType == 'blur' && jTargetToolbarItem.length)
+        {
+            this._closeDropdown(jTargetToolbarItem);
+            return;
+        }
+        
+        /* Set title on click. */
+        if (sEventType == 'click' && jTarget.is('#title-save'))
+        {
+            this._setTitle($('#title-input').val());
+            return;
+        }
+        
+        /* Set edit button on click. */
+        var jEditButton = jTarget.closest('#edit-button');
+        if (sEventType == 'click' && jEditButton.length)
+        {
+            this._setIsEditing(!jEditButton.hasClass('on'));
+            return;
         }
     },
     
     //////////////// GENERIC DROPDOWN STUFF //////////////// 
     
-    _openDropdown: function(jMenuElem)
+    _openDropdown: function(jItem)
     {
-        jMenuElem.addClass('open');
-        this._jOpenTooblarMenu = jMenuElem;
+        jItem.addClass('open');
+        jItem.find(':focusable').first().focus();
     },
     
-    _closeOpenDropdown: function(jMenuElem)
+    _closeDropdown: function(jItem, bBlur)
     {
-        if (this._jOpenToolbarMenu)
-        {
-            this._jOpenToolbarMenu.removeClass('open');
-            this._jOpenToolbarMenu = null;
-            this._oWorkspace.focusEditor();
-        }
+        jItem.removeClass('open');
     },
     
     //////////////// HANDLE USER CHANGES  //////////////// 
       
-    _onModeChoice: function(sMode)
+    _setMode: function(sMode)
     {
-        // TODO: ...
+        console.log('TODO: Set mode.');
+        this._fnBlur();
     },
     
-    _onSavetoolbar-item-caption: function(stoolbar-item-caption)
+    _setTitle: function(sTitle)
     {
-        // TODO: ...
+        console.log('TODO: Set title.');
+        this._fnBlur();
+    },
+    
+    _setIsEditing: function(bIsEditing)
+    {
+        console.log('TOOD: Set is editing');
+        this._fnBlur();
     }
 });
