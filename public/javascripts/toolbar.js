@@ -8,16 +8,16 @@ var oToolbar = oHelpers.createClass(
     /* External dependencies */
     _oSocket: null,
     _fnBlur: null,
+    _fnSetIsEditing: null,
     
     /* Internal state */
     _oModeMenu: null,
     
-    __init__: function(oSocket, fnBlur)
+    __init__: function(oSocket, fnBlur, fnSetIsEditing)
     {
         this._oSocket = oSocket;
         this._fnBlur = fnBlur;
-        
-        // Init the mode menu.
+        this._fnSetIsEditing = fnSetIsEditing;
         this._oModeMenu = new Menu(aModes, aFavKeys, '#mode-menu', this, this._setMode);
     },
     
@@ -80,7 +80,7 @@ var oToolbar = oHelpers.createClass(
         var jEditButton = jTarget.closest('#edit-button');
         if (sEventType == 'click' && jEditButton.length)
         {
-            this._setIsEditing(!jEditButton.hasClass('on'));
+            this._fnSetIsEditing(!jEditButton.hasClass('on'));
             return;
         }
     },
@@ -89,8 +89,11 @@ var oToolbar = oHelpers.createClass(
     
     _openDropdown: function(jItem)
     {
-        jItem.addClass('open');
-        jItem.find(':focusable').first().focus();
+        if (!jItem.hasClass('open'))
+        {
+            jItem.addClass('open');
+            jItem.find(':focusable').first().focus();            
+        }
     },
     
     _closeDropdown: function(jItem, bBlur)
@@ -102,19 +105,13 @@ var oToolbar = oHelpers.createClass(
       
     _setMode: function(sMode)
     {
-        console.log('TODO: Set mode.');
+        this._oSocket.send('setMode', sMode);
         this._fnBlur();
     },
     
     _setTitle: function(sTitle)
     {
-        console.log('TODO: Set title.');
-        this._fnBlur();
-    },
-    
-    _setIsEditing: function(bIsEditing)
-    {
-        console.log('TOOD: Set is editing');
+        this._oSocket.send('setTitle', sTitle);
         this._fnBlur();
     }
 });

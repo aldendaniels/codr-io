@@ -101,6 +101,7 @@ var Menu = oHelpers.createClass(
                     // On choice
                     case 13:
                         this._selectCur();
+                        oEvent.preventDefault();
                         break;
                 }        
                 break;
