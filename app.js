@@ -3,12 +3,12 @@
 var oOS = require('os');
 var oPath = require('path');
 var oExpress 		= require('express');
-var oWS 			= require('ws');
-var oHTTP 			= require('http');
+var oWS             = require('ws');
+var oHTTP           = require('http');
 var oLessMiddleware = require('less-middleware');
-var oHelpers 		= require('./helpers');
-var oAceDocument 	= require('./aceDocument').Document;
-var oDatabase 		= require('./database');
+var oHelpers        = require('./helpers');
+var oAceDocument    = require('./aceDocument').Document;
+var oDatabase       = require('./database');
 
 // Error handling.
 // TODO: This is a horrible hack.
@@ -21,28 +21,48 @@ process.on('uncaughtException', function (err)
 var oApp = oExpress();
 oApp.configure(function()
 {
-	oApp.set('port', process.env.PORT || 8080);
-	
+    oApp.set('port', process.env.PORT || 8080);
+    
     var oTempDir = oOS.tmpDir();
-	oApp.use(oLessMiddleware(
-	{
-		src: __dirname + '/public',
-		dest: oTempDir
-	}));
-	
-	oApp.use(oExpress.static(oPath.join(__dirname, 'public')));
-	oApp.use(oExpress.static(oTempDir));
+    oApp.use(oLessMiddleware(
+    {
+        src: __dirname + '/public',
+        dest: oTempDir
+    }));
+    
+    oApp.use(oExpress.static(oPath.join(__dirname, 'public')));
+    oApp.use(oExpress.static(oTempDir));
 
-	/* Save static index.html */
-	oApp.get('^/$', 			function(req, res) { res.sendfile('public/index.html'); });
-	oApp.get('/[a-z0-9]+/?$', 	function(req, res) { res.sendfile('public/index.html'); });
+    /* Save static index.html */
+    oApp.get('^/$',               function(req, res) { res.sendfile('public/index.html'); });
+    oApp.get('/[a-z0-9]+/?$',     function(req, res) { res.sendfile('public/index.html'); });
+	
+	/* Preview files as HTML. */
+	oApp.get('/:DocumentID([a-z0-9]+)/preview?$', function(req, res)
+	{
+		var sDocumentID = req.params['DocumentID'];
+		var oDocument = null;
+		if (sDocumentID in g_oWorkspaces)
+		{
+			oDocument = g_oWorkspaces[sDocumentID].getDocument();
+			res.send(oDocument.get('sText'));
+		}
+		else
+		{
+			oDatabase.getDocument(sDocumentID, this, function(sDocumentJSON)
+			{
+				oDocument = new Document(sDocumentJSON);
+				res.send(oDocument.get('sText'));
+			});
+		}
+	});
 });
 
 // Instantiate server.
 var oServer = oHTTP.createServer(oApp);
 oServer.listen(oApp.get('port'), function()
 {
-	console.log("Express server listening on port " + oApp.get('port'));
+    console.log("Express server listening on port " + oApp.get('port'));
 });
 
 // Instantiate websocket listener.
@@ -129,17 +149,22 @@ var Client = oHelpers.createClass(
     
     _addToWorkspace: function(sDocumentID)
     {
+		// Validate.
         if (this._bClosed)
             return;
-
-        oHelpers.assert(!this._oWorkspace, 'Client already connected.');        
+        oHelpers.assert(!this._oWorkspace, 'Client already connected.');
+		
+		// Get or add workspace.
         if (sDocumentID in g_oWorkspaces)
             this._oWorkspace = g_oWorkspaces[sDocumentID];
         else
             this._oWorkspace = new Workspace(sDocumentID);
+		
+		// Add client to workspace.
         this._oWorkspace.addClient(this);
-
         this._bInitialized = true;
+		
+		// Send queued actions.
         for (var i = 0; i < this._aPreInitActionQueue.length; i++)
             this._onClientAction(this._aPreInitActionQueue[i]);
     }
@@ -161,7 +186,7 @@ var Workspace = oHelpers.createClass(
     
     // Editing
     _aClients: null,
-	_oRequestEditingInfo: null,
+    _oRequestEditingInfo: null,
     _oCurrentEditingClient: null,
     _oLastSelAction: null,
     
@@ -186,11 +211,11 @@ var Workspace = oHelpers.createClass(
 
     addClient: function(oClient)
     {
-		// Automatically start editing if you're the only client.
+        // Automatically start editing if you're the only client.
         if (!this._aClients.length)
             this._oCurrentEditingClient = oClient;
 
-		// Add the client.
+        // Add the client.
         this._aClients.push(oClient);
         if (this._bDocumentLoaded)
             oClient.onDocumentLoad();
@@ -201,7 +226,7 @@ var Workspace = oHelpers.createClass(
         // Remove editing rights.
         if (oClient == this._oCurrentEditingClient)
         {
-			this._removeSelection();
+            this._removeSelection();
             this._oCurrentEditingClient = null;
             this._oLastSelAction = null;
         }
@@ -225,7 +250,7 @@ var Workspace = oHelpers.createClass(
     {
         this._assertDocumentLoaded();
         this._updateDocumentText();
-		
+        
         oClient.sendAction('setDocumentData',
         {
             sText: this._oDocument.get('sText')
@@ -238,7 +263,7 @@ var Workspace = oHelpers.createClass(
             oClient.sendAction(this._oLastSelAction);
 
         oClient.sendAction('setMode',
-		{
+        {
             sMode: this._oDocument.get('sMode')
         });
 
@@ -256,6 +281,13 @@ var Workspace = oHelpers.createClass(
             sDocumentID: this._sDocumentID
         });
     },
+	
+	getDocument: function()
+	{
+        this._assertDocumentLoaded();
+		this._updateDocumentText();
+		return this._oDocument;
+	},
   
     onClientAction: function(oClient, oAction)
     {
@@ -264,26 +296,26 @@ var Workspace = oHelpers.createClass(
         {
             case 'requestEditRights':
                 if (this._oCurrentEditingClient)
-				{
+                {
                     this._oCurrentEditingClient.sendAction('removeEditRights');
-					this._oRequestEditingInfo = {oClient: oClient, oSelection: oAction.oSelection};
-				}
+                    this._oRequestEditingInfo = {oClient: oClient, oSelection: oAction.oSelection};
+                }
                 else
-					this._grantEditRights(oClient, oAction.oData);
+                    this._grantEditRights(oClient, oAction.oData);
                 break;
         
             case 'releaseEditRights':
-				if (this._oRequestEditingInfo)
-				{
-					this._grantEditRights( this._oRequestEditingInfo.oClient,
-										   this._oRequestEditingInfo.oSelection);
-					this._oRequestEditingInfo = null;
-				}
-				else
-				{
-					this._removeSelection();
-					this._oCurrentEditingClient = null;
-				}
+                if (this._oRequestEditingInfo)
+                {
+                    this._grantEditRights( this._oRequestEditingInfo.oClient,
+                                           this._oRequestEditingInfo.oSelection);
+                    this._oRequestEditingInfo = null;
+                }
+                else
+                {
+                    this._removeSelection();
+                    this._oCurrentEditingClient = null;
+                }
                 break;
             
             case 'setMode':
@@ -320,27 +352,27 @@ var Workspace = oHelpers.createClass(
                 oClient.sendAction(oAction)
         }
     },
-	
-	_grantEditRights: function(oClient, oSelection)
-	{
-		oClient.sendAction('editRightsGranted');
-		this._oCurrentEditingClient = oClient;
-		this._broadcastAction(oClient,
-		{
-			sType: 'setSelection',
-			oData: oSelection
-		});
-	},
-	
-	_removeSelection: function()
-	{
-		oHelpers.assert(this._oCurrentEditingClient, 'You can\'t remove a selection if there\'s no editing client.')
-		this._broadcastAction(this._oCurrentEditingClient,
-		{
-			sType: 'removeSelection',
-			oData: null
-		});
-	},
+    
+    _grantEditRights: function(oClient, oSelection)
+    {
+        oClient.sendAction('editRightsGranted');
+        this._oCurrentEditingClient = oClient;
+        this._broadcastAction(oClient,
+        {
+            sType: 'setSelection',
+            oData: oSelection
+        });
+    },
+    
+    _removeSelection: function()
+    {
+        oHelpers.assert(this._oCurrentEditingClient, 'You can\'t remove a selection if there\'s no editing client.')
+        this._broadcastAction(this._oCurrentEditingClient,
+        {
+            sType: 'removeSelection',
+            oData: null
+        });
+    },
 
     _save: function()
     {
