@@ -72,7 +72,7 @@ oWsServer.on('connection', function(oSocket)
     new Client(oSocket);
 });
 
-var g_oWorkspaces = {}; // sID to Document instance.
+var g_oWorkspaces = {}; // DocumentID to Workspace instance.
 
 var Client = oHelpers.createClass(
 {
@@ -99,10 +99,16 @@ var Client = oHelpers.createClass(
     
     onDocumentLoad: function()
     {
+		// Send intial data to browser client.
         if (this._bCreatedDocument)
             this._oWorkspace.setClientDocumentID(this);
         else
             this._oWorkspace.setClientInitialValue(this);
+		
+		// Send queued actions.
+		this._bInitialized = true;
+        for (var i = 0; i < this._aPreInitActionQueue.length; i++)
+            this._onClientAction(this._aPreInitActionQueue[i]);
     },
     
     sendAction: function(param1, param2) /* either sendAction(sType, oData) or sendAction(oAction)*/
@@ -162,11 +168,6 @@ var Client = oHelpers.createClass(
 		
 		// Add client to workspace.
         this._oWorkspace.addClient(this);
-        this._bInitialized = true;
-		
-		// Send queued actions.
-        for (var i = 0; i < this._aPreInitActionQueue.length; i++)
-            this._onClientAction(this._aPreInitActionQueue[i]);
     }
 });
 
