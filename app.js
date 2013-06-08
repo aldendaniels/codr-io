@@ -223,6 +223,7 @@ var Workspace = oHelpers.createClass(
     _aChatHistory: null,
     _oAllClients: null,
     _iGeneratedClientNames: 0,
+    _aCurrentlyTyping: null,
     
     __init__: function(sDocumentID)
     {
@@ -231,6 +232,7 @@ var Workspace = oHelpers.createClass(
         this._aClients = [];
         this._aChatHistory = [];
         this._oAllClients = {};
+        this._aCurrentlyTyping = [];
         
         oDatabase.getDocument(sDocumentID, this, function(sDocumentJSON)
         {
@@ -280,6 +282,16 @@ var Workspace = oHelpers.createClass(
         // Remove the client.
         var iIndex = this._aClients.indexOf(oClient);
         this._aClients.splice(iIndex, 1);
+
+        if (this._aCurrentlyTyping.indexOf(oClient.getUserID()) >= 0)
+        {
+            this._broadcastAction(oClient,
+            {
+                'sType': 'endTyping',
+                'oData': {'sUserID': oClient.getUserID()}
+            });
+            this._aCurrentlyTyping.pop(this._aCurrentlyTyping.indexOf(oClient.getUserID()));
+        }
 
         this._broadcastAction(oClient,
         {
@@ -333,6 +345,9 @@ var Workspace = oHelpers.createClass(
 
         for (var sUserID in this._oAllClients)
         {
+            if (sUserID == oClient.getUserID())
+                continue;
+
             var sEvent = 'addUser';
             if (!(sUserID in oCurrentUsers))
                 sEvent = 'addInactiveUser';
@@ -351,6 +366,11 @@ var Workspace = oHelpers.createClass(
                 'sUserID': this._aChatHistory[i].sUserID,
                 'sMessage': this._aChatHistory[i].sMessage
             });
+        }
+
+        for (var i = 0; i < this._aCurrentlyTyping.length; i++)
+        {
+            oClient.sendAction('startTyping', {'sUserID': this._aCurrentlyTyping[i]});
         }
     },
     
@@ -431,6 +451,24 @@ var Workspace = oHelpers.createClass(
                 };
                 this._broadcastAction(oClient, oNewAction);
                 this._aChatHistory.push(oNewAction.oData);
+                break;
+
+            case 'startTyping':
+                this._aCurrentlyTyping.push(oClient.getUserID());
+                this._broadcastAction(oClient,
+                {
+                    'sType': 'startTyping',
+                    'oData': {'sUserID': oClient.getUserID()}
+                });
+                break;
+
+            case 'endTyping':
+                this._aCurrentlyTyping.pop(this._aCurrentlyTyping.indexOf(oClient.getUserID()));
+                this._broadcastAction(oClient,
+                {
+                    'sType': 'endTyping',
+                    'oData': {'sUserID': oClient.getUserID()}
+                });
                 break;
         }
     },
