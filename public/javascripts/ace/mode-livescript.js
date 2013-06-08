@@ -1,12 +1,12 @@
-ace.define('ace/mode/ls', function(require, exports, module){
+ace.define('ace/mode/livescript', ['require', 'exports', 'module' , 'ace/tokenizer', 'ace/mode/matching_brace_outdent', 'ace/range', 'ace/mode/text'], function(require, exports, module) {
   var identifier, LiveScriptMode, keywordend, stringfill;
   identifier = '(?![\\d\\s])[$\\w\\xAA-\\uFFDC](?:(?!\\s)[$\\w\\xAA-\\uFFDC]|-[A-Za-z])*';
   exports.Mode = LiveScriptMode = (function(superclass){
     var indenter, prototype = extend$((import$(LiveScriptMode, superclass).displayName = 'LiveScriptMode', LiveScriptMode), superclass).prototype, constructor = LiveScriptMode;
     function LiveScriptMode(){
       var that;
-      this.$tokenizer = new (require('ace/tokenizer')).Tokenizer(LiveScriptMode.Rules);
-      if (that = require('ace/mode/matching_brace_outdent')) {
+      this.$tokenizer = new (require('../tokenizer')).Tokenizer(LiveScriptMode.Rules);
+      if (that = require('../mode/matching_brace_outdent')) {
         this.$outdent = new that.MatchingBraceOutdent;
       }
     }
@@ -25,7 +25,7 @@ ace.define('ace/mode/ls', function(require, exports, module){
     prototype.toggleCommentLines = function(state, doc, startRow, endRow){
       var comment, range, i$, i, out, line;
       comment = /^(\s*)#/;
-      range = new (require('ace/range')).Range(0, 0, 0, 0);
+      range = new (require('../range')).Range(0, 0, 0, 0);
       for (i$ = startRow; i$ <= endRow; ++i$) {
         i = i$;
         if (out = comment.test(line = doc.getLine(i))) {
@@ -48,7 +48,7 @@ ace.define('ace/mode/ls', function(require, exports, module){
       return (ref$ = this.$outdent) != null ? ref$.autoOutdent(doc, row) : void 8;
     };
     return LiveScriptMode;
-  }(require('ace/mode/text').Mode));
+  }(require('../mode/text').Mode));
   keywordend = '(?![$\\w]|-[A-Za-z]|\\s*:(?![:=]))';
   stringfill = {
     token: 'string',
@@ -279,12 +279,7 @@ var MatchingBraceOutdent = function() {};
     };
 
     this.$getIndent = function(line) {
-        var match = line.match(/^(\s+)/);
-        if (match) {
-            return match[1];
-        }
-
-        return "";
+        return line.match(/^\s*/)[0];
     };
 
 }).call(MatchingBraceOutdent.prototype);

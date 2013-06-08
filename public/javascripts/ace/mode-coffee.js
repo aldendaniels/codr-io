@@ -184,7 +184,7 @@ ace.define('ace/mode/coffee_highlight_rules', ['require', 'exports', 'module' , 
                     token : "string", regex : "'''", next : [
                         {token : "string", regex : "'''", next : "start"},
                         {token : "constant.language.escape", regex : stringEscape},
-                        {defaultToken: "string"},
+                        {defaultToken: "string"}
                     ]
                 }, {
                     stateName: "qqdoc",
@@ -192,6 +192,7 @@ ace.define('ace/mode/coffee_highlight_rules', ['require', 'exports', 'module' , 
                     regex : '"""',
                     next : [
                         {token : "string", regex : '"""', next : "start"},
+                        {token : "paren.string", regex : '#{', push : "start"},
                         {token : "constant.language.escape", regex : stringEscape},
                         {defaultToken: "string"}
                     ]
@@ -200,22 +201,38 @@ ace.define('ace/mode/coffee_highlight_rules', ['require', 'exports', 'module' , 
                     token : "string", regex : "'", next : [
                         {token : "string", regex : "'", next : "start"},
                         {token : "constant.language.escape", regex : stringEscape},
-                        {defaultToken: "string"},
+                        {defaultToken: "string"}
                     ]
                 }, {
                     stateName: "qqstring",
                     token : "string.start", regex : '"', next : [
                         {token : "string.end", regex : '"', next : "start"},
+                        {token : "paren.string", regex : '#{', push : "start"},
                         {token : "constant.language.escape", regex : stringEscape},
-                        {defaultToken: "string"},
+                        {defaultToken: "string"}
                     ]
                 }, {
                     stateName: "js",
                     token : "string", regex : "`", next : [
                         {token : "string", regex : "`", next : "start"},
                         {token : "constant.language.escape", regex : stringEscape},
-                        {defaultToken: "string"},
+                        {defaultToken: "string"}
                     ]
+                }, {
+                    regex: "[{}]", onMatch: function(val, state, stack) {
+                        this.next = "";
+                        if (val == "{" && stack.length) {
+                            stack.unshift("start", state);
+                            return "paren";
+                        }
+                        if (val == "}" && stack.length) {
+                            stack.shift();
+                            this.next = stack.shift();
+                            if (this.next.indexOf("string") != -1)
+                                return "paren.string";
+                        }
+                        return "paren";
+                    }
                 }, {
                     token : "string.regex",
                     regex : "///",
@@ -289,7 +306,7 @@ ace.define('ace/mode/coffee_highlight_rules', ['require', 'exports', 'module' , 
                 regex : '###',
                 next : "start"
             }, {
-                defaultToken : "comment",
+                defaultToken : "comment"
             }]
         };
         this.normalizeRules();
@@ -330,12 +347,7 @@ var MatchingBraceOutdent = function() {};
     };
 
     this.$getIndent = function(line) {
-        var match = line.match(/^(\s+)/);
-        if (match) {
-            return match[1];
-        }
-
-        return "";
+        return line.match(/^\s*/)[0];
     };
 
 }).call(MatchingBraceOutdent.prototype);

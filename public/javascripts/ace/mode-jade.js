@@ -51,6 +51,7 @@ var Mode = function() {
 oop.inherits(Mode, TextMode);
 
 (function() {
+	this.lineCommentStart = "//";
 }).call(Mode.prototype);
 
 exports.Mode = Mode;
@@ -101,10 +102,11 @@ var JadeHighlightRules = function() {
             regex : "^\\s*\/\/(?:\\s*[^-\\s]|\\s+\\S)(?:.*$)"
         },
         {
-            token : function(space, text) {
-                return "punctuation.section.comment";
+            onMatch: function(value, currentState, stack) {
+                stack.unshift(this.next, value.length - 2, currentState);
+                return "comment";
             },
-            regex : "^((\\s*)\/\/)(?:\\s*$)",
+            regex: /^\s*\/\//,
             next: "comment_block"
         },
         mixin_embed("markdown", "markdown-"),
@@ -153,18 +155,18 @@ var JadeHighlightRules = function() {
         }
     ],
     "comment_block": [
-        {
-            token: function(text) {
+        {regex: /^\s*/, onMatch: function(value, currentState, stack) {
+            if (value.length <= stack[1]) {
+                stack.shift();
+                stack.shift();
+                this.next = stack.shift();
                 return "text";
-            },
-            regex: "^(\\1\\S|$)", 
-            "captures": "1",
-            next: "start"
-        },
-        {
-            token: "comment.block.jade",
-            regex : ".+"
-        }
+            } else {
+                this.next = "";
+                return "comment";
+            }
+        }, next: "start"},
+        {defaultToken: "comment"}
     ],
     "tag_single": [
         {
@@ -225,15 +227,15 @@ var JadeHighlightRules = function() {
             regex : escapedRe
         }, {
             token : "string",
-            regex : '[^"\\\\]+',
+            regex : '[^"\\\\]+'
         }, {
             token : "string",
             regex : "\\\\$",
-            next  : "qqstring",
+            next  : "qqstring"
         }, {
             token : "string",
             regex : '"|$',
-            next  : "tag_attributes",
+            next  : "tag_attributes"
         }
     ],
     "qstring" : [
@@ -242,15 +244,15 @@ var JadeHighlightRules = function() {
             regex : escapedRe
         }, {
             token : "string",
-            regex : "[^'\\\\]+",
+            regex : "[^'\\\\]+"
         }, {
             token : "string",
             regex : "\\\\$",
-            next  : "qstring",
+            next  : "qstring"
         }, {
             token : "string",
             regex : "'|$",
-            next  : "tag_attributes",
+            next  : "tag_attributes"
         }
     ]
 };
@@ -288,7 +290,10 @@ function github_embed(tag, prefix) {
 var MarkdownHighlightRules = function() {
 
     this.$rules = {
-        "basic" : [{ // code span `
+        "basic" : [{
+            token : "constant.language.escape",
+            regex : /\\[\\`*_{}\[\]()#+\-.!]/
+        }, { // code span `
             token : "support.function",
             regex : "(`+)(.*?[^`])(\\1)"
         }, { // reference
@@ -334,11 +339,12 @@ var MarkdownHighlightRules = function() {
         }, { // h2
             token: "markup.heading.2",
             regex: "^\\-+(?=\\s*$)"
-        }, { // header
+        }, {
             token : function(value) {
-                return "markup.heading." + value.search(/[^#]/);
+                return "markup.heading." + value.length;
             },
-            regex : "^#{1,6}(?:[^ #].*| +.*(?:[^ #].*|[^ ]+.* +#+ *))$"
+            regex : /^#{1,6}(?=\s*[^ #]|\s+#.)/,
+            next : "header"
         },
            github_embed("(?:javascript|js)", "js-"),
            github_embed("xml", "xml-"),
@@ -363,6 +369,15 @@ var MarkdownHighlightRules = function() {
         }, {
             include : "basic"
         }],
+        
+        "header" : [{
+            regex: "$",
+            next : "start"
+        }, {
+            include: "basic"
+        }, {
+            defaultToken : "markup.heading"
+        } ],
 
         "listblock-start" : [{
             token : "support.variable",
@@ -374,12 +389,12 @@ var MarkdownHighlightRules = function() {
             token : "empty_line",
             regex : "^$",
             next  : "start"
-        }, {
-            include : "basic", noEscape: true
         }, { // list
             token : "markup.list",
             regex : "^\\s{0,3}(?:[*+-]|\\d+\\.)\\s+",
             next  : "listblock-start"
+        }, {
+            include : "basic", noEscape: true
         }, {
             defaultToken : "markup.list"
         } ],
@@ -488,7 +503,7 @@ var JavaScriptHighlightRules = function() {
         ".)";
 
     this.$rules = {
-        "start" : [
+        "no_regex" : [
             {
                 token : "comment",
                 regex : /\/\/.*$/
@@ -563,7 +578,7 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token : "keyword",
                 regex : "(?:" + kwBeforeRe + ")\\b",
-                next : "regex_allowed"
+                next : "start"
             }, {
                 token : ["punctuation.operator", "support.function"],
                 regex : /(\.)(s(?:h(?:ift|ow(?:Mod(?:elessDialog|alDialog)|Help))|croll(?:X|By(?:Pages|Lines)?|Y|To)?|t(?:opzzzz|rike)|i(?:n|zeToContent|debar|gnText)|ort|u(?:p|b(?:str(?:ing)?)?)|pli(?:ce|t)|e(?:nd|t(?:Re(?:sizable|questHeader)|M(?:i(?:nutes|lliseconds)|onth)|Seconds|Ho(?:tKeys|urs)|Year|Cursor|Time(?:out)?|Interval|ZOptions|Date|UTC(?:M(?:i(?:nutes|lliseconds)|onth)|Seconds|Hours|Date|FullYear)|FullYear|Active)|arch)|qrt|lice|avePreferences|mall)|h(?:ome|andleEvent)|navigate|c(?:har(?:CodeAt|At)|o(?:s|n(?:cat|textual|firm)|mpile)|eil|lear(?:Timeout|Interval)?|a(?:ptureEvents|ll)|reate(?:StyleSheet|Popup|EventObject))|t(?:o(?:GMTString|S(?:tring|ource)|U(?:TCString|pperCase)|Lo(?:caleString|werCase))|est|a(?:n|int(?:Enabled)?))|i(?:s(?:NaN|Finite)|ndexOf|talics)|d(?:isableExternalCapture|ump|etachEvent)|u(?:n(?:shift|taint|escape|watch)|pdateCommands)|j(?:oin|avaEnabled)|p(?:o(?:p|w)|ush|lugins.refresh|a(?:ddings|rse(?:Int|Float)?)|r(?:int|ompt|eference))|e(?:scape|nableExternalCapture|val|lementFromPoint|x(?:p|ec(?:Script|Command)?))|valueOf|UTC|queryCommand(?:State|Indeterm|Enabled|Value)|f(?:i(?:nd|le(?:ModifiedDate|Size|CreatedDate|UpdatedDate)|xed)|o(?:nt(?:size|color)|rward)|loor|romCharCode)|watch|l(?:ink|o(?:ad|g)|astIndexOf)|a(?:sin|nchor|cos|t(?:tachEvent|ob|an(?:2)?)|pply|lert|b(?:s|ort))|r(?:ou(?:nd|teEvents)|e(?:size(?:By|To)|calc|turnValue|place|verse|l(?:oad|ease(?:Capture|Events)))|andom)|g(?:o|et(?:ResponseHeader|M(?:i(?:nutes|lliseconds)|onth)|Se(?:conds|lection)|Hours|Year|Time(?:zoneOffset)?|Da(?:y|te)|UTC(?:M(?:i(?:nutes|lliseconds)|onth)|Seconds|Hours|Da(?:y|te)|FullYear)|FullYear|A(?:ttention|llResponseHeaders)))|m(?:in|ove(?:B(?:y|elow)|To(?:Absolute)?|Above)|ergeAttributes|a(?:tch|rgins|x))|b(?:toa|ig|o(?:ld|rderWidths)|link|ack))\b(?=\()/
@@ -582,28 +597,28 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token : "keyword.operator",
                 regex : /--|\+\+|[!$%&*+\-~]|===|==|=|!=|!==|<=|>=|<<=|>>=|>>>=|<>|<|>|!|&&|\|\||\?\:|\*=|%=|\+=|\-=|&=|\^=/,
-                next  : "regex_allowed"
+                next  : "start"
             }, {
                 token : "punctuation.operator",
                 regex : /\?|\:|\,|\;|\./,
-                next  : "regex_allowed"
+                next  : "start"
             }, {
                 token : "paren.lparen",
                 regex : /[\[({]/,
-                next  : "regex_allowed"
+                next  : "start"
             }, {
                 token : "paren.rparen",
                 regex : /[\])}]/
             }, {
                 token : "keyword.operator",
                 regex : /\/=?/,
-                next  : "regex_allowed"
+                next  : "start"
             }, {
                 token: "comment",
                 regex: /^#!.*$/
             }
         ],
-        "regex_allowed": [
+        "start": [
             DocCommentHighlightRules.getStartRule("doc-start"),
             {
                 token : "comment", // multi line comment
@@ -611,18 +626,20 @@ var JavaScriptHighlightRules = function() {
                 next : "comment_regex_allowed"
             }, {
                 token : "comment",
-                regex : "\\/\\/.*$"
+                regex : "\\/\\/.*$",
+                next : "start"
             }, {
                 token: "string.regexp",
                 regex: "\\/",
-                next: "regex",
+                next: "regex"
             }, {
                 token : "text",
-                regex : "\\s+"
+                regex : "\\s+|^$",
+                next : "start"
             }, {
                 token: "empty",
                 regex: "",
-                next: "start"
+                next: "no_regex"
             }
         ],
         "regex": [
@@ -632,24 +649,24 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token: "string.regexp",
                 regex: "/\\w*",
-                next: "start",
+                next: "no_regex"
             }, {
                 token : "invalid",
-                regex: /\{\d+,?(?:\d+)?}[+*]|[+*$^?][+*]|[$^][?]|\?{3,}/
+                regex: /\{\d+\b,?\d*\}[+*]|[+*$^?][+*]|[$^][?]|\?{3,}/
             }, {
                 token : "constant.language.escape",
-                regex: /\(\?[:=!]|\)|{\d+,?(?:\d+)?}|{,\d+}|[+*]\?|[()$^+*?]/
+                regex: /\(\?[:=!]|\)|\{\d+\b,?\d*\}|[+*]\?|[()$^+*?]/
             }, {
                 token : "constant.language.delimiter",
                 regex: /\|/
             }, {
                 token: "constant.language.escape",
                 regex: /\[\^?/,
-                next: "regex_character_class",
+                next: "regex_character_class"
             }, {
                 token: "empty",
                 regex: "$",
-                next: "start"
+                next: "no_regex"
             }, {
                 defaultToken: "string.regexp"
             }
@@ -661,14 +678,14 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token: "constant.language.escape",
                 regex: "]",
-                next: "regex",
+                next: "regex"
             }, {
                 token: "constant.language.escape",
                 regex: "-"
             }, {
                 token: "empty",
                 regex: "$",
-                next: "start"
+                next: "no_regex"
             }, {
                 defaultToken: "string.regexp.charachterclass"
             }
@@ -679,22 +696,22 @@ var JavaScriptHighlightRules = function() {
                 regex: identifierRe
             }, {
                 token: "punctuation.operator",
-                regex: "[, ]+",
+                regex: "[, ]+"
             }, {
                 token: "punctuation.operator",
-                regex: "$",
+                regex: "$"
             }, {
                 token: "empty",
                 regex: "",
-                next: "start"
+                next: "no_regex"
             }
         ],
         "comment_regex_allowed" : [
-            {token : "comment", regex : "\\*\\/", next : "regex_allowed"},
+            {token : "comment", regex : "\\*\\/", next : "start"},
             {defaultToken : "comment"}
         ],
         "comment" : [
-            {token : "comment", regex : "\\*\\/", next : "start"},
+            {token : "comment", regex : "\\*\\/", next : "no_regex"},
             {defaultToken : "comment"}
         ],
         "qqstring" : [
@@ -704,11 +721,11 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token : "string",
                 regex : "\\\\$",
-                next  : "qqstring",
+                next  : "qqstring"
             }, {
                 token : "string",
                 regex : '"|$',
-                next  : "start",
+                next  : "no_regex"
             }, {
                 defaultToken: "string"
             }
@@ -720,11 +737,11 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token : "string",
                 regex : "\\\\$",
-                next  : "qstring",
+                next  : "qstring"
             }, {
                 token : "string",
                 regex : "'|$",
-                next  : "start",
+                next  : "no_regex"
             }, {
                 defaultToken: "string"
             }
@@ -732,7 +749,7 @@ var JavaScriptHighlightRules = function() {
     };
 
     this.embedRules(DocCommentHighlightRules, "doc-",
-        [ DocCommentHighlightRules.getEndRule("start") ]);
+        [ DocCommentHighlightRules.getEndRule("no_regex") ]);
 };
 
 oop.inherits(JavaScriptHighlightRules, TextHighlightRules);
@@ -951,7 +968,7 @@ var HtmlHighlightRules = function() {
             next : "style"
         }, {
             token : "meta.tag", // opening tag
-            regex : "<\\/?",
+            regex : "<\\/?(?=\\S)",
             next : "tag"
         }, {
             token : "text",
@@ -1058,8 +1075,13 @@ var CssHighlightRules = function() {
             token : ["punctuation", "entity.other.attribute-name.pseudo-class.css"],
             regex : pseudoClasses
         }, {
+            token : ["support.function", "string", "support.function"],
+            regex : "(url\\()(.*)(\\))"
+        }, {
             token : keywordMapper,
             regex : "\\-?[a-zA-Z_][a-zA-Z0-9_\\-]*"
+        }, {
+            caseInsensitive: true
         }
       ];
 
@@ -1128,6 +1150,8 @@ var CssHighlightRules = function() {
         },{
             token: "constant",
             regex: "[a-z0-9-_]+"
+        },{
+            caseInsensitive: true
         }],
 
         "media" : [ {
@@ -1154,6 +1178,8 @@ var CssHighlightRules = function() {
         },{
             token: "constant",
             regex: "[a-z0-9-_]+"
+        },{
+            caseInsensitive: true
         }],
 
         "comment" : comment,
@@ -1210,8 +1236,8 @@ var ScssHighlightRules = function() {
             "border-color|border-left-color|border-left-style|border-left-width|" +
             "border-left|border-right-color|border-right-style|border-right-width|" +
             "border-right|border-spacing|border-style|border-top-color|" +
-            "border-top-style|border-top-width|border-top|border-width|border|" +
-            "bottom|box-sizing|caption-side|clear|clip|color|content|counter-increment|" +
+            "border-top-style|border-top-width|border-top|border-width|border|bottom|" +
+            "box-shadow|box-sizing|caption-side|clear|clip|color|content|counter-increment|" +
             "counter-reset|cue-after|cue-before|cue|cursor|direction|display|" +
             "elevation|empty-cells|float|font-family|font-size-adjust|font-size|" +
             "font-stretch|font-style|font-variant|font-weight|font|height|left|" +
@@ -1336,6 +1362,9 @@ var ScssHighlightRules = function() {
                 token : "constant.numeric",
                 regex : numRe
             }, {
+                token : ["support.function", "string", "support.function"],
+                regex : "(url\\()(.*)(\\))"
+            }, {
                 token : function(value) {
                     if (properties.hasOwnProperty(value.toLowerCase()))
                         return "support.type";
@@ -1380,6 +1409,8 @@ var ScssHighlightRules = function() {
             }, {
                 token : "text",
                 regex : "\\s+"
+            }, {
+                caseInsensitive: true
             }
         ],
         "comment" : [
@@ -1627,6 +1658,8 @@ var LessHighlightRules = function() {
             }, {
                 token : "text",
                 regex : "\\s+"
+            }, {
+                caseInsensitive: true
             }
         ],
         "comment" : [
@@ -1719,7 +1752,7 @@ ace.define('ace/mode/coffee_highlight_rules', ['require', 'exports', 'module' , 
                     token : "string", regex : "'''", next : [
                         {token : "string", regex : "'''", next : "start"},
                         {token : "constant.language.escape", regex : stringEscape},
-                        {defaultToken: "string"},
+                        {defaultToken: "string"}
                     ]
                 }, {
                     stateName: "qqdoc",
@@ -1727,6 +1760,7 @@ ace.define('ace/mode/coffee_highlight_rules', ['require', 'exports', 'module' , 
                     regex : '"""',
                     next : [
                         {token : "string", regex : '"""', next : "start"},
+                        {token : "paren.string", regex : '#{', push : "start"},
                         {token : "constant.language.escape", regex : stringEscape},
                         {defaultToken: "string"}
                     ]
@@ -1735,22 +1769,38 @@ ace.define('ace/mode/coffee_highlight_rules', ['require', 'exports', 'module' , 
                     token : "string", regex : "'", next : [
                         {token : "string", regex : "'", next : "start"},
                         {token : "constant.language.escape", regex : stringEscape},
-                        {defaultToken: "string"},
+                        {defaultToken: "string"}
                     ]
                 }, {
                     stateName: "qqstring",
                     token : "string.start", regex : '"', next : [
                         {token : "string.end", regex : '"', next : "start"},
+                        {token : "paren.string", regex : '#{', push : "start"},
                         {token : "constant.language.escape", regex : stringEscape},
-                        {defaultToken: "string"},
+                        {defaultToken: "string"}
                     ]
                 }, {
                     stateName: "js",
                     token : "string", regex : "`", next : [
                         {token : "string", regex : "`", next : "start"},
                         {token : "constant.language.escape", regex : stringEscape},
-                        {defaultToken: "string"},
+                        {defaultToken: "string"}
                     ]
+                }, {
+                    regex: "[{}]", onMatch: function(val, state, stack) {
+                        this.next = "";
+                        if (val == "{" && stack.length) {
+                            stack.unshift("start", state);
+                            return "paren";
+                        }
+                        if (val == "}" && stack.length) {
+                            stack.shift();
+                            this.next = stack.shift();
+                            if (this.next.indexOf("string") != -1)
+                                return "paren.string";
+                        }
+                        return "paren";
+                    }
                 }, {
                     token : "string.regex",
                     regex : "///",
@@ -1824,7 +1874,7 @@ ace.define('ace/mode/coffee_highlight_rules', ['require', 'exports', 'module' , 
                 regex : '###',
                 next : "start"
             }, {
-                defaultToken : "comment",
+                defaultToken : "comment"
             }]
         };
         this.normalizeRules();

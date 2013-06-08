@@ -1,1 +1,1 @@
-module.exports = require('./aceDocument');
+module.exports = require('./document');

@@ -48,33 +48,7 @@ oop.inherits(Mode, TextMode);
 
 (function() {
 
-    this.toggleCommentLines = function(state, doc, startRow, endRow) {
-        var outdent = true;
-        var re = /^(\s*)#/;
-
-        for (var i=startRow; i<= endRow; i++) {
-            if (!re.test(doc.getLine(i))) {
-                outdent = false;
-                break;
-            }
-        }
-
-        if (outdent) {
-            var deleteRange = new Range(0, 0, 0, 0);
-            for (var i=startRow; i<= endRow; i++)
-            {
-                var line = doc.getLine(i);
-                var m = line.match(re);
-                deleteRange.start.row = i;
-                deleteRange.end.row = i;
-                deleteRange.end.column = m[0].length;
-                doc.replace(deleteRange, m[1]);
-            }
-        }
-        else {
-            doc.indentRows(startRow, endRow, "#");
-        }
-    };
+    this.lineCommentStart = "#";
 
     this.getNextLineIndent = function(state, line, tab) {
         var indent = this.$getIndent(line);
@@ -116,7 +90,16 @@ var oop = require("../../lib/oop");
 var Range = require("../../range").Range;
 var BaseFoldMode = require("./fold_mode").FoldMode;
 
-var FoldMode = exports.FoldMode = function() {};
+var FoldMode = exports.FoldMode = function(commentRegex) {
+    if (commentRegex) {
+        this.foldingStartMarker = new RegExp(
+            this.foldingStartMarker.source.replace(/\|[^|]*?$/, "|" + commentRegex.start)
+        );
+        this.foldingStopMarker = new RegExp(
+            this.foldingStopMarker.source.replace(/\|[^|]*?$/, "|" + commentRegex.end)
+        );
+    }
+};
 oop.inherits(FoldMode, BaseFoldMode);
 
 (function() {
@@ -190,7 +173,7 @@ var TclHighlightRules = function() {
                 regex : '[ ]*["]',
                 next  : "qqstring"
             }, {
-                token : "variable.instance", // variable xotcl with braces
+                token : "variable.instance",
                 regex : "[$]",
                 next  : "variable"
             }, {
@@ -227,7 +210,7 @@ var TclHighlightRules = function() {
                 token : "string", // single line
                 regex : '[ ]*["](?:(?:\\\\.)|(?:[^"\\\\]))*?["]'
             }, {
-                token : "variable.instance", // variable xotcl with braces
+                token : "variable.instance", 
                 regex : "[$]",
                 next  : "variable"
             }, {
@@ -271,10 +254,6 @@ var TclHighlightRules = function() {
             }],
         "variable" : [ 
             {
-                token : "variable.instance", // variable xotcl with braces
-                regex : "(?:[:][:])?[a-zA-Z_\\d]+(?:(?:[:][:])?[a-zA-Z_\\d]+)?(?:[(][a-zA-Z_\\d]+[)])?",
-                next : "start"
-            }, {
                 token : "variable.instance", // variable tcl
                 regex : "[a-zA-Z_\\d]+(?:[(][a-zA-Z_\\d]+[)])?",
                 next  : "start"
@@ -331,12 +310,7 @@ var MatchingBraceOutdent = function() {};
     };
 
     this.$getIndent = function(line) {
-        var match = line.match(/^(\s+)/);
-        if (match) {
-            return match[1];
-        }
-
-        return "";
+        return line.match(/^\s*/)[0];
     };
 
 }).call(MatchingBraceOutdent.prototype);

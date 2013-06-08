@@ -48,9 +48,7 @@ oop.inherits(Mode, TextMode);
 
 (function() {
     
-    this.getNextLineIndent = function(state, line, tab) {
-        return this.$getIndent(line);
-    };
+    this.blockComment = {start: "<!--", end: "-->"};
 
 }).call(Mode.prototype);
 
@@ -620,9 +618,8 @@ oop.inherits(FoldMode, BaseFoldMode);
     this.tagRe = /^(\s*)(<?(\/?)([-_a-zA-Z0-9:!]*)\s*(\/?)>?)/;
     this._parseTag = function(tag) {
         
-        var match = this.tagRe.exec(tag);
-        var column = this.tagRe.lastIndex || 0;
-        this.tagRe.lastIndex = 0;
+        var match = tag.match(this.tagRe);
+        var column = 0;
 
         return {
             value: tag,

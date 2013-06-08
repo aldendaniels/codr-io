@@ -51,6 +51,8 @@ var Mode = function() {
 oop.inherits(Mode, TextMode);
 
 (function() {
+    this.lineCommentStart = ["//", "#"];
+    
 }).call(Mode.prototype);
 
 exports.Mode = Mode;
@@ -231,7 +233,7 @@ var RubyHighlightRules = function() {
         "attr|attr_writer|attr_reader|attr_accessor|attr_accessible|autoload|binding|block_given?|callcc|" +
         "caller|catch|chomp|chomp!|chop|chop!|defined?|delete_via_redirect|eval|exec|exit|" +
         "exit!|fail|Float|flunk|follow_redirect!|fork|form_for|form_tag|format|gets|global_variables|gsub|" +
-        "gsub!|get_via_redirect|h|host!|https?|https!|include|Integer|lambda|link_to|" +
+        "gsub!|get_via_redirect|host!|https?|https!|include|Integer|lambda|link_to|" +
         "link_to_unless_current|link_to_function|link_to_remote|load|local_variables|loop|open|open_session|" +
         "p|print|printf|proc|putc|puts|post_via_redirect|put_via_redirect|raise|rand|" +
         "raw|readline|readlines|redirect?|request_via_redirect|require|scan|select|" +
@@ -249,7 +251,7 @@ var RubyHighlightRules = function() {
         "validates_inclusion_of|validates_numericality_of|validates_with|validates_each|" +
         "authenticate_or_request_with_http_basic|authenticate_or_request_with_http_digest|" +
         "filter_parameter_logging|match|get|post|resources|redirect|scope|assert_routing|" +
-        "translate|localize|extract_locale_from_tld|t|l|caches_page|expire_page|caches_action|expire_action|" +
+        "translate|localize|extract_locale_from_tld|caches_page|expire_page|caches_action|expire_action|" +
         "cache|expire_fragment|expire_cache_for|observe|cache_sweeper|" +
         "has_many|has_one|belongs_to|has_and_belongs_to_many"
     );
@@ -285,7 +287,7 @@ var RubyHighlightRules = function() {
                 regex : "#.*$"
             }, {
                 token : "comment", // multi line comment
-                regex : "^=begin\\s",
+                regex : "^=begin(?:$|\\s.*$)",
                 next : "comment"
             }, {
                 token : "string.regexp",
@@ -322,12 +324,12 @@ var RubyHighlightRules = function() {
                 regex : "=>"
             }, {
                 stateName: "heredoc",
-                token : function(value, currentState, stack) {
-                    var next = value[3] == '-' ? "heredoc" : "indentedHeredoc";
+                onMatch : function(value, currentState, stack) {
+                    var next = value[2] == '-' ? "indentedHeredoc" : "heredoc";
                     var tokens = value.split(this.splitRegex);
                     stack.push(next, tokens[3]);
                     return [
-                        {type:"constant", value: "<<"},
+                        {type:"constant", value: tokens[1]},
                         {type:"string", value: tokens[2]},
                         {type:"support.class", value: tokens[3]},
                         {type:"string", value: tokens[4]}
@@ -336,7 +338,7 @@ var RubyHighlightRules = function() {
                 regex : "(<<-?)(['\"`]?)([\\w]+)(['\"`]?)",
                 rules: {
                     heredoc: [{
-                        token:  function(value, currentState, stack) {
+                        onMatch:  function(value, currentState, stack) {
                             if (value == stack[1]) {
                                 stack.shift();
                                 stack.shift();
@@ -351,7 +353,7 @@ var RubyHighlightRules = function() {
                         token: "string",
                         regex: "^ +"
                     }, {
-                        token:  function(value, currentState, stack) {
+                        onMatch:  function(value, currentState, stack) {
                             if (value == stack[1]) {
                                 stack.shift();
                                 stack.shift();
@@ -380,7 +382,7 @@ var RubyHighlightRules = function() {
         "comment" : [
             {
                 token : "comment", // closing comment
-                regex : "^=end\\s.*$",
+                regex : "^=end(?:$|\\s.*$)",
                 next : "start"
             }, {
                 token : "comment", // comment spanning whole line
