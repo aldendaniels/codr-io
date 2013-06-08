@@ -83,6 +83,7 @@ var Client = oHelpers.createClass(
     _bInitialized: false,
     _bClosed: false,
     _sID: '',
+    _sUserName: '',
     
     __init__: function(oSocket)
     {
@@ -102,24 +103,33 @@ var Client = oHelpers.createClass(
                 this._bClosed = true;
         }));        
 
-        this.sendAction('connect',
-        {
-            'sUserID': this._sID
-        });
     },
 
     getUserID: function()
     {
         return this._sID;
     },
+
+    getUserName: function()
+    {
+        return this._sUserName;
+    },
     
     onDocumentLoad: function()
     {
+        this.sendAction('connect',
+        {
+            'sUserID': this._sID,
+            'sUserName': this._sUserName
+        });
+
 		// Send intial data to browser client.
         if (this._bCreatedDocument)
             this._oWorkspace.setClientDocumentID(this);
         else
             this._oWorkspace.setClientInitialValue(this);
+
+        this._oWorkspace.setPeoplePaneInitialValue(this);
 		
 		// Send queued actions.
 		this._bInitialized = true;
@@ -182,6 +192,8 @@ var Client = oHelpers.createClass(
         else
             this._oWorkspace = new Workspace(sDocumentID);
 		
+        this._sUserName = this._oWorkspace.generateNewClientName();
+
 		// Add client to workspace.
         this._oWorkspace.addClient(this);
     }
@@ -209,7 +221,8 @@ var Workspace = oHelpers.createClass(
 
     // PeoplePane
     _aChatHistory: null,
-    _aCurrentlyTyping: null,
+    _oAllClients: null,
+    _iGeneratedClientNames: 0,
     
     __init__: function(sDocumentID)
     {
@@ -217,7 +230,7 @@ var Workspace = oHelpers.createClass(
         this._sDocumentID = sDocumentID;
         this._aClients = [];
         this._aChatHistory = [];
-        this._aCurrentlyTyping = [];
+        this._oAllClients = {};
         
         oDatabase.getDocument(sDocumentID, this, function(sDocumentJSON)
         {
@@ -238,8 +251,18 @@ var Workspace = oHelpers.createClass(
         if (!this._aClients.length)
             this._oCurrentEditingClient = oClient;
 
+        // Propagate to the other clients.
+        this._broadcastAction(oClient, {
+            'sType': 'addUser',
+            'oData': {
+                'sUserID': oClient.getUserID(),
+                'sUserName': oClient.getUserName()
+            }
+        });
+
         // Add the client.
         this._aClients.push(oClient);
+        this._oAllClients[oClient.getUserID()] = oClient.getUserName();
         if (this._bDocumentLoaded)
             oClient.onDocumentLoad();
     },
@@ -294,6 +317,18 @@ var Workspace = oHelpers.createClass(
         {
             sTitle: this._oDocument.get('sTitle')
         });
+    },
+
+    setPeoplePaneInitialValue: function(oClient)
+    {
+        for (var sUserID in this._oAllClients)
+        {
+            oClient.sendAction('addUser',
+            {
+                'sUserID': sUserID,
+                'sUserName': this._oAllClients[sUserID]
+            });
+        }
 
         for (var i = 0; i < this._aChatHistory.length; i++)
         {
@@ -384,6 +419,12 @@ var Workspace = oHelpers.createClass(
                 this._aChatHistory.push(oNewAction.oData);
                 break;
         }
+    },
+
+    generateNewClientName: function()
+    {
+        this._iGeneratedClientNames++;
+        return 'User ' + this._iGeneratedClientNames;
     },
 
     _broadcastAction: function(oSendingClient, oAction)

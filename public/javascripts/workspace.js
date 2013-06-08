@@ -39,7 +39,7 @@ var Workspace = oHelpers.createClass(
     _oModeMenu: null,
     _sMode: null,
     _oPeoplePane: null,
-    _sID: null,
+    _oUserInfo: null,
 
     __init__: function()
     {
@@ -56,28 +56,6 @@ var Workspace = oHelpers.createClass(
     {
         this._oSocket = oSocket;
         this._oSocket.bind('message', this, this._handleServerAction);
-    },
-
-    setMode: function(sMode)
-    {
-        this._oEditor.setMode(sMode);
-        this._sMode = sMode;
-        $('#mode .toolbar-item-selection').text(sMode);
-    },
-    
-    focusEditor: function()
-    {
-        this._oEditor.focusEditor();
-    },
-
-    getUserID: function()
-    {
-        return this._sID;
-    },
-    
-    _initConnection: function(sID)
-    {
-        this._sID = sID;
 
         if (IS_NEW_DOCUMENT)
         {
@@ -95,6 +73,29 @@ var Workspace = oHelpers.createClass(
                 sDocumentID: window.location.pathname.substr(1)
             });
         }
+    },
+
+    setMode: function(sMode)
+    {
+        this._oEditor.setMode(sMode);
+        this._sMode = sMode;
+        $('#mode .toolbar-item-selection').text(sMode);
+    },
+    
+    focusEditor: function()
+    {
+        this._oEditor.focusEditor();
+    },
+
+    getUserInfo: function()
+    {
+        return this._oUserInfo;
+    },
+    
+    _initConnection: function(oUserInfo)
+    {
+        this._oUserInfo = oUserInfo;
+
         this._attachDOMEvents();
         this._oEditor.connect(this._oSocket);
         this._oModeMenu = new Menu(aModes, aFavKeys, $('#mode-menu'), this, this._onModeChoice);
@@ -204,7 +205,7 @@ var Workspace = oHelpers.createClass(
         switch(oAction.sType)
         {
             case 'connect':
-                this._initConnection(oAction.oData.sUserID);
+                this._initConnection(oAction.oData);
                 break;
 
             case 'setDocumentTitle':

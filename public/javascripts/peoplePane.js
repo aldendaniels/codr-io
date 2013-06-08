@@ -3,6 +3,7 @@ var PeoplePane = oHelpers.createClass(
 {
     _oSocket: null,
     _oWorkspace: null,
+    _oUsers: null,
 
     __init__: function(oWorkspace, oSocket)
     {
@@ -10,12 +11,20 @@ var PeoplePane = oHelpers.createClass(
         this._oWorkspace = oWorkspace;
 
         this._oSocket.bind('message', this, this._handleServerAction);
+        
+        var oUserInfo = this._oWorkspace.getUserInfo();
+        this._oUsers = {};
+        this._oUsers[oUserInfo.sUserID] = oUserInfo.sUserName;
     },
 
     _handleServerAction: function(oAction)
     {
         switch(oAction.sType)
         {
+            case 'addUser':
+                this._oUsers[oAction.oData.sUserID] = oAction.oData.sUserName;
+                break;
+
             case 'newChatMessage':
                 this._addNewChatMessage(oAction.oData.sUserID, oAction.oData.sMessage);
                 break;
@@ -29,7 +38,7 @@ var PeoplePane = oHelpers.createClass(
 
     _addNewChatMessage: function(sUserID, sMessage)
     {
-        alert('User ' + sUserID + ' says: ' + sMessage);
+        alert(this._oUsers[sUserID] + ' says: ' + sMessage);
     },
 
     _sendNewMessage: function(sMessage)
