@@ -16,11 +16,14 @@ var PeoplePane = oHelpers.createClass(
         
         var oUserInfo = this._oWorkspace.getUserInfo();
         this._oUsers = {};
-        this._oUsers[oUserInfo.sUserID] = oUserInfo.sUserName;
         this._oCurrentUsers = {};
-        this._aHistory = [];
+        this._oUsers[oUserInfo.sUserID] = oUserInfo.sUserName;
+        this._oCurrentUsers[oUserInfo.sUserID] = null;
         
+        this._aHistory = [];
+
         this._attachDOMEvents();
+        this._reRender();
     },
 
     _handleServerAction: function(oAction)
@@ -30,6 +33,16 @@ var PeoplePane = oHelpers.createClass(
             case 'addUser':
                 this._oUsers[oAction.oData.sUserID] = oAction.oData.sUserName;
                 this._oCurrentUsers[oAction.oData.sUserID] = null;
+                this._reRender();
+                break;
+
+            case 'addInactiveUser':
+                this._oUsers[oAction.oData.sUserID] = oAction.oData.sUserName;
+                break;
+
+            case 'removeUser':
+                delete this._oCurrentUsers[oAction.oData.sUserID];
+                this._reRender();
                 break;
 
             case 'newChatMessage':
@@ -73,6 +86,14 @@ var PeoplePane = oHelpers.createClass(
         var jWrapper = $('#comments-wrapper');
         jWrapper.empty();
 
+        var aViewingUserNames = [];
+        for (var sID in this._oCurrentUsers)
+            aViewingUserNames.push(this._oUsers[sID]);
+
+        var jViewing = $(document.createElement('div'));
+        jViewing.append('Viewing: ' + this._englishFormatArray(aViewingUserNames));
+        jWrapper.append(jViewing);
+
         for (var i = 0; i < this._aHistory.length; i++)
         {
             var jComment = $(document.createElement('div'));
@@ -80,6 +101,20 @@ var PeoplePane = oHelpers.createClass(
             jComment.text(this._oUsers[oComment.sUserID] + ': ' + oComment.sMessage);
             jWrapper.append(jComment);
         }
+    },
+
+    _englishFormatArray: function(aArray)
+    {
+        if (aArray.length === 0)
+            return '';
+
+        if (aArray.length === 1)
+            return aArray[0];
+
+        if (aArray.length === 2)
+            return aArray.join(' and ');
+
+        return aArray.slice(0, -1).join(', ') + ' and ' + aArray[aArray.length - 1];
     },
 
     _attachDOMEvents: function()

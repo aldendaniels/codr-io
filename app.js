@@ -280,6 +280,12 @@ var Workspace = oHelpers.createClass(
         // Remove the client.
         var iIndex = this._aClients.indexOf(oClient);
         this._aClients.splice(iIndex, 1);
+
+        this._broadcastAction(oClient,
+        {
+            'sType': 'removeUser',
+            'oData': {'sUserID': oClient.getUserID()}
+        });
         
         // Close the document (if no editors left).
         if (this._aClients.length === 0)
@@ -321,9 +327,17 @@ var Workspace = oHelpers.createClass(
 
     setPeoplePaneInitialValue: function(oClient)
     {
+        var oCurrentUsers = {};
+        for (var i = 0; i < this._aClients.length; i++)
+            oCurrentUsers[this._aClients[i].getUserID()] = null;
+
         for (var sUserID in this._oAllClients)
         {
-            oClient.sendAction('addUser',
+            var sEvent = 'addUser';
+            if (!(sUserID in oCurrentUsers))
+                sEvent = 'addInactiveUser';
+            
+            oClient.sendAction(sEvent,
             {
                 'sUserID': sUserID,
                 'sUserName': this._oAllClients[sUserID]
