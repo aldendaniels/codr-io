@@ -83,6 +83,10 @@ var PeoplePane = oHelpers.createClass(
 
     _sendNewMessage: function(sMessage)
     {
+        sMessage = sMessage.replace(/^\s+|\s+$/g, "");
+        if (!sMessage)
+            return;
+
         this._oSocket.send('newChatMessage',
         {
             'sMessage': sMessage
