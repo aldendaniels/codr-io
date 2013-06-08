@@ -1,6 +1,6 @@
 
 @codr-blue: #319ac2;
-@share-pane-width: 170px;
+@share-pane-width: 200px;
 
 body
 {
@@ -132,7 +132,7 @@ body.home   #workspace { display: none;  }
     bottom: 0;
     background-color: #f0f0f0;
     
-    &.sharing
+    &.people-pane-expanded
     {
         #people
         {
@@ -169,6 +169,7 @@ body.home   #workspace { display: none;  }
         #toolbar-content-right
         {
             float: right;
+            width: @share-pane-width + 1;   
         }
         
         .toolbar-item
@@ -351,17 +352,12 @@ body.home   #workspace { display: none;  }
         }
         
         /***************** EDIT BUTTON *********************/
-        #edit-button-wrap
-        {
-            width: @share-pane-width + 1;   
-        }
-
         #edit-button
         {
+            display: inline-block;
             text-align: left;
             height: 30px;
             margin-left: 15px;
-            margin-right: 14px;
             padding-left: 11px;
             margin-top: 6px;            
             padding-top: 5px;
@@ -390,6 +386,21 @@ body.home   #workspace { display: none;  }
                 background-color: lighten(desaturate(@codr-blue, 40%), 10%);
                 color: desaturate(darken(@codr-blue, 40%), 40%);
             }
+        }
+
+        #people-pane-button
+        {
+            display: inline-block;
+            height: 25px;
+            width: 25px;
+            text-align: center;
+            color: orange;
+
+            &:active
+            {
+                color: orange;
+            }
+            
         }
     }
     
@@ -421,6 +432,16 @@ body.home   #workspace { display: none;  }
         #line-top
         {
             border-top: 1px #f5f5f5 solid;
+        }
+
+        #chat-box
+        {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            left: 0;
+            margin: 1em;
+            height: 4em;
         }
     }
 }

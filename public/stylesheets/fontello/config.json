@@ -1,30 +1,25 @@
 {
   "name": "",
+  "css_prefix_text": "icon-",
+  "css_use_suffix": false,
   "glyphs": [
     {
-      "search": [
-        "check"
-      ],
-      "code": 9745,
-      "from": 9745,
       "uid": "dd6c6b221a1088ff8a9b9cd32d0b3dd5",
       "css": "check",
-      "orig_css": "check",
-      "orig_code": 9745,
+      "code": 59399,
       "src": "fontawesome"
     },
     {
-      "search": [
-        "check",
-        "empty"
-      ],
-      "code": 61590,
       "uid": "4b900d04e8ab8c82f080c1cfbac5772c",
       "css": "check-empty",
-      "orig_css": "check-empty",
-      "orig_code": 61590,
-      "src": "fontawesome",
-      "from": 61590
+      "code": 59400,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "2c576f7c6c3233c31abad0899fc9f4af",
+      "css": "person",
+      "code": 59397,
+      "src": "elusive"
     }
   ]
 }

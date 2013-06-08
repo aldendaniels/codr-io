@@ -1,40 +1,14 @@
 <?xml version="1.0" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" >
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg xmlns="http://www.w3.org/2000/svg">
-<metadata>
-Created by FontForge 20100429 at Sat Apr  6 01:49:30 2013
- By root
-Copyright (C) 2012 by original authors @ fontello.com
-</metadata>
+<metadata>Copyright (C) 2012 by original authors @ fontello.com</metadata>
 <defs>
-<font id="fontello" horiz-adv-x="364" >
-  <font-face 
-    font-family="fontello"
-    font-weight="500"
-    font-stretch="normal"
-    units-per-em="1000"
-    panose-1="2 0 6 3 0 0 0 0 0 0"
-    ascent="850"
-    descent="-150"
-    bbox="15 -7 943 779"
-    underline-thickness="50"
-    underline-position="-100"
-    unicode-range="U+2611-F096"
-  />
-<missing-glyph 
-d="M33 0v666h265v-666h-265zM66 33h199v600h-199v-600z" />
-    <glyph glyph-name=".notdef" 
-d="M33 0v666h265v-666h-265zM66 33h199v600h-199v-600z" />
-    <glyph glyph-name=".null" horiz-adv-x="0" 
- />
-    <glyph glyph-name="nonmarkingreturn" horiz-adv-x="333" 
- />
-    <glyph glyph-name="uni2611" unicode="&#x2611;" horiz-adv-x="958" 
-d="M176 -7q-66 0 -113.5 47.5t-47.5 113.5v464q0 66 47.5 113.5t113.5 47.5h464q34 0 65 -14q8 -4 10 -13t-5 -16l-27 -28q-5 -5 -13 -5q-3 0 -5 1q-14 3 -25 3h-464q-37 0 -63.5 -26t-26.5 -63v-464q0 -37 26.5 -63.5t63.5 -26.5h464q37 0 63 26.5t26 63.5v141q0 8 5 13
-l36 35q6 6 13 6q8 0 13 -5.5t5 -12.5v-177q0 -66 -47.5 -113.5t-113.5 -47.5h-464zM158 421q0 18 14 32l61 62q13 13 32 13t32 -13l147 -147l361 361q13 13 31 13q19 0 32 -13l62 -61q13 -13 13 -32t-13 -32l-455 -454q-14 -14 -31 -14q-18 0 -32 14l-240 240q-14 14 -14 31
-z" />
-    <glyph glyph-name="uniF096" unicode="&#xf096;" horiz-adv-x="816" 
-d="M176 -7q-66 0 -113.5 47.5t-47.5 113.5v464q0 66 47.5 113.5t113.5 47.5h464q66 0 113.5 -47.5t47.5 -113.5v-464q0 -66 -47.5 -113.5t-113.5 -47.5h-464zM86 154q0 -37 26.5 -63.5t63.5 -26.5h464q37 0 63 26.5t26 63.5v464q0 37 -26 63t-63 26h-464q-37 0 -63.5 -26
-t-26.5 -63v-464z" />
-  </font>
-</defs></svg>
+<font id="fontello" horiz-adv-x="1000" >
+<font-face font-family="fontello" font-weight="400" font-stretch="normal" units-per-em="1000" ascent="850" descent="-150" />
+<missing-glyph horiz-adv-x="1000" />
+<glyph glyph-name="check" unicode="&#xe807;" d="M786 331l0-177q0-66-47-114t-114-47l-464 0q-66 0-114 47t-47 114l0 464q0 66 47 114t114 47l464 0q35 0 65-14 8-4 10-13t-5-16l-27-27q-6-6-13-6-2 0-5 1-13 3-25 3l-464 0q-37 0-63-26t-26-63l0-464q0-37 26-63t63-26l464 0q37 0 63 26t26 63l0 142q0 7 5 12l36 36q6 6 13 6 3 0 7-2 11-4 11-16z m129 273l-454-454q-13-13-32-13t-32 13l-240 240q-13 13-13 32t13 32l61 61q13 13 32 13t32-13l147-147 361 361q13 13 32 13t32-13l61-61q13-13 13-32t-13-32z" horiz-adv-x="928.571" />
+<glyph glyph-name="person" unicode="&#xe805;" d="M0-150l0 156q0 23 58 58t159 71q100 35 137 72t37 102q0 29-26 72t-32 59q-12 35-29 135-10 53-14 94-2 21 6 50t28 60 66 52 110 21 110-21 66-52 28-60 6-50q-4-41-14-94-18-100-29-135-6-16-32-59t-26-72q0-64 37-102t137-72q217-80 217-129l0-156-1000 0z" horiz-adv-x="1000" />
+<glyph glyph-name="check-empty" unicode="&#xe808;" d="M625 707l-464 0q-37 0-63-26t-26-63l0-464q0-37 26-63t63-26l464 0q37 0 63 26t26 63l0 464q0 37-26 63t-63 26z m161-89l0-464q0-66-47-114t-114-47l-464 0q-66 0-114 47t-47 114l0 464q0 66 47 114t114 47l464 0q66 0 114-47t47-114z" horiz-adv-x="785.714" />
+</font>
+</defs>
+</svg>
