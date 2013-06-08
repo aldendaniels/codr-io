@@ -9,30 +9,29 @@ var Menu = oHelpers.createClass(
     _oKeyable: null,
     _sLastQuery: '',
     
-    __init__: function(aOptions, aFavKeys, jParent, oScope, fnOnSelect)
+    __init__: function(aOptions, jParent, oScope, fnIsFav, fnGetKey, fnGetDisplayText, fnOnSelect)
     {
-        // Save copy of options array.
+        // Save options.
         this._aNormalOptions = aOptions.slice();
-        
-        // Extract Favorites.
         this._aFavOptions = [];
-        for (var iFavKeyIndex in aFavKeys)
+        this._oOptionsByKey = {};
+        for (var iOptionIndex in this._aNormalOptions)
         {
-            for (var iOptionIndex in this._aNormalOptions)
+            var oOption = this._aNormalOptions[iOptionIndex];
+            this._oOptionsByKey[fnGetKey(oOption)] = oOption;
+            if (fnIsFav(oOption))
             {
-                var sFavKey = aFavKeys[iFavKeyIndex];
-                var oOption = this._aNormalOptions[iOptionIndex];
-                if (oOption.sKey == sFavKey)
-                {
-                    this._aFavOptions.push(oOption);
-                    this._aNormalOptions.splice(iOptionIndex, 1);
-                    break;
-                }
+                this._aFavOptions.push(oOption);
+                this._aNormalOptions.splice(iOptionIndex, 1);
+                continue;
             }
+            iOptionIndex++;
         }
         
-        // Save select callback.
-        this._fnOnSelect = oHelpers.createCallback(oScope, fnOnSelect);
+        // Save callbacks.
+        this._fnGetKey          = oHelpers.createCallback(oScope, fnGetKey);
+        this._fnGetDisplayText  = oHelpers.createCallback(oScope, fnGetDisplayText);
+        this._fnOnSelect        = oHelpers.createCallback(oScope, fnOnSelect);
 
         // Init.
         this._jMenu = $(
@@ -111,9 +110,9 @@ var Menu = oHelpers.createClass(
         }
     },
     
-    highlight: function(sKey)
+    highlight: function(oOption)
     {
-        var jOption = this._jMenu.find('.option#' + sKey);
+        var jOption = this._jMenu.find('.option#' + fnGetKey(oOption));
         oHelpers.assert(jOption.length, 'Option not visible. ');
         this._oKeyable.select(jOption);
         this._scrollIntoView(jOption);
@@ -148,17 +147,16 @@ var Menu = oHelpers.createClass(
     
     _grepOptions: function(aOptions, sSearch)
     {
-        return jQuery.grep(aOptions, function(oOption)
+        return jQuery.grep(aOptions, oHelpers.createCallback(this, function(oOption)
         {
-            return oOption.sText.toLowerCase().indexOf(sSearch) != -1 ||
-                   oOption.sKey.toLowerCase().indexOf(sSearch) != -1;
-        });
+            return this._fnGetDisplayText(oOption).toLowerCase().indexOf(sSearch) != -1;
+        }));
     },
     
     _appendOption: function(jParent, oOption)
     {
         var jOption = $('<div class="option keyable mode"></div>');
-        jOption.text(oOption.sText).attr('id', oOption.sKey);
+        jOption.text(this._fnGetDisplayText(oOption)).attr('id', this._fnGetKey(oOption));
         jParent.append(jOption);
     },
     
@@ -186,7 +184,7 @@ var Menu = oHelpers.createClass(
     _selectCur: function()
     {
         var sKey = this._oKeyable.getSelected().attr('id');
-        this._fnOnSelect(sKey);
+        this._fnOnSelect(this._oOptionsByKey[sKey]);
         this._jMenu.find('input').val('');
         this._renderOptions();
     },

@@ -17,7 +17,7 @@ var Editor = oHelpers.createClass(
     _oAceDocument: null,
 
     // Editor state.
-    _sMode: '',
+    _oMode: null,
     _bIsEditing: false,
     
     // Other.
@@ -62,10 +62,10 @@ var Editor = oHelpers.createClass(
             this._onAceSelectionChange();
     },
     
-    setMode: function(sMode)
+    setMode: function(oMode)
     {
-        this._oAceEditSession.setMode('ace/mode/' + sMode);
-		this._sMode = sMode;
+        this._oAceEditSession.setMode(oMode.getPath());
+		this._oMode = oMode;
     },
 	
 	getSelection: function()
@@ -75,7 +75,7 @@ var Editor = oHelpers.createClass(
 
     getMode: function()
     {
-        return this._sMode;
+        return this._oMode;
     },
 
     getText: function()
@@ -115,7 +115,7 @@ var Editor = oHelpers.createClass(
                 break;
             
             case 'setMode':
-                this.setMode(oAction.oData.sMode);
+                this.setMode(g_oModes.oModesByName[oAction.oData.sMode]);
                 break;
             
             case 'aceDelta':
@@ -131,7 +131,6 @@ var Editor = oHelpers.createClass(
 
     _onRemoteCursorMove: function(oSel)
     {
-		console.log('oSel:', oSel);
 		this._removeRemoteSelection();
         var oNewRange = new Range(oSel.start.row, oSel.start.column, oSel.end.row, oSel.end.column);
         if (oSel.start.row == oSel.end.row && oSel.start.column == oSel.end.column)

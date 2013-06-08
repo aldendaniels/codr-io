@@ -37,7 +37,7 @@ var Workspace = oHelpers.createClass(
     _oSocket: null,
     _oEditor: null,
     _oModeMenu: null,
-    _sMode: null,
+    _oMode: null,
     _oPeoplePane: null,
     _oUserInfo: null,
 
@@ -62,7 +62,7 @@ var Workspace = oHelpers.createClass(
             this._oSocket.send('createDocument',
             {
                 sText:  this._oEditor.getText(),
-                sMode:  this._oEditor.getMode(),
+                sMode:  this._oEditor.getMode().getName(),
                 sTitle: _sUNTITLED
             });
         }
@@ -75,11 +75,11 @@ var Workspace = oHelpers.createClass(
         }
     },
 
-    setMode: function(sMode)
+    setMode: function(oMode)
     {
-        this._oEditor.setMode(sMode);
-        this._sMode = sMode;
-        $('#mode .toolbar-item-selection').text(sMode);
+        this._oEditor.setMode(oMode);
+        this._oMode = oMode;
+        $('#mode .toolbar-item-selection').text(oMode.getDisplayName());
     },
     
     focusEditor: function()
@@ -103,7 +103,25 @@ var Workspace = oHelpers.createClass(
 
         this._attachDOMEvents();
         this._oEditor.connect(this._oSocket);
-        this._oModeMenu = new Menu(aModes, aFavKeys, $('#mode-menu'), this, this._onModeChoice);
+        this._oModeMenu = new Menu(g_oModes.aModes, $('#mode-menu'), this,
+            
+            function(oMode) // Is favorite.
+            {
+                return $.inArray(oMode, g_oModes.aFavModes) != -1;
+            },                 
+                        
+            function(oMode) // Get key
+            {
+                return oMode.getName();
+            },
+            
+            function(oMode) // Get item display text.
+            {
+                return oMode.getDisplayName();
+            },
+            
+            this._onModeChoice
+        );
 
         this._oPeoplePane = new PeoplePane(this, this._oSocket);
     },
@@ -129,7 +147,7 @@ var Workspace = oHelpers.createClass(
                     
                     // Highlight the current mode menu.
                     if (jToolbarItem.is('#mode'))
-                        this._oModeMenu.highlight(this._sMode);
+                        this._oModeMenu.highlight(this._oMode);
                 }
             }
             
@@ -218,7 +236,7 @@ var Workspace = oHelpers.createClass(
                 break;
 
             case 'setMode':
-                this.setMode(oAction.oData.sMode);
+                this.setMode(g_oModes.oModesByName[oAction.oData.sMode]);
                 break;
 
             case 'removeEditRights':
@@ -268,10 +286,10 @@ var Workspace = oHelpers.createClass(
         $('#edit-button').toggleClass('on', bIsEditing);
     },
     
-    _onModeChoice: function(sMode)
+    _onModeChoice: function(oMode)
     {
-        this.setMode(sMode);
-        this._oSocket.send('setMode', {sMode: sMode});
+        this.setMode(oMode);
+        this._oSocket.send('setMode', {sMode: oMode.getName()});
         $('.toolbar-item.open').removeClass('open');
         this._oEditor.focusEditor();
     }
