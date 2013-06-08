@@ -91,6 +91,11 @@ var Workspace = oHelpers.createClass(
     {
         return this._oUserInfo;
     },
+
+    resize: function()
+    {
+        this._oEditor.resize();
+    },
     
     _initConnection: function(oUserInfo)
     {

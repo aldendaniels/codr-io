@@ -151,7 +151,10 @@ var PeoplePane = oHelpers.createClass(
             var jTarget = $(oEvent.target);
 
             if (jTarget.closest('#people-pane-button').length)
+            {
                 $('#workspace').toggleClass('people-pane-expanded');
+                this._oWorkspace.resize();
+            }
         });
 
         oHelpers.on(window, 'keypress', this, function(oEvent)

@@ -93,6 +93,11 @@ var Editor = oHelpers.createClass(
 		return this._bIsEditing;
 	},
 
+    resize: function()
+    {
+        this._oAceEditor.resize();
+    },
+
     _handleServerAction: function(oAction)
     {
         switch(oAction.sType)
