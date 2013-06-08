@@ -38,6 +38,8 @@ var Workspace = oHelpers.createClass(
     _oEditor: null,
     _oModeMenu: null,
     _sMode: null,
+    _oPeoplePane: null,
+    _sID: null,
 
     __init__: function()
     {
@@ -50,10 +52,32 @@ var Workspace = oHelpers.createClass(
             this._setTitle(_sUNTITLED);
     },
 
-    connect: function(oSocket)
+    setSocket: function(oSocket)
     {
         this._oSocket = oSocket;
         this._oSocket.bind('message', this, this._handleServerAction);
+    },
+
+    setMode: function(sMode)
+    {
+        this._oEditor.setMode(sMode);
+        this._sMode = sMode;
+        $('#mode .toolbar-item-selection').text(sMode);
+    },
+    
+    focusEditor: function()
+    {
+        this._oEditor.focusEditor();
+    },
+
+    getUserID: function()
+    {
+        return this._sID;
+    },
+    
+    _initConnection: function(sID)
+    {
+        this._sID = sID;
 
         if (IS_NEW_DOCUMENT)
         {
@@ -72,22 +96,12 @@ var Workspace = oHelpers.createClass(
             });
         }
         this._attachDOMEvents();
-        this._oEditor.connect(oSocket);
+        this._oEditor.connect(this._oSocket);
         this._oModeMenu = new Menu(aModes, aFavKeys, $('#mode-menu'), this, this._onModeChoice);
+
+        this._oPeoplePane = new PeoplePane(this, this._oSocket);
     },
 
-    setMode: function(sMode)
-    {
-        this._oEditor.setMode(sMode);
-        this._sMode = sMode;
-        $('#mode .toolbar-item-selection').text(sMode);
-    },
-    
-    focusEditor: function()
-    {
-        this._oEditor.focusEditor();
-    },
-    
     _attachDOMEvents: function()
     {
         oHelpers.on(window, 'click', this, function(oEvent)
@@ -189,6 +203,10 @@ var Workspace = oHelpers.createClass(
     {
         switch(oAction.sType)
         {
+            case 'connect':
+                this._initConnection(oAction.oData.sUserID);
+                break;
+
             case 'setDocumentTitle':
                 this._setTitle(oAction.oData.sTitle);
                 break;

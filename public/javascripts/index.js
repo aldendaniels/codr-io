@@ -50,7 +50,7 @@ var oApp =
         var oSocket = new oHelpers.WebSocket(sURL);
         oSocket.bind('open', this, function()
         {
-            this._oWorkspace.connect(oSocket);
+            this._oWorkspace.setSocket(oSocket);
             return true; // The "open" event is handled.
         });
     },

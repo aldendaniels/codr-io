@@ -82,9 +82,15 @@ var Client = oHelpers.createClass(
     _aPreInitActionQueue: null,
     _bInitialized: false,
     _bClosed: false,
+    _sID: '',
     
     __init__: function(oSocket)
     {
+        // Create a random 7 character alpha numeric string.
+        var sChars = "abcdefghijklmnopqrstuvwxyz0123456789";
+        for (var i = 0; i < 7; i++ )
+            this._sID += sChars.charAt(Math.floor(Math.random() * sChars.length));
+
         this._aPreInitActionQueue = [];
         this._oSocket = oSocket;
         oSocket.on('message', oHelpers.createCallback(this, this._onClientAction));
@@ -95,6 +101,16 @@ var Client = oHelpers.createClass(
             else
                 this._bClosed = true;
         }));        
+
+        this.sendAction('connect',
+        {
+            'sUserID': this._sID
+        });
+    },
+
+    getUserID: function()
+    {
+        return this._sID;
     },
     
     onDocumentLoad: function()
@@ -190,12 +206,18 @@ var Workspace = oHelpers.createClass(
     _oRequestEditingInfo: null,
     _oCurrentEditingClient: null,
     _oLastSelAction: null,
+
+    // PeoplePane
+    _aChatHistory: null,
+    _aCurrentlyTyping: null,
     
     __init__: function(sDocumentID)
     {
         g_oWorkspaces[sDocumentID] = this;
         this._sDocumentID = sDocumentID;
         this._aClients = [];
+        this._aChatHistory = [];
+        this._aCurrentlyTyping = [];
         
         oDatabase.getDocument(sDocumentID, this, function(sDocumentJSON)
         {
@@ -272,6 +294,15 @@ var Workspace = oHelpers.createClass(
         {
             sTitle: this._oDocument.get('sTitle')
         });
+
+        for (var i = 0; i < this._aChatHistory.length; i++)
+        {
+            oClient.sendAction('newChatMessage',
+            {
+                'sUserID': this._aChatHistory[i].sUserID,
+                'sMessage': this._aChatHistory[i].sMessage
+            });
+        }
     },
     
     setClientDocumentID: function(oClient)
@@ -338,6 +369,19 @@ var Workspace = oHelpers.createClass(
                 this._broadcastAction(oClient, oAction);
                 this._oAceDocument.applyDeltas([oAction.oData]);
                 this._setAutoSaveTimeout();
+                break;
+
+            // People Pane
+            case 'newChatMessage':
+                var oNewAction = {
+                    'sType': 'newChatMessage',
+                    'oData': {
+                        'sUserID': oClient.getUserID(),
+                        'sMessage': oAction.oData.sMessage
+                    }
+                };
+                this._broadcastAction(oClient, oNewAction);
+                this._aChatHistory.push(oNewAction.oData);
                 break;
         }
     },
