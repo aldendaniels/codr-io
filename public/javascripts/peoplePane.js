@@ -3,32 +3,26 @@ var PeoplePane = oHelpers.createClass(
 {
     _oSocket: null,
     _oWorkspace: null,
-    _oUsers: null,
-    _aCurrentUsers: null,
+    _aCurUsers: null,
     _aHistory: null,
-    _aCurrentlyTyping: null,
+    _aTypingUsers: null,
     _bTyping: false,
     _iTypingTimeout: null,
 
     __init__: function(oWorkspace, oSocket)
     {
+        // Save data.
         this._oSocket = oSocket;
         this._oWorkspace = oWorkspace;
-
-        this._oSocket.bind('message', this, this._handleServerAction);
-        
-        var oUserInfo = this._oWorkspace.getUserInfo();
-        this._oUsers = {};
-        this._oUsers[oUserInfo.sUserID] = oUserInfo.sUserName;
-
-        this._aCurrentUsers = [];
-        this._aCurrentUsers.push(oUserInfo.sUserID)
-        
+        this._aCurUsers = [];
         this._aHistory = [];
-        this._aCurrentlyTyping = [];
-
+        this._aTypingUsers = [];
+        
+        // Listen to socket events.
+        this._oSocket.bind('message', this, this._handleServerAction);
+                
+        // Init DOM events.
         this._attachDOMEvents();
-        this._reRender();
     },
 
     _handleServerAction: function(oAction)
@@ -36,46 +30,40 @@ var PeoplePane = oHelpers.createClass(
         switch(oAction.sType)
         {
             case 'addUser':
-                this._oUsers[oAction.oData.sUserID] = oAction.oData.sUserName;
-                this._aCurrentUsers.push(oAction.oData.sUserID);
+                this._aCurUsers.push(oAction.oData.sUsername);
                 this._reRender();
                 break;
-
-            case 'addInactiveUser':
-                this._oUsers[oAction.oData.sUserID] = oAction.oData.sUserName;
-                break;
-
+                
             case 'removeUser':
-                this._aCurrentUsers.pop(this._aCurrentUsers.indexOf(oAction.oData.sUserId));
+                this._aCurUsers.splice(this._aCurUsers.indexOf(oAction.oData.sUsername), 1);
                 this._reRender();
                 break;
-
+                
             case 'newChatMessage':
-                this._addNewChatMessage(oAction.oData.sUserID, oAction.oData.sMessage);
+                this._addNewChatMessage(oAction.oData.sUsername, oAction.oData.sMessage);
                 break;
-
+                
             case 'startTyping':
-                this._aCurrentlyTyping.push(oAction.oData.sUserID);
+                this._aTypingUsers.push(oAction.oData.sUsername);
                 this._reRender();
                 break;
-
+                
             case 'endTyping':
-                this._aCurrentlyTyping.pop(this._aCurrentlyTyping.indexOf(oAction.oData.sUserID));
+                this._aTypingUsers.splice(this._aTypingUsers.indexOf(oAction.oData.sUsername), 1);
                 this._reRender();
                 break;
- 
+            
             default:
                 return false;
         }
-
         return true;
     },
 
-    _addNewChatMessage: function(sUserID, sMessage)
+    _addNewChatMessage: function(sUsername, sMessage)
     {
         this._aHistory.push(
         {
-            'sUserID': sUserID,
+            'sUsername': sUsername,
             'sMessage': sMessage
         });
         this._reRender();
@@ -93,7 +81,7 @@ var PeoplePane = oHelpers.createClass(
         });
         this._aHistory.push(
         {
-            'sUserID': this._oWorkspace.getUserInfo()['sUserID'],
+            'sUsername': this._oWorkspace.getUserInfo()['sUsername'],
             'sMessage': sMessage
         });
 
@@ -102,31 +90,27 @@ var PeoplePane = oHelpers.createClass(
 
     _reRender: function()
     {
+        // Remove old comments.
         var jWrapper = $('#comments-wrapper');
         jWrapper.empty();
 
-        var aViewingUserNames = [];
-        for (var i = 0; i < this._aCurrentUsers.length; i++)
-            aViewingUserNames.push(this._oUsers[this._aCurrentUsers[i]]);
-
+        // Populate current users.
         var jViewing = $(document.createElement('div'));
-        jViewing.append('Viewing: ' + this._englishFormatArray(aViewingUserNames));
+        jViewing.append('<br/>Viewing: ' + this._englishFormatArray(this._aCurUsers) + '<br/></br>');
         jWrapper.append(jViewing);
 
+        // Show chat history.
         for (var i = 0; i < this._aHistory.length; i++)
         {
             var jComment = $(document.createElement('div'));
             var oComment = this._aHistory[i];
-            jComment.text(this._oUsers[oComment.sUserID] + ': ' + oComment.sMessage);
+            jComment.text(oComment.sUsername + ': ' + oComment.sMessage).append('<br/><br/>');
             jWrapper.append(jComment);
         }
 
-        var aTypingNames = [];
-        for (var i = 0; i < this._aCurrentlyTyping.length; i++)
-            aTypingNames.push(this._oUsers[this._aCurrentlyTyping[i]]);
-
+        // Show currently typing.
         var jTyping = $(document.createElement('div'));
-        jTyping.append('Typing" ' + this._englishFormatArray(aTypingNames));
+        jTyping.append('<br/><br/>Typing: ' + this._englishFormatArray(this._aTypingUsers));
         jWrapper.append(jTyping);
     },
 
