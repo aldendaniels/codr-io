@@ -1,6 +1,14 @@
 var fs = require('fs');
 var oHelpers = require('./helpers');
 var assert = require('assert');
+var oOS = require('os');
+var oPath = require('path')
+var g_sDataDirPath = function(){
+        var sPath = oPath.join(oOS.tmpDir(), 'codr\\data');
+        if(!fs.existsSync(sPath))
+            fs.mkdirSync(sPath);
+        return sPath
+    }();
 
 /*var oFileDatabase = {
 
@@ -48,9 +56,7 @@ var assert = require('assert');
 };*/
 
 var oMemoryDatabase =
-{
-    oData: {},
-    
+{   
     createDocument: function(sData, oScope, fnOnResponse)
     {
         generateNewDocumentID(this, function(sID)
@@ -64,19 +70,25 @@ var oMemoryDatabase =
 
     getDocument: function(sID, oScope, fnOnResponse)
     {
-        oHelpers.assert(sID in this.oData, 'Document not found');
-        oHelpers.createCallback(oScope, fnOnResponse)(this.oData[sID]);
+        this.documentExists(sID, this, 
+            function(bExists){
+                oHelpers.assert(bExists, 'Document does not exist');  
+                fs.readFile(oPath.join(g_sDataDirPath, sID), function (ignoredErr, fileData)
+                {
+                    oHelpers.createCallback(oScope, fnOnResponse)(fileData);
+                })
+            }
+        );
     },
 
     saveDocument: function(sID, sData, oScope, fnOnResponse)
     {
-        this.oData[sID] = sData;
-        oHelpers.createCallback(oScope, fnOnResponse)('');
+        fs.writeFile(oPath.join(g_sDataDirPath, sID), sData, oHelpers.createCallback(oScope, fnOnResponse));
     },
 
     documentExists: function(sID, oScope, fnOnResponse)
     {
-        oHelpers.createCallback(oScope, fnOnResponse)(sID in this.oData);
+        fs.exists(oPath.join(g_sDataDirPath, sID), oHelpers.createCallback(oScope, fnOnResponse))
     }
 };
 

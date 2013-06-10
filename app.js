@@ -22,8 +22,7 @@ var oApp = oExpress();
 oApp.configure(function()
 {
     oApp.set('port', process.env.PORT || 8080);
-    
-    var oTempDir = oOS.tmpDir();
+    var oTempDir = oPath.join(oOS.tmpDir(), 'codr\\static');
     oApp.use(oLessMiddleware(
     {
         src: __dirname + '/public',
