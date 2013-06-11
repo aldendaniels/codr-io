@@ -251,8 +251,10 @@ var Workspace = oHelpers.createClass(
 		}
 		
         // Automatically start editing if you're the only client.
-        if (!this._aClients.length)
+		if (this._aClients.length == 1)
+		{
             this._oCurrentEditingClient = oClient;
+		}
 		
         // Propagate to the other clients.
 		if (this._bDocumentLoaded)
@@ -518,7 +520,7 @@ var Workspace = oHelpers.createClass(
     
     _removeSelection: function()
     {
-        oHelpers.assert(this._oCurrentEditingClient, 'You can\'t remove a selection if there\'s no editing client.')
+		oHelpers.assert(this._oCurrentEditingClient, 'You can\'t remove a selection if there\'s no editing client.')
         this._broadcastAction(this._oCurrentEditingClient,
         {
             sType: 'removeSelection',
