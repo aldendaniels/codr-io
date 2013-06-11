@@ -2,60 +2,16 @@ var fs = require('fs');
 var oHelpers = require('./helpers');
 var assert = require('assert');
 var oOS = require('os');
-var oPath = require('path')
-var g_sDataDirPath = function(){
-        var sPath = oPath.join(oOS.tmpDir(), 'codr\\data');
-        if(!fs.existsSync(sPath))
-            fs.mkdirSync(sPath);
-        return sPath
-    }();
+var oPath = require('path');
+var g_sDataDirPath = (function()
+{
+    var sPath = oPath.join(oOS.tmpDir(), 'codr\\data');
+    if(!fs.existsSync(sPath))
+        fs.mkdirSync(sPath);
+    return sPath;
+})();
 
-/*var oFileDatabase = {
-
-    createDocument: function(oDocumentData, oScope, fnCallback)
-    {
-        fnCallback = oHelpers.createCallback(oScope, fnCallback);
-        generateNewDocumentID(this, function(sDocumentID)
-        {
-            var oDocument = new Document(sDocumentID, oDocumentData);
-            this.saveDocument(oDocument, this, function()
-            {
-                fnCallback(sDocumentID);
-            });
-        });
-    },
-
-    getDocument: function(sID, oScope, fnOnResponse)
-    {
-        fs.readFile(this._getPathFromID(sID), function(oErr, sDocument)
-        {
-            // TODO: handle error.
-            var oDocument = new Document(sID, JSON.parse(sDocument));
-            oHelpers.createCallback(oScope, fnOnResponse)(oDocument);
-        });
-    },
-
-    saveDocument: function(oDocument, oScope, fnOnResponse)
-    {
-        var sJSONData = JSON.stringify(oDocument.serialize());
-        fs.writeFile(this._getPathFromID(oDocument.getID()), sJSONData, oHelpers.createCallback(oScope, fnOnResponse));
-    },
-    
-    documentExists: function(sID, oScope, fnOnResponse)
-    {
-        fs.exists(this._getPathFromID(sID), oHelpers.createCallback(oScope, fnOnResponse));
-    },
-
-    _getPathFromID: function(sID)
-    {
-        if (!validateFileID(sID))
-            throw 'Invalid File ID: ' + sID;
-
-        return './data/' + sID;
-    }
-};*/
-
-var oMemoryDatabase =
+var oFileDatabase =
 {   
     createDocument: function(sData, oScope, fnOnResponse)
     {
@@ -70,15 +26,14 @@ var oMemoryDatabase =
 
     getDocument: function(sID, oScope, fnOnResponse)
     {
-        this.documentExists(sID, this, 
-            function(bExists){
-                oHelpers.assert(bExists, 'Document does not exist');  
-                fs.readFile(oPath.join(g_sDataDirPath, sID), function (ignoredErr, fileData)
-                {
-                    oHelpers.createCallback(oScope, fnOnResponse)(fileData);
-                })
-            }
-        );
+        this.documentExists(sID, this, function(bExists)
+        {
+            oHelpers.assert(bExists, 'Document does not exist');  
+            fs.readFile(oPath.join(g_sDataDirPath, sID), function (sIgnoredErr, oFileData) //oFileData is a raw buffer
+            {
+                oHelpers.createCallback(oScope, fnOnResponse)(oFileData);
+            })
+        });
     },
 
     saveDocument: function(sID, sData, oScope, fnOnResponse)
@@ -119,4 +74,4 @@ function generateNewDocumentID(oDatabase, fnOnResponse)
 
 /////////////////////////////////////////////////
 
-module.exports = oMemoryDatabase;
+module.exports = oFileDatabase;
