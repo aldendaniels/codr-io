@@ -38,7 +38,6 @@ var Editor = oHelpers.createClass(
         // Set initial settings.
         this._oAceEditor.setFontSize(14);
         this._oAceEditor.setShowPrintMargin(false);
-		this._oAceEditor.commands.removeCommand('gotoline');
         this.setIsEditing(this._bIsEditing);
         
         // Attach events.
