@@ -38,8 +38,11 @@ var Editor = oHelpers.createClass(
         // Set initial settings.
         this._oAceEditor.setFontSize(14);
         this._oAceEditor.setShowPrintMargin(false);
-		this._oAceEditor.commands.removeCommand('gotoline');
         this.setIsEditing(this._bIsEditing);
+        	
+        // Attach Ace gotoline command to different shortcut
+        this._oAceEditor.commands.bindKey('Ctrl-G|Command-G', 'gotoline');
+        this._oAceEditor.commands.bindKey('Ctrl-L|Command-L', '');
         
         // Attach events.
         this._attachDOMEvents();
