@@ -5,10 +5,13 @@ var oOS = require('os');
 var oPath = require('path');
 var g_sDataDirPath = (function()
 {
-    var sPath = oPath.join(oOS.tmpDir(), 'codr\\data');
-    if(!fs.existsSync(sPath))
-        fs.mkdirSync(sPath);
-    return sPath;
+    var sCodrPath = oPath.join(oOS.tmpDir(), 'codr');
+    var sDataPath = oPath.join(sCodrPath, 'data');
+    if(!fs.existsSync(sCodrPath))
+        fs.mkdirSync(sCodrPath);
+    if(!fs.existsSync(sDataPath))
+        fs.mkdirSync(sDataPath);
+    return sDataPath;
 })();
 
 var oFileDatabase =
