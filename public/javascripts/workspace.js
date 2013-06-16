@@ -139,7 +139,9 @@ var Workspace = oHelpers.createClass(
                 var jToolbarItem = jToolbarBtn.parent();
                 if (jToolbarItem.hasClass('open'))
                     jToolbarItem.removeClass('open');
-                else
+                
+                // Title & Language menu: disable if not in edit mode.
+                else if (this._oEditor.isEditing())
                 {
                     // Open.
                     jToolbarItem.toggleClass('open');
@@ -173,7 +175,9 @@ var Workspace = oHelpers.createClass(
             
             // Mode menu option.
             if (jTarget.closest('#mode-menu').length)
+            {
                 this._oModeMenu.onEvent(oEvent);
+            }
         });
         
         oHelpers.on(window, 'keypress', this, function(oEvent)

@@ -112,7 +112,7 @@ var Menu = oHelpers.createClass(
     
     highlight: function(oOption)
     {
-        var jOption = this._jMenu.find('.option#' + fnGetKey(oOption));
+        var jOption = this._jMenu.find('.option#' + this._fnGetKey(oOption));
         oHelpers.assert(jOption.length, 'Option not visible. ');
         this._oKeyable.select(jOption);
         this._scrollIntoView(jOption);
