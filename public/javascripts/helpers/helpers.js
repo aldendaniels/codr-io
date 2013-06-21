@@ -31,6 +31,8 @@ var oHelpers = {
     {
         _oSocket: null,
         _oCallbacks: {}, // Map of event to handlers.
+        _aOutbox: [], // We queue sent messages until connection opens.
+        _bIsOpen: false,
         
         __init__: function(url)
         {
@@ -44,6 +46,11 @@ var oHelpers = {
             this._oSocket.onopen = oHelpers.createCallback(this, function()
             {
                 this._dispatch('open', null);
+                while (this._aOutbox.length)
+                {
+                    this._oSocket.send(this._aOutbox.pop());
+                }
+                this._bIsOpen = true;
             });
             
             this._oSocket.onclose = oHelpers.createCallback(this, function()
@@ -60,11 +67,11 @@ var oHelpers = {
         
         send: function(sEventType, oEventData)
         {
-            this._oSocket.send(JSON.stringify(
-            {
-                sType: sEventType,
-                oData: oEventData
-            }));
+            var sMessage = JSON.stringify({ sType: sEventType, oData: oEventData });
+            if (this._bIsOpen)
+                this._oSocket.send(sMessage);
+            else
+                this._aOutbox.push(sMessage);
         },
         
         _dispatch: function(sEventName, oOptionalData)
