@@ -30,7 +30,7 @@ CODE STRUCTURE: (not implemented yet)
     CAVEAT: This is not true for the ace editor.
 */
 
-_sUNTITLED = 'Untitled';
+var _sUNTITLED = 'Untitled';
 
 var Workspace = oHelpers.createClass(
 {
@@ -41,50 +41,51 @@ var Workspace = oHelpers.createClass(
     _oPeoplePane: null,
     _oUserInfo: null,
 
-    __init__: function()
+    __init__: function(oSocket, bIsNewDocument, oNewDocumentMode)
     {
-        var bIsEditing = IS_NEW_DOCUMENT
-        this._oEditor = new Editor(bIsEditing);
-        this._setIsEditing(bIsEditing);
-        
-        // On a new document creation, default the title to "Untitled".
-        if (IS_NEW_DOCUMENT)
-            this._setTitle(_sUNTITLED);
-    },
-
-    setSocket: function(oSocket)
-    {
+        // Save socket.
         this._oSocket = oSocket;
         this._oSocket.bind('message', this, this._handleServerAction);
-
-        if (IS_NEW_DOCUMENT)
+        
+        // Init editor.
+        this._oEditor = new Editor(oSocket);
+        
+        // On a new document creation, default the title to "Untitled".
+        if (bIsNewDocument)
         {
+            this._setTitle(_sUNTITLED);
+            this._setMode(oNewDocumentMode);
+            this._setIsEditing(bIsNewDocument /*bIsEditing*/ );
             this._oSocket.send('createDocument',
             {
-                sText:  this._oEditor.getText(),
-                sMode:  this._oEditor.getMode().getName(),
+                sMode:  oNewDocumentMode.getName(),
                 sTitle: _sUNTITLED
             });
         }
-        else
+        else // Open existing document.
         {
             this._oSocket.send('openDocument',
             {
                 sDocumentID: window.location.pathname.substr(1)
-            });
+            });            
         }
+        
+        // Attach DOM events.
+        this._attachDOMEvents();
+        this._oModeMenu = new Menu(g_oModes.aModes, $('#mode-menu'), this,
+            function(oMode) { return $.inArray(oMode, g_oModes.aFavModes) != -1; }, // Is favorite.
+            function(oMode) { return oMode.getName();                            }, // Get key
+            function(oMode) { return oMode.getDisplayName();                     }, // Get item display text.
+            this._onModeChoice
+        );
+        this._oPeoplePane = new PeoplePane(this, oSocket);
     },
-
-    setMode: function(oMode)
+    
+    _setMode: function(oMode)
     {
         this._oEditor.setMode(oMode);
         this._oMode = oMode;
         $('#mode .toolbar-item-selection').text(oMode.getDisplayName());
-    },
-    
-    focusEditor: function()
-    {
-        this._oEditor.focusEditor();
     },
 
     getUserInfo: function()
@@ -95,35 +96,6 @@ var Workspace = oHelpers.createClass(
     resize: function()
     {
         this._oEditor.resize();
-    },
-    
-    _initConnection: function(oUserInfo)
-    {
-        this._oUserInfo = oUserInfo;
-
-        this._attachDOMEvents();
-        this._oEditor.connect(this._oSocket);
-        this._oModeMenu = new Menu(g_oModes.aModes, $('#mode-menu'), this,
-            
-            function(oMode) // Is favorite.
-            {
-                return $.inArray(oMode, g_oModes.aFavModes) != -1;
-            },                 
-                        
-            function(oMode) // Get key
-            {
-                return oMode.getName();
-            },
-            
-            function(oMode) // Get item display text.
-            {
-                return oMode.getDisplayName();
-            },
-            
-            this._onModeChoice
-        );
-
-        this._oPeoplePane = new PeoplePane(this, this._oSocket);
     },
 
     _attachDOMEvents: function()
@@ -232,7 +204,7 @@ var Workspace = oHelpers.createClass(
         switch(oAction.sType)
         {
             case 'connect':
-                this._initConnection(oAction.oData);
+                this._oUserInfo = oAction.oData;
                 break;
 
             case 'setDocumentTitle':
@@ -240,7 +212,7 @@ var Workspace = oHelpers.createClass(
                 break;
 
             case 'setMode':
-                this.setMode(g_oModes.oModesByName[oAction.oData.sMode]);
+                this._setMode(g_oModes.oModesByName[oAction.oData.sMode]);
                 break;
 
             case 'removeEditRights':
