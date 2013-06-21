@@ -1,89 +1,68 @@
 
 var oApp = 
 {
-    _oWorkspace: null,
-    _oPendingMode: null, /* Caches mode if user selects one before the workspace is loaded. */
-
+    _oPendingChosenMode: null,
+    
+    /// CALLED FOR EXISTING DOCUMENT ///
+    
     initModeChooser: function()
+    {
+        this._createModeMenu(function(oMode) // On Mode select
+        {
+            this._oPendingChosenMode = oMode;
+            if (window.Workspace)
+                this._initNewWorkspaceForChosenMode();
+        });
+        oHelpers.on(document, 'ready', this, this._initNewWorkspaceForChosenMode);
+    },
+    
+    
+    /// CALLED FOR EXISTING DOCUMENT ///
+    
+    initWorkspace: function(bIsNewDocument, oNewDocumentMode)
+    {
+        var sURL = 'ws://' + window.document.location.host + '/';
+        var oSocket = new oHelpers.WebSocket(sURL);
+        return new Workspace(oSocket, bIsNewDocument, oNewDocumentMode);
+    },
+        
+        
+    /// NEW DOCUMENT HELPERS ///
+    
+    _createModeMenu: function(fnOnModeSelect)
     {
         // Init menu.
         var oMenu = new Menu(g_oModes.aModes, $('#modes'), this,
-            
-            function(oMode) // Is favorite.
-            {
-                return $.inArray(oMode, g_oModes.aFavModes) != -1;
-            },                 
-                        
-            function(oMode) // Get key
-            {
-                return oMode.getName();
-            },
-            
-            function(oMode) // Get item display text.
-            {
-                return oMode.getDisplayName();
-            },
-            
-            function(oMode) // On item select.
-            {
-                this._setWorkspaceModeAndConnect(oMode);
-            }
+            function(oMode) { return $.inArray(oMode, g_oModes.aFavModes) != -1; }, // Is favorite
+            function(oMode) { return oMode.getName();                            }, // Get key
+            function(oMode) { return oMode.getDisplayName();                     }, // Get item display text.
+            fnOnModeSelect
         );
         oMenu.focusInput();
         
         // Maintain focus.
         oHelpers.on(window, 'mousedown.home', this, function(oEvent)
         {
-            var jTarget = $(oEvent.target);
-            if (!jTarget.is('input, textarea'))
-            {
-                console.log('stopping');
+            if (!$(oEvent.target).is('input, textarea'))
                 oEvent.preventDefault();
-            }
         });
         
         // Pass events through to the menu.
         oHelpers.on(window, 'click.home keyup.home keydown.home', this, function(oEvent)
         {
-            var jTarget = $(oEvent.target);                        
-            if (jTarget.parents('#home #modes'))
+            if ($(oEvent.target).parents('#home #modes'))
                 oMenu.onEvent(oEvent);
-        });
+        });        
     },
     
-    initWorkspace: function()
+    _initNewWorkspaceForChosenMode: function()
     {
-        this._oWorkspace = new Workspace();
-        if (this._oPendingMode)
+        if(this._oPendingChosenMode)
         {
-            this._setWorkspaceModeAndConnect(this._oPendingMode);
-            this._oPendingMode = null;
-        }
-    },
-    
-    initConnection: function()
-    {
-        oHelpers.assert(this._oWorkspace, 'initialize the workspace before connecting.');
-        var sURL = 'ws://' + window.document.location.host + '/';
-        var oSocket = new oHelpers.WebSocket(sURL);
-        oSocket.bind('open', this, function()
-        {
-            this._oWorkspace.setSocket(oSocket);
-            return true; // The "open" event is handled.
-        });
-    },
-    
-    _setWorkspaceModeAndConnect: function(oMode)
-    {
-        if (this._oWorkspace)
-        {
-            this._oWorkspace.setMode(oMode);
-            this._oWorkspace.focusEditor();
-            this.initConnection();
+            var oWorkspace = this.initWorkspace(IS_NEW_DOCUMENT, this._oPendingChosenMode);
             $('body').removeClass('home');
             $(window).off('.home');
+            this._oPendingChosenMode = null;            
         }
-        else
-            this._oPendingMode = oMode;
     }
 };

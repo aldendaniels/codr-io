@@ -25,45 +25,33 @@ var Editor = oHelpers.createClass(
     _iRemoteCursorMarkerID2: null,
     _oLastSelectionRange: null,
 
-    __init__: function(bIsEditing)
+    __init__: function(oSocket)
     {
-        // Save editing state.
-        this._bIsEditing = bIsEditing;
+        // Attach socket.
+        this._oSocket = oSocket;
+        this._oSocket.bind('message', this, this._handleServerAction);
         
         // Create ace editor.
         this._oAceEditor = ace.edit(EDITOR_ID);
         this._oAceEditSession = this._oAceEditor.getSession();
         this._oAceDocument = this._oAceEditSession.getDocument();
         
-        // Set initial settings.
+        // Set initial ace editor settings.
         this._oAceEditor.setFontSize(14);
         this._oAceEditor.setShowPrintMargin(false);
-        this.setIsEditing(this._bIsEditing);
             
         // Attach Ace gotoline command to different shortcut
         this._oAceEditor.commands.bindKey('Ctrl-G|Command-G', 'gotoline');
         this._oAceEditor.commands.bindKey('Ctrl-L|Command-L', '');
         
         // Attach events.
-        this._attachDOMEvents();
-        
-        // Set focus & notify server of selection position.
+        this._attachAceEvents();
         this.focusEditor();
     },
     
     focusEditor: function()
     {
         this._oAceEditor.focus();
-    },
-    
-    connect: function(oSocket)
-    {
-        this._oSocket = oSocket;
-        this._oSocket.bind('message', this, this._handleServerAction);
-
-        this._attachAceEvents();
-        if (this._bIsEditing)
-            this._onAceSelectionChange();
     },
     
     setMode: function(oMode)
@@ -170,11 +158,6 @@ var Editor = oHelpers.createClass(
         this._oAceEditor.on('changeCursor',    oHelpers.createCallback(this, this._onAceSelectionChange));
         this._oAceEditor.on('changeSelection', oHelpers.createCallback(this, this._onAceSelectionChange));
         this._oAceEditor.on('blur', function(oEvent){ oEvent.preventDefault(); });
-    },
-
-    _attachDOMEvents: function()
-    {
-        // TODO: ...
     },
     
     _onAceSelectionChange: function()
