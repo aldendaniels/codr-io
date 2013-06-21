@@ -2,7 +2,7 @@
 // Include Libraries.
 var oOS = require('os');
 var oPath = require('path');
-var oExpress 		= require('express');
+var oExpress         = require('express');
 var oWS             = require('ws');
 var oHTTP           = require('http');
 var oLessMiddleware = require('less-middleware');
@@ -35,26 +35,26 @@ oApp.configure(function()
     /* Save static index.html */
     oApp.get('^/$',               function(req, res) { res.sendfile('public/index.html'); });
     oApp.get('/[a-z0-9]+/?$',     function(req, res) { res.sendfile('public/index.html'); });
-	
-	/* Preview files as HTML. */
-	oApp.get('/:DocumentID([a-z0-9]+)/preview?$', function(req, res)
-	{
-		var sDocumentID = req.params['DocumentID'];
-		var oDocument = null;
-		if (sDocumentID in g_oWorkspaces)
-		{
-			oDocument = g_oWorkspaces[sDocumentID].getDocument();
-			res.send(oDocument.get('sText'));
-		}
-		else
-		{
-			oDatabase.getDocument(sDocumentID, this, function(sDocumentJSON)
-			{
-				oDocument = new Document(sDocumentJSON);
-				res.send(oDocument.get('sText'));
-			});
-		}
-	});
+    
+    /* Preview files as HTML. */
+    oApp.get('/:DocumentID([a-z0-9]+)/preview?$', function(req, res)
+    {
+        var sDocumentID = req.params['DocumentID'];
+        var oDocument = null;
+        if (sDocumentID in g_oWorkspaces)
+        {
+            oDocument = g_oWorkspaces[sDocumentID].getDocument();
+            res.send(oDocument.get('sText'));
+        }
+        else
+        {
+            oDatabase.getDocument(sDocumentID, this, function(sDocumentJSON)
+            {
+                oDocument = new Document(sDocumentJSON);
+                res.send(oDocument.get('sText'));
+            });
+        }
+    });
 });
 
 // Instantiate server.
@@ -97,31 +97,31 @@ var Client = oHelpers.createClass(
         }));        
 
     },
-	
-	setUsername: function(sUsername)
-	{
-		this._sUsername = sUsername;
-	},
+    
+    setUsername: function(sUsername)
+    {
+        this._sUsername = sUsername;
+    },
 
     getUsername: function()
     {
-		oHelpers.assert(this._sUsername, 'The username is not yet initialized.')
+        oHelpers.assert(this._sUsername, 'The username is not yet initialized.')
         return this._sUsername;
     },
-	
-	clientCreatedDocument: function()
-	{
-		return this._bCreatedDocument;
-	},
+    
+    clientCreatedDocument: function()
+    {
+        return this._bCreatedDocument;
+    },
     
     onDocumentLoad: function()
-    {	
-		// Send queued actions.
-		this._bInitialized = true;
-		while (this._aPreInitActionQueue.length)
-		{
-			this._onClientAction(this._aPreInitActionQueue.pop());
-		}
+    {    
+        // Send queued actions.
+        this._bInitialized = true;
+        while (this._aPreInitActionQueue.length)
+        {
+            this._onClientAction(this._aPreInitActionQueue.pop());
+        }
     },
     
     sendAction: function(param1, param2) /* either sendAction(sType, oData) or sendAction(oAction)*/
@@ -168,17 +168,17 @@ var Client = oHelpers.createClass(
     
     _addToWorkspace: function(sDocumentID)
     {
-		// Validate.
+        // Validate.
         oHelpers.assert(!this._oWorkspace, 'Client already connected.');
         if (this._bClosed)
             return;
-				
-		// Get or add workspace.
+                
+        // Get or add workspace.
         if (sDocumentID in g_oWorkspaces)
-		{
+        {
             this._oWorkspace = g_oWorkspaces[sDocumentID];
-			this._oWorkspace.addClient(this);
-		}
+            this._oWorkspace.addClient(this);
+        }
         else
             this._oWorkspace = new Workspace(sDocumentID, this);
     }
@@ -216,11 +216,11 @@ var Workspace = oHelpers.createClass(
         this._aClients = [];
         this._aChatHistory = [];
         this._aCurrentlyTyping = [];
-		
-		// Add the intial client.
-		this.addClient(oClient);
         
-		// Open document.
+        // Add the intial client.
+        this.addClient(oClient);
+        
+        // Open document.
         oDatabase.getDocument(sDocumentID, this, function(sDocumentJSON)
         {
             // Save pointer to document.
@@ -230,42 +230,42 @@ var Workspace = oHelpers.createClass(
             
             // Fire client "load" callbacks.
             for (var i in this._aClients)
-			{
-				this._setClientInitialValue(this._aClients[i]);
+            {
+                this._setClientInitialValue(this._aClients[i]);
                 this._aClients[i].onDocumentLoad();
-			}
+            }
         });
     },
 
     addClient: function(oClient)
     {
-		// Assign the client a username.
-		oClient.setUsername(this._generateNewClientName());
-		
-		// Add the client.
+        // Assign the client a username.
+        oClient.setUsername(this._generateNewClientName());
+        
+        // Add the client.
         this._aClients.push(oClient);
         if (this._bDocumentLoaded)
-		{
-			this._setClientInitialValue(oClient);
+        {
+            this._setClientInitialValue(oClient);
             oClient.onDocumentLoad();
-		}
-		
+        }
+        
         // Automatically start editing if you're the only client.
-		if (this._aClients.length == 1)
-		{
+        if (this._aClients.length == 1)
+        {
             this._oCurrentEditingClient = oClient;
-		}
-		
+        }
+        
         // Propagate to the other clients.
-		if (this._bDocumentLoaded)
-		{
-			this._broadcastAction(oClient, {
-				'sType': 'addUser',
-				'oData': {
-					'sUsername': oClient.getUsername()
-				}
-			});			
-		}
+        if (this._bDocumentLoaded)
+        {
+            this._broadcastAction(oClient, {
+                'sType': 'addUser',
+                'oData': {
+                    'sUsername': oClient.getUsername()
+                }
+            });            
+        }
     },
     
     removeClient: function(oClient)
@@ -281,7 +281,7 @@ var Workspace = oHelpers.createClass(
         // Remove the client.
         var iIndex = this._aClients.indexOf(oClient);
         this._aClients.splice(iIndex, 1);
-		        
+                
         // Close the document (if no editors left).
         if (this._aClients.length === 0)
         {
@@ -291,120 +291,120 @@ var Workspace = oHelpers.createClass(
                     delete g_oWorkspaces[this._sDocumentID];
             }));
         }
-		
-		// Update other clients (if document loaded).
-		else if (this._bDocumentLoaded)
-		{
-			if (this._aCurrentlyTyping.indexOf(oClient) >= 0)
-			{
-				this._broadcastAction(oClient,
-				{
-					'sType': 'endTyping',
-					'oData': {'sUsername': oClient.getUsername()}
-				});
-				this._aCurrentlyTyping.splice(this._aCurrentlyTyping.indexOf(oClient), 1);
-			}
-	
-			this._broadcastAction(oClient,
-			{
-				'sType': 'removeUser',
-				'oData': {'sUsername': oClient.getUsername()}
-			});			
-		}
+        
+        // Update other clients (if document loaded).
+        else if (this._bDocumentLoaded)
+        {
+            if (this._aCurrentlyTyping.indexOf(oClient) >= 0)
+            {
+                this._broadcastAction(oClient,
+                {
+                    'sType': 'endTyping',
+                    'oData': {'sUsername': oClient.getUsername()}
+                });
+                this._aCurrentlyTyping.splice(this._aCurrentlyTyping.indexOf(oClient), 1);
+            }
+    
+            this._broadcastAction(oClient,
+            {
+                'sType': 'removeUser',
+                'oData': {'sUsername': oClient.getUsername()}
+            });            
+        }
     },
 
     _setClientInitialValue: function(oClient)
     {
         this._assertDocumentLoaded();
 
-		// Send username.
-		oClient.sendAction('connect',
+        // Send username.
+        oClient.sendAction('connect',
         {
             'sUsername': oClient.getUsername()
         });
-		
-		// Send documentID on document creation.
-		if (oClient.clientCreatedDocument())
-		{
-			oClient.sendAction('setDocumentID',
-			{
-				sDocumentID: this._sDocumentID
-			});
-		}
-		
-		// Otherwise, Send current document state.
-		else
-		{
-			// Set editor text.
-			oClient.sendAction('setDocumentData',
-			{
-				sText: this._oAceDocument.getValue()
-			});
-			
-			// Grant edit perms.
-			if (this._oCurrentEditingClient == oClient)
-			{
-				oClient.sendAction('editRightsGranted');
-			}
-	
-			// Set selection.
-			if (this._oLastSelAction)
-			{
-				oClient.sendAction(this._oLastSelAction);
-			}
-	
-			// Set mode (language.)
-			oClient.sendAction('setMode',
-			{
-				sMode: this._oDocument.get('sMode')
-			});
-	
-			// Set title.
-			oClient.sendAction('setDocumentTitle', 
-			{
-				sTitle: this._oDocument.get('sTitle')
-			});
-			
-			// Set currently viewing.
-			for (var iClientIndex in this._aClients)
-			{
-				var oOtherClient = this._aClients[iClientIndex];
-				if (oOtherClient != oClient)
-				{
-					oClient.sendAction('addUser',
-					{
-						'sUsername': oOtherClient.getUsername()
-					});
-				}
-			}
-			
-			// Set currently typing users.
-			for (var i = 0; i < this._aCurrentlyTyping.length; i++)
-			{
-				oClient.sendAction('startTyping',
-				{
-					'sUsername': this._aCurrentlyTyping[i].getUsername()
-				});
-			}
-			
-			// Set chat history.
-			for (var i = 0; i < this._aChatHistory.length; i++)
-			{
-				oClient.sendAction('newChatMessage',
-				{
-					'sUsername': this._aChatHistory[i].sUsername,
-					'sMessage':  this._aChatHistory[i].sMessage
-				});
-			}			
-		}
+        
+        // Send documentID on document creation.
+        if (oClient.clientCreatedDocument())
+        {
+            oClient.sendAction('setDocumentID',
+            {
+                sDocumentID: this._sDocumentID
+            });
+        }
+        
+        // Otherwise, Send current document state.
+        else
+        {
+            // Set editor text.
+            oClient.sendAction('setDocumentData',
+            {
+                sText: this._oAceDocument.getValue()
+            });
+            
+            // Grant edit perms.
+            if (this._oCurrentEditingClient == oClient)
+            {
+                oClient.sendAction('editRightsGranted');
+            }
+    
+            // Set selection.
+            if (this._oLastSelAction)
+            {
+                oClient.sendAction(this._oLastSelAction);
+            }
+    
+            // Set mode (language.)
+            oClient.sendAction('setMode',
+            {
+                sMode: this._oDocument.get('sMode')
+            });
+    
+            // Set title.
+            oClient.sendAction('setDocumentTitle', 
+            {
+                sTitle: this._oDocument.get('sTitle')
+            });
+            
+            // Set currently viewing.
+            for (var iClientIndex in this._aClients)
+            {
+                var oOtherClient = this._aClients[iClientIndex];
+                if (oOtherClient != oClient)
+                {
+                    oClient.sendAction('addUser',
+                    {
+                        'sUsername': oOtherClient.getUsername()
+                    });
+                }
+            }
+            
+            // Set currently typing users.
+            for (var i = 0; i < this._aCurrentlyTyping.length; i++)
+            {
+                oClient.sendAction('startTyping',
+                {
+                    'sUsername': this._aCurrentlyTyping[i].getUsername()
+                });
+            }
+            
+            // Set chat history.
+            for (var i = 0; i < this._aChatHistory.length; i++)
+            {
+                oClient.sendAction('newChatMessage',
+                {
+                    'sUsername': this._aChatHistory[i].sUsername,
+                    'sMessage':  this._aChatHistory[i].sMessage
+                });
+            }            
+        }
     },
     
-	getDocument: function()
-	{
+    getDocument: function()
+    {
         this._assertDocumentLoaded();
-		this._updateDocumentText();
-		return this._oDocument;
-	},
+        this._updateDocumentText();
+        return this._oDocument;
+    },
   
     onClientAction: function(oClient, oAction)
     {
@@ -520,7 +520,7 @@ var Workspace = oHelpers.createClass(
     
     _removeSelection: function()
     {
-		oHelpers.assert(this._oCurrentEditingClient, 'You can\'t remove a selection if there\'s no editing client.')
+        oHelpers.assert(this._oCurrentEditingClient, 'You can\'t remove a selection if there\'s no editing client.')
         this._broadcastAction(this._oCurrentEditingClient,
         {
             sType: 'removeSelection',

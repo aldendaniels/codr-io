@@ -79,29 +79,29 @@ module.exports =
 
     deepClone: function(oOtherObject)
     {
-		if (typeof oOtherObject == 'object')
-		{
-			if (oOtherObject instanceof Array)
-			{
-				var oObject = [];
-				for (var i = 0; i < oOtherObject.length; i++)
-					oObject.push(this.deepClone(oOtherObject[i]));
-				return oObject;
-			}
-			else
-			{
-				if (oOtherObject === null)
-					return null;
+        if (typeof oOtherObject == 'object')
+        {
+            if (oOtherObject instanceof Array)
+            {
+                var oObject = [];
+                for (var i = 0; i < oOtherObject.length; i++)
+                    oObject.push(this.deepClone(oOtherObject[i]));
+                return oObject;
+            }
+            else
+            {
+                if (oOtherObject === null)
+                    return null;
 
-				oObject = {};
-				for (var sProperty in oOtherObject)
-				{
+                oObject = {};
+                for (var sProperty in oOtherObject)
+                {
                     oObject[sProperty] = this.deepClone(oOtherObject[sProperty]);
-				}
-				return oObject;
-			}
-		}
-		return oOtherObject;
+                }
+                return oObject;
+            }
+        }
+        return oOtherObject;
     },
 
     assert: function(bCondition, sMessage)

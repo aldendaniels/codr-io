@@ -22,7 +22,7 @@ var Editor = oHelpers.createClass(
     
     // Other.
     _iRemoteCursorMarkerID1: null,
-	_iRemoteCursorMarkerID2: null,
+    _iRemoteCursorMarkerID2: null,
     _oLastSelectionRange: null,
 
     __init__: function(bIsEditing)
@@ -39,7 +39,7 @@ var Editor = oHelpers.createClass(
         this._oAceEditor.setFontSize(14);
         this._oAceEditor.setShowPrintMargin(false);
         this.setIsEditing(this._bIsEditing);
-        	
+            
         // Attach Ace gotoline command to different shortcut
         this._oAceEditor.commands.bindKey('Ctrl-G|Command-G', 'gotoline');
         this._oAceEditor.commands.bindKey('Ctrl-L|Command-L', '');
@@ -69,13 +69,13 @@ var Editor = oHelpers.createClass(
     setMode: function(oMode)
     {
         this._oAceEditSession.setMode(oMode.getPath());
-		this._oMode = oMode;
+        this._oMode = oMode;
     },
-	
-	getSelection: function()
-	{
-		return this._oAceEditor.getSelectionRange()
-	},
+    
+    getSelection: function()
+    {
+        return this._oAceEditor.getSelectionRange()
+    },
 
     getMode: function()
     {
@@ -86,16 +86,16 @@ var Editor = oHelpers.createClass(
     {
         return this._oAceDocument.getValue();
     },
-	
-	isFocused: function()
-	{
-		return this._oAceEditor.isFocused();
-	},
-	
-	isEditing: function()
-	{
-		return this._bIsEditing;
-	},
+    
+    isFocused: function()
+    {
+        return this._oAceEditor.isFocused();
+    },
+    
+    isEditing: function()
+    {
+        return this._bIsEditing;
+    },
 
     resize: function()
     {
@@ -109,13 +109,13 @@ var Editor = oHelpers.createClass(
             case 'setDocumentData': // Fired after opening an existing document.
                 this._setText(oAction.oData.sText);
                 break;
-	
+    
             case 'setSelection':
                 this._onRemoteCursorMove(oAction.oData);
                 break;
             
             case 'removeSelection':
-				this._removeRemoteSelection();
+                this._removeRemoteSelection();
                 break;
             
             case 'setMode':
@@ -135,7 +135,7 @@ var Editor = oHelpers.createClass(
 
     _onRemoteCursorMove: function(oSel)
     {
-		this._removeRemoteSelection();
+        this._removeRemoteSelection();
         var oNewRange = new Range(oSel.start.row, oSel.start.column, oSel.end.row, oSel.end.column);
         if (oSel.start.row == oSel.end.row && oSel.start.column == oSel.end.column)
         {
@@ -148,28 +148,28 @@ var Editor = oHelpers.createClass(
             this._iRemoteCursorMarkerID1 = this._oAceEditSession.addMarker(oNewRange, 'remote-selection', 'text', true);   
         }
     },
-	
-	_removeRemoteSelection: function()
-	{
+    
+    _removeRemoteSelection: function()
+    {
         // Remove old selection.
-		if (this._iRemoteCursorMarkerID1)
-		{
-			this._oAceEditSession.removeMarker(this._iRemoteCursorMarkerID1);
-			this._iRemoteCursorMarkerID1 = null;
-		}
-		if (this._iRemoteCursorMarkerID2)
-		{
-			this._oAceEditSession.removeMarker(this._iRemoteCursorMarkerID2);
-			this._iRemoteCursorMarkerID2 = null;
-		}
-	},
+        if (this._iRemoteCursorMarkerID1)
+        {
+            this._oAceEditSession.removeMarker(this._iRemoteCursorMarkerID1);
+            this._iRemoteCursorMarkerID1 = null;
+        }
+        if (this._iRemoteCursorMarkerID2)
+        {
+            this._oAceEditSession.removeMarker(this._iRemoteCursorMarkerID2);
+            this._iRemoteCursorMarkerID2 = null;
+        }
+    },
 
     _attachAceEvents: function()
     {
         this._oAceEditor.on('change',          oHelpers.createCallback(this, this._onAceDocumentChange ));
         this._oAceEditor.on('changeCursor',    oHelpers.createCallback(this, this._onAceSelectionChange));
         this._oAceEditor.on('changeSelection', oHelpers.createCallback(this, this._onAceSelectionChange));
-		this._oAceEditor.on('blur', function(oEvent){ oEvent.preventDefault(); });
+        this._oAceEditor.on('blur', function(oEvent){ oEvent.preventDefault(); });
     },
 
     _attachDOMEvents: function()
@@ -204,7 +204,7 @@ var Editor = oHelpers.createClass(
         if (bIsEditing)
         {
             // Hide remove cursor & send set the cursor position.
-			this._removeRemoteSelection();
+            this._removeRemoteSelection();
             if (this._oSocket)
                 this._onAceSelectionChange();
         }
