@@ -55,6 +55,11 @@ var Menu = oHelpers.createClass(
         this._jMenu.find('.menu-search input').focus();
     },
     
+    wantsEvent: function(sEventType)
+    {
+        return oHelpers.inArray(sEventType, ['click', 'keyup', 'keydown']);
+    },
+    
     onEvent: function(oEvent)
     {
         var jTarget = $(oEvent.target);

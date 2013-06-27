@@ -3,22 +3,62 @@
     TODO: This is unused and untested code.
 */
 
-var oToolbar = oHelpers.createClass(
+var Toolbar = oHelpers.createClass(
 {
     /* External dependencies */
     _oSocket: null,
-    _fnBlur: null,
-    _fnSetIsEditing: null,
+    _oWorkspace: null,
     
     /* Internal state */
     _oModeMenu: null,
     
-    __init__: function(oSocket, fnBlur, fnSetIsEditing)
+    __type__: 'Toolbar',    
+
+    __init__: function(oSocket, oWorkspace)
     {
+        // Save dependencies.
         this._oSocket = oSocket;
-        this._fnBlur = fnBlur;
-        this._fnSetIsEditing = fnSetIsEditing;
-        this._oModeMenu = new Menu(aModes, aFavKeys, '#mode-menu', this, this._setMode);
+        this._oWorkspace = oWorkspace;
+        
+        // Create the mode menu.
+        this._oModeMenu = new Menu(g_oModes.aModes, $('#mode-menu'), this,
+            function(oMode) { return $.inArray(oMode, g_oModes.aFavModes) != -1; }, // Is favorite.
+            function(oMode) { return oMode.getName();                            }, // Get key
+            function(oMode) { return oMode.getDisplayName();                     }, // Get item display text.
+            this._setModeToLocal
+        );
+    },
+    
+    setTitle: function(sTitle)
+    {
+        $('#title .toolbar-item-selection').text(sTitle);
+        $('#title-input').val(sTitle);
+    },
+    
+    setMode: function(oMode)
+    {
+        $('#mode .toolbar-item-selection').text(oMode.getDisplayName());
+    },
+    
+    wantsEvent: function(sEventType)
+    {
+        return oHelpers.inArray(sEventType, ['mousedown', 'click', 'focusin', 'focusout']) ||
+               this._oModeMenu.wantsEvent(sEventType);
+    },
+    
+    contains: function(jElem)
+    {
+        return jElem.closest('#toolbar').length > 0;
+    },
+    
+    focus: function()
+    {
+        this._openDropdown($('#title')); // TODO: This is a hack.
+    },
+    
+    blur: function()
+    {
+         this._closeDropdown($('.toolbar-item.open'));
     },
     
     onEvent: function(oEvent)
@@ -29,7 +69,7 @@ var oToolbar = oHelpers.createClass(
         var sEventType = oEvent.type;
 
         // Get target and active items (if any).
-        var jTargetToolbarItem = jItemBtn.parents('.toolbar-item');
+        var jTargetToolbarItem = jTarget.parents('.toolbar-item');
         var jActiveToolbarItem = jActiveElem.parents('.toolbarItem');
         
         /* Forward language events to menu. */
@@ -39,49 +79,46 @@ var oToolbar = oHelpers.createClass(
             return;
         }
         
-        /* Toggle dropdown on mousedown. */
-        var jItemBtn = jTarget.closest('.toolbar-item-btn');
-        if (sEventType == 'mousedown' && jItemBtn.length)
+        switch (sEventType)
         {
-            if (jTargetToolbarItem == jActiveToolbarItem)
-            {
-                this._closeDropdown(jTargetToolbarItem);
-                this._fnBlur();
-            }
-            else
-            {
-                this._openDropdown(jTargetToolbarItem)
-            }
-            return;
-        }
-        
-        /* Open dropdown on focus. */
-        if (sEventType == 'focus' && jTargetToolbarItem.length)
-        {
-            this._openDropdown(jTargetToolbarItem);
-            return;
-        }
-        
-        /* Close dropdown on blur. */
-        if (sEventType == 'blur' && jTargetToolbarItem.length)
-        {
-            this._closeDropdown(jTargetToolbarItem);
-            return;
-        }
-        
-        /* Set title on click. */
-        if (sEventType == 'click' && jTarget.is('#title-save'))
-        {
-            this._setTitle($('#title-input').val());
-            return;
-        }
-        
-        /* Set edit button on click. */
-        var jEditButton = jTarget.closest('#edit-button');
-        if (sEventType == 'click' && jEditButton.length)
-        {
-            this._fnSetIsEditing(!jEditButton.hasClass('on'));
-            return;
+            case 'mousedown':
+                if (jTarget.closest('.toolbar-item-btn').length)
+                {
+                    if (jTargetToolbarItem == jActiveToolbarItem)
+                    {
+                        this._closeDropdown(jTargetToolbarItem);
+                    }
+                    else
+                    {
+                        this._openDropdown(jTargetToolbarItem)
+                        oEvent.preventDefault();
+                    }
+                    return;
+                }
+                break;
+                
+            case 'click':
+                                
+                /* Set title on button click. */
+                if (jTarget.is('#title-save'))
+                {
+                    this._setTitleToLocal();
+                }
+                
+                /* Set edit button on click. */
+                var jEditButton = jTarget.closest('#edit-button');
+                if (jEditButton.length)
+                {
+                    this._oWorkspace.setIsEditing(!jEditButton.hasClass('on'));
+                    this._oWorkspace.focusEditor();
+                    return;
+                }
+                
+                break;
+                
+            default:
+               //console.log('Unhandled event.');
+                
         }
     },
     
@@ -92,7 +129,7 @@ var oToolbar = oHelpers.createClass(
         if (!jItem.hasClass('open'))
         {
             jItem.addClass('open');
-            jItem.find(':focusable').first().focus();            
+            jItem.find(':focusable').first().focus().select();            
         }
     },
     
@@ -103,15 +140,19 @@ var oToolbar = oHelpers.createClass(
     
     //////////////// HANDLE USER CHANGES  //////////////// 
       
-    _setMode: function(sMode)
+    _setModeToLocal: function(oMode)
     {
-        this._oSocket.send('setMode', sMode);
-        this._fnBlur();
+        this._oSocket.send('setMode', oMode.getKey());
+        this.setMode(oMode);
+        this._oWorkspace.setEditorMode(oMode);
+        this._oWorkspace.blurFocusedObject(this);        
     },
     
-    _setTitle: function(sTitle)
+    _setTitleToLocal: function()
     {
-        this._oSocket.send('setTitle', sTitle);
-        this._fnBlur();
+        var sTitle = $('#title-input').val();
+        this._oSocket.send('setDocumentTitle', { 'sTitle': sTitle });
+        $('#title .toolbar-item-selection').text(sTitle);
+        this._oWorkspace.blurFocusedObject(this);        
     }
 });

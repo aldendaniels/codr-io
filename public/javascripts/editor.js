@@ -24,6 +24,9 @@ var Editor = oHelpers.createClass(
     _iRemoteCursorMarkerID1: null,
     _iRemoteCursorMarkerID2: null,
     _oLastSelectionRange: null,
+    _jEditorElem: null,
+
+    __type__: 'Editor',    
 
     __init__: function(oSocket)
     {
@@ -32,6 +35,7 @@ var Editor = oHelpers.createClass(
         this._oSocket.bind('message', this, this._handleServerAction);
         
         // Create ace editor.
+        this._jEditorElem = $('#' + EDITOR_ID);
         this._oAceEditor = ace.edit(EDITOR_ID);
         this._oAceEditSession = this._oAceEditor.getSession();
         this._oAceDocument = this._oAceEditSession.getDocument();
@@ -46,12 +50,6 @@ var Editor = oHelpers.createClass(
         
         // Attach events.
         this._attachAceEvents();
-        this.focusEditor();
-    },
-    
-    focusEditor: function()
-    {
-        this._oAceEditor.focus();
     },
     
     setMode: function(oMode)
@@ -89,6 +87,27 @@ var Editor = oHelpers.createClass(
     {
         this._oAceEditor.resize();
     },
+    
+    /* START: DOM Event handling */
+    contains: function(jElem)
+    {
+        return jElem.closest(this._jEditorElem).length > 0;
+    },
+    wantsEvent: function()
+    {
+        return false;
+    },
+    onEvent: function()
+    {
+    },
+    focus: function()
+    {
+        this._oAceEditor.focus();
+    },
+    blur: function()
+    {
+    },
+    /* END: DOM Event handling */
 
     _handleServerAction: function(oAction)
     {

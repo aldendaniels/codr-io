@@ -40,6 +40,12 @@ var Workspace = oHelpers.createClass(
     _oMode: null,
     _oPeoplePane: null,
     _oUserInfo: null,
+    _aObjects: null,
+    _oFocusObject: null,
+    _aFocusHistory: null,
+    _bDoNotAddNextFocusEventToHistory: false,
+
+    __type__: 'Workspace',    
 
     __init__: function(oSocket, bIsNewDocument, oNewDocumentMode)
     {
@@ -47,20 +53,27 @@ var Workspace = oHelpers.createClass(
         this._oSocket = oSocket;
         this._oSocket.bind('message', this, this._handleServerAction);
         
-        // Init editor.
-        this._oEditor = new Editor(oSocket);
+        // Init objects.
+        this._oToolbar    = new Toolbar(oSocket,  this);
+        this._oPeoplePane = new PeoplePane(this, oSocket);
+        this._oEditor     = new Editor(oSocket);
+        
+        // Init DOM focus.
+        this._aObjects = [this._oToolbar, this._oEditor, this._oPeoplePane];
+        this._aFocusHistory = [];
         
         // On a new document creation, default the title to "Untitled".
         if (bIsNewDocument)
         {
             this._setTitle(_sUNTITLED);
             this._setMode(oNewDocumentMode);
-            this._setIsEditing(bIsNewDocument /*bIsEditing*/ );
+            this.setIsEditing(bIsNewDocument /*bIsEditing*/ );
             this._oSocket.send('createDocument',
             {
                 sMode:  oNewDocumentMode.getName(),
                 sTitle: _sUNTITLED
             });
+            this.focusEditor();
         }
         else // Open existing document.
         {
@@ -72,20 +85,29 @@ var Workspace = oHelpers.createClass(
         
         // Attach DOM events.
         this._attachDOMEvents();
-        this._oModeMenu = new Menu(g_oModes.aModes, $('#mode-menu'), this,
-            function(oMode) { return $.inArray(oMode, g_oModes.aFavModes) != -1; }, // Is favorite.
-            function(oMode) { return oMode.getName();                            }, // Get key
-            function(oMode) { return oMode.getDisplayName();                     }, // Get item display text.
-            this._onModeChoice
-        );
-        this._oPeoplePane = new PeoplePane(this, oSocket);
     },
     
-    _setMode: function(oMode)
+    blurFocusedObject: function(bDoNotAddNextFocusEventToHistory)
+    {
+        if (this._oFocusObject)
+        {
+            this._oFocusObject.blur();
+        }
+        if (this._aFocusHistory.length)
+        {
+            this._bDoNotAddNextFocusEventToHistory = (bDoNotAddNextFocusEventToHistory || false);
+            this._aFocusHistory.pop().focus();
+        }
+    },
+    
+    focusEditor: function()
+    {
+        this._oEditor.focus();  
+    },
+    
+    setEditorMode: function(oMode)
     {
         this._oEditor.setMode(oMode);
-        this._oMode = oMode;
-        $('#mode .toolbar-item-selection').text(oMode.getDisplayName());
     },
 
     getUserInfo: function()
@@ -97,60 +119,71 @@ var Workspace = oHelpers.createClass(
     {
         this._oEditor.resize();
     },
+    
+    _getContainingObj: function(jElem)
+    {
+        for (var i in this._aObjects)
+        {
+            var oObject = this._aObjects[i];
+            if (oObject.contains(jElem))
+                return oObject;
+        }
+        oHelpers.assert(jElem[0].tagName != 'BODY', 'Containing object not found.');
+        return null;
+    },
 
     _attachDOMEvents: function()
     {
-        oHelpers.on(window, 'click', this, function(oEvent)
+        function _sendEvent(oObject, oEvent)
         {
-            var jTarget = $(oEvent.target);
-            
-            // Dropdown button
-            var jToolbarBtn = jTarget.closest('.toolbar-item-btn');
-            if (jToolbarBtn.length)
-            {
-                var jToolbarItem = jToolbarBtn.parent();
-                if (jToolbarItem.hasClass('open'))
-                    jToolbarItem.removeClass('open');
+            if (oObject.wantsEvent(oEvent.type))
+                oObject.onEvent(oEvent);
+        }
                 
-                // Title & Language menu: disable if not in edit mode.
-                else if (this._oEditor.isEditing())
-                {
-                    // Open.
-                    jToolbarItem.toggleClass('open');
-                    jToolbarItem.find('input[type="text"]').focus().select();
+        oHelpers.on('BODY', 'mousedown click focusin keydown keyup', this, function(oEvent)
+        {
+            var oTargetObject = this._getContainingObj($(oEvent.target));
+            switch (oEvent.type)
+            {
+                // Foward keyboard events.
+                case 'keydown':
+                    if (oEvent.which == 27) // ESC
+                    {
+                        this.blurFocusedObject(true);
+                        break;
+                    }
+                case 'keyup':
+                    if (this._oFocusObject)
+                        _sendEvent(this._oFocusObject, oEvent);                        
+                    break;
+                
+                // Blur elem that last had focus.
+                case 'focusin':
+                    if (this._oFocusObject != oTargetObject)
+                    {
+                        // Reset focus history on editor focus.
+                        if (oTargetObject == this._oEditor)
+                            this._aFocusHistory = [];
+                        
+                        // Blur last-focused element.
+                        if (this._oFocusObject)
+                        {
+                            if (!this._bDoNotAddNextFocusEventToHistory)
+                                this._aFocusHistory.push(this._oFocusObject);
+                            this._oFocusObject.blur();                        
+                        }
+                        this._bDoNotAddNextFocusEventToHistory = false;
+                            
+                        // Focus new element.
+                        this._oFocusObject = oTargetObject;
+                    }
                     
-                    // Highlight the current mode menu.
-                    if (jToolbarItem.is('#mode'))
-                        this._oModeMenu.highlight(this._oMode);
-                }
-            }
-            
-            // Title save button
-            if (jTarget.closest('#title-save').length)
-            {
-                this._setTitleToLocal();
-            }
-            
-            // Edit button
-            if (jTarget.closest('#edit-button').length)
-            {
-                if (this._oEditor.isEditing())
-                {
-                    this._setIsEditing(false);
-                    this._oSocket.send('releaseEditRights');
-                }
-                else
-                {
-                    this._oSocket.send('requestEditRights', this._oEditor.getSelection());
-                }                
-            }
-            
-            // Mode menu option.
-            if (jTarget.closest('#mode-menu').length)
-            {
-                this._oModeMenu.onEvent(oEvent);
+                // Forward non-keyboard events.
+                default:
+                    _sendEvent(oTargetObject, oEvent);                    
             }
         });
+        /*
         
         oHelpers.on(window, 'keypress', this, function(oEvent)
         {            
@@ -158,7 +191,7 @@ var Workspace = oHelpers.createClass(
             var jTarget = $(oEvent.target);
             if (jTarget[0] == $('#title-input')[0])
             {
-                if (oEvent.which == 13 /* ENTER */)
+                if (oEvent.which == 13 /* ENTER *_/)
                     this._setTitleToLocal();                
             }            
         });
@@ -196,7 +229,7 @@ var Workspace = oHelpers.createClass(
                 oEvent.preventDefault;
                 oEvent.stopPropagation();
             }
-        }), true /*useCapture */);
+        }), true /*useCapture *_/);*/
     },
 
     _handleServerAction: function(oAction)
@@ -208,20 +241,22 @@ var Workspace = oHelpers.createClass(
                 break;
 
             case 'setDocumentTitle':
-                this._setTitle(oAction.oData.sTitle);
+                this._oToolbar.setTitle(oAction.oData.sTitle);
                 break;
 
             case 'setMode':
-                this._setMode(g_oModes.oModesByName[oAction.oData.sMode]);
+                var oMode = g_oModes.oModesByName[oAction.oData.sMode];
+                this._oToolbar.setMode(oMode);
+                this._oEditor.setMode(oMode);
                 break;
 
             case 'removeEditRights':
-                this._setIsEditing(false);
+                this.setIsEditing(false);
                 this._oSocket.send('releaseEditRights'); // Notify server of action receipt.
                 break;
 
             case 'editRightsGranted':
-                this._setIsEditing(true);
+                this.setIsEditing(true);
                 break;
 
             case 'setDocumentID': // Fired after creating a new document.
@@ -235,27 +270,12 @@ var Workspace = oHelpers.createClass(
         return true;
     },
     
-    _setTitle: function(sTitle)
-    {
-        $('#title .toolbar-item-selection').text(sTitle);
-        $('#title-input').val(sTitle);
-    },
-
-    _setTitleToLocal: function()
-    {
-        var sTitle = $('#title-input').val();
-        $('#title .toolbar-item-selection').text(sTitle);
-        this._oSocket.send('setDocumentTitle', { 'sTitle': sTitle });
-        $('#title').removeClass('open');
-        this._oEditor.focusEditor();
-    },
-    
     _setDocumentID: function(sID)
     {
         window.history.replaceState(null, '', '/' + sID);
     },
 
-    _setIsEditing: function(bIsEditing)
+    setIsEditing: function(bIsEditing)
     {
         this._oEditor.setIsEditing(bIsEditing);
         $('BODY').toggleClass('is-editing', bIsEditing);
@@ -267,6 +287,6 @@ var Workspace = oHelpers.createClass(
         this.setMode(oMode);
         this._oSocket.send('setMode', {sMode: oMode.getName()});
         $('.toolbar-item.open').removeClass('open');
-        this._oEditor.focusEditor();
+        this._oEditor.focus();
     }
 });

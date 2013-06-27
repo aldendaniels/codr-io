@@ -21,10 +21,51 @@ var oHelpers = {
         $(oElem).on(sEventName, oHelpers.createCallback(oScope, fnCallback));
     },
     
+    next: function (jElem, sSelector)
+    {
+        while (jElem)
+        {
+            // Look down.
+            var jNext = jElem.find(sSelector);
+            if (jNext.length)
+                return jNext;
+            
+            // Look horizontally.
+            jNext = jElem.next(sSelector);
+            if (jNext.length)
+                return jNext;
+            
+            // Look up: Stop and document root.
+            jElem = jElem.parent();
+            if (jElem.length)
+            {
+                jElem = jElem.next();
+                if (jElem.is(sSelector))
+                    return $element;
+            }
+        }
+        return null;
+    },
+    
+    inOrIn: function(oElem1, oElem2)
+    {
+        return $(oElem1).closeset(oElem2).length > 0;
+    },
+    
     assert: function(bCondition, sMessage)
     {
         if (!bCondition)
             throw sMessage;
+    },
+    
+    inArray: function(oItem, aArray)
+    {
+        for (var i in aArray)
+        {
+            if (aArray[i] == oItem)
+                return true;
+        }
+        return false
     },
     
     WebSocket: _createClass(

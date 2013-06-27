@@ -8,6 +8,8 @@ var PeoplePane = oHelpers.createClass(
     _aTypingUsers: null,
     _bTyping: false,
     _iTypingTimeout: null,
+    
+    __type__: 'PeoplePane',    
 
     __init__: function(oWorkspace, oSocket)
     {
@@ -24,7 +26,28 @@ var PeoplePane = oHelpers.createClass(
         // Init DOM events.
         this._attachDOMEvents();
     },
-
+    
+    /* START: DOM Event handling */
+    contains: function(jElem)
+    {
+        return jElem.closest('#people').length > 0;
+    },
+    wantsEvent: function()
+    {
+        return false;
+    },
+    onEvent: function()
+    {
+    },
+    focus: function()
+    {
+        $('#chat-box').focus();
+    },
+    blur: function()
+    {
+    },
+    /* END: DOM Event handling */
+    
     _handleServerAction: function(oAction)
     {
         switch(oAction.sType)
