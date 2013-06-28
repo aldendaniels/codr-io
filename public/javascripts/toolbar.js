@@ -40,6 +40,11 @@ var Toolbar = oHelpers.createClass(
         $('#mode .toolbar-item-selection').text(oMode.getDisplayName());
     },
     
+    setIsEditing: function(bIsEditing)
+    {
+        $('#edit-button').toggleClass('on', bIsEditing);  
+    },
+    
     contains: function(jElem)
     {
         return jElem.closest('#toolbar').length > 0;

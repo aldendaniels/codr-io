@@ -135,6 +135,13 @@ var Workspace = oHelpers.createClass(
         this._oEditor.resize();  
     },
     
+    setIsEditing: function(bIsEditing)
+    {
+        $('BODY').toggleClass('is-editing', bIsEditing);
+        this._oToolbar.setIsEditing(bIsEditing);
+        this._oEditor.setIsEditing(bIsEditing);
+    },
+    
     _getContainingObj: function(jElem)
     {
         for (var i in this._aObjects)
@@ -215,54 +222,33 @@ var Workspace = oHelpers.createClass(
             case 'connect':
                 this._oUserInfo = oAction.oData;
                 break;
-
+                
             case 'setDocumentTitle':
                 this._oToolbar.setTitle(oAction.oData.sTitle);
                 break;
-
+                
             case 'setMode':
                 var oMode = g_oModes.oModesByName[oAction.oData.sMode];
                 this._oToolbar.setMode(oMode);
                 this._oEditor.setMode(oMode);
                 break;
-
+                
             case 'removeEditRights':
                 this.setIsEditing(false);
                 this._oSocket.send('releaseEditRights'); // Notify server of action receipt.
                 break;
-
+                
             case 'editRightsGranted':
                 this.setIsEditing(true);
                 break;
-
+                
             case 'setDocumentID': // Fired after creating a new document.
-                this._setDocumentID(oAction.oData.sDocumentID);
+                window.history.replaceState(null, '', '/' + oAction.oData.sDocumentID);
                 break;
- 
+                
             default:
                 return false;
         }
-
         return true;
-    },
-    
-    _setDocumentID: function(sID)
-    {
-        window.history.replaceState(null, '', '/' + sID);
-    },
-
-    setIsEditing: function(bIsEditing)
-    {
-        this._oEditor.setIsEditing(bIsEditing);
-        $('BODY').toggleClass('is-editing', bIsEditing);
-        $('#edit-button').toggleClass('on', bIsEditing);
-    },
-    
-    _onModeChoice: function(oMode)
-    {
-        this.setMode(oMode);
-        this._oSocket.send('setMode', {sMode: oMode.getName()});
-        $('.toolbar-item.open').removeClass('open');
-        this._oEditor.focus();
-    }
+    }    
 });
