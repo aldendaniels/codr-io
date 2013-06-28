@@ -88,26 +88,20 @@ var Editor = oHelpers.createClass(
         this._oAceEditor.resize();
     },
     
-    /* START: DOM Event handling */
     contains: function(jElem)
     {
         return jElem.closest(this._jEditorElem).length > 0;
     },
-    
-    onEvent: function()
-    {
-    },
-    
+
     focus: function()
     {
         this._oAceEditor.focus();
     },
     
-    onBlur: function()
-    {
-    },
-    /* END: DOM Event handling */
-
+    // Called by workspace, but not needed.
+    onBlur: function()  {},
+    onEvent: function() {},
+    
     _handleServerAction: function(oAction)
     {
         switch(oAction.sType)

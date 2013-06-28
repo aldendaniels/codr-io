@@ -14,7 +14,7 @@ var Toolbar = oHelpers.createClass(
     
     __type__: 'Toolbar',    
 
-    __init__: function(oSocket, oWorkspace)
+    __init__: function(oWorkspace, oSocket)
     {
         // Save dependencies.
         this._oSocket = oSocket;
@@ -47,7 +47,7 @@ var Toolbar = oHelpers.createClass(
     
     focus: function()
     {
-        this._openDropdown($('#title')); // TODO: This is a hack.
+        oHelpers.assert(false, 'The toolbar should only receive focus manually.')
     },
     
     onBlur: function()
@@ -121,7 +121,13 @@ var Toolbar = oHelpers.createClass(
             if (jEditButton.length)
             {
                 this._oWorkspace.setIsEditing(!jEditButton.hasClass('on'));
-                this._blur();
+                this._oWorkspace.focusEditor();
+            }
+            
+            // Show/Hide people pane.
+            if (jTarget.closest('#people-pane-button').length)
+            {
+                this._oWorkspace.togglePeoplePane();
             }
             
             return;                

@@ -22,27 +22,63 @@ var PeoplePane = oHelpers.createClass(
         
         // Listen to socket events.
         this._oSocket.bind('message', this, this._handleServerAction);
-                
-        // Init DOM events.
-        this._attachDOMEvents();
     },
     
-    /* START: DOM Event handling */
     contains: function(jElem)
     {
         return jElem.closest('#people').length > 0;
     },
-    onEvent: function()
+    
+    onEvent: function(oEvent)
     {
+        // Get data.
+        var jTarget = $(oEvent.target);
+        var sEventType = oEvent.type;
+
+        if (sEventType == 'click')
+        {
+            return;
+        }
+        
+        if (sEventType == 'keypress')
+        {
+            if (jTarget.is('#chat-box'))
+            {
+                if (oEvent.which == 13)
+                {
+                    this._clearTyping();
+                    this._sendNewMessage($('#chat-box').val());
+                    $('#chat-box').val('');
+                    oEvent.preventDefault();
+                }
+                else
+                {
+                    if (!this._bTyping)
+                    {
+                        this._oSocket.send('startTyping');
+                        this._bTyping = true;
+                    }
+                    
+                    if (this._iTypingTimeout)
+                        window.clearTimeout(this._iTypingTimeout);
+                    
+                    this._iTypingTimeout = window.setTimeout(
+                        oHelpers.createCallback(this, this._clearTyping),
+                        1000
+                    );
+                }
+            }            
+        }
     },
+
     focus: function()
     {
         $('#chat-box').focus();
     },
+
     onBlur: function()
     {
     },
-    /* END: DOM Event handling */
     
     _handleServerAction: function(oAction)
     {
@@ -145,54 +181,6 @@ var PeoplePane = oHelpers.createClass(
             return aArray.join(' and ');
 
         return aArray.slice(0, -1).join(', ') + ' and ' + aArray[aArray.length - 1];
-    },
-
-    _attachDOMEvents: function()
-    {
-        oHelpers.on(window, 'click', this, function(oEvent)
-        {
-            var jTarget = $(oEvent.target);
-
-            if (jTarget.closest('#people-pane-button').length)
-            {
-                $('#workspace').toggleClass('people-pane-expanded');
-                this._oWorkspace.resize();
-            }
-        });
-
-        oHelpers.on(window, 'keypress', this, function(oEvent)
-        {
-            var jTarget = $(oEvent.target);
-            var iKeyCode = oEvent.keyCode ? oEvent.keyCode : oEvent.which;
-
-            if (jTarget.is('#chat-box'))
-            {
-                if (iKeyCode == 13)
-                {
-                    this._clearTyping();
-
-                    this._sendNewMessage($('#chat-box').val());
-                    $('#chat-box').val('');
-                    oEvent.preventDefault();
-                }
-                else
-                {
-                    if (!this._bTyping)
-                    {
-                        this._oSocket.send('startTyping');
-                        this._bTyping = true;
-                    }
-
-                    if (this._iTypingTimeout)
-                        window.clearTimeout(this._iTypingTimeout);
-
-                    this._iTypingTimeout = window.setTimeout(
-                        oHelpers.createCallback(this, this._clearTyping),
-                        1000
-                    );
-                }
-            }
-        });
     },
 
     _clearTyping: function()

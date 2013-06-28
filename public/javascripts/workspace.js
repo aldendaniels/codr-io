@@ -54,7 +54,7 @@ var Workspace = oHelpers.createClass(
         this._oSocket.bind('message', this, this._handleServerAction);
         
         // Init objects.
-        this._oToolbar    = new Toolbar(oSocket,  this);
+        this._oToolbar    = new Toolbar(this, oSocket);
         this._oPeoplePane = new PeoplePane(this, oSocket);
         this._oEditor     = new Editor(oSocket);
         
@@ -90,14 +90,15 @@ var Workspace = oHelpers.createClass(
     
     blurFocusedObject: function(bDoNotAddNextFocusEventToHistory)
     {
-        if (this._oFocusObject)
+        if (this._oFocusObject && this._oFocusObject != this._oEditor)
         {
             this._oFocusObject.onBlur();
-        }
-        if (this._aFocusHistory.length)
-        {
-            this._bDoNotAddNextFocusEventToHistory = (bDoNotAddNextFocusEventToHistory || false);
-            this._aFocusHistory.pop().focus();
+            $(document.activeElement).blur();
+            if (this._aFocusHistory.length)
+            {
+                this._bDoNotAddNextFocusEventToHistory = (bDoNotAddNextFocusEventToHistory || false);
+                this._aFocusHistory.pop().focus();
+            }
         }
     },
     
@@ -115,10 +116,23 @@ var Workspace = oHelpers.createClass(
     {
         return this._oUserInfo;
     },
-
-    resize: function()
+    
+    togglePeoplePane: function()
     {
-        this._oEditor.resize();
+        if ($('#workspace').hasClass('people-pane-expanded'))
+        {
+            if (this._oFocusObject == this._oPeoplePane)
+            {
+                this.blurFocusedObject();
+            }
+            $('#workspace').removeClass('people-pane-expanded');
+        }
+        else
+        {
+            $('#workspace').addClass('people-pane-expanded');
+            this._oPeoplePane.focus();
+        }
+        this._oEditor.resize();  
     },
     
     _getContainingObj: function(jElem)
@@ -129,7 +143,7 @@ var Workspace = oHelpers.createClass(
             if (oObject.contains(jElem))
                 return oObject;
         }
-        oHelpers.assert(jElem[0].tagName != 'BODY', 'Containing object not found.');
+        oHelpers.assert(jElem.is('BODY'), 'Containing object not found this elemement:', jElem);
         return null;
     },
 
@@ -140,7 +154,7 @@ var Workspace = oHelpers.createClass(
             oObject.onEvent(oEvent);
         }
                 
-        oHelpers.on('BODY', 'mousedown click focusin keydown keyup', this, function(oEvent)
+        oHelpers.on('BODY', 'mousedown click focusin keydown keyup keypress', this, function(oEvent)
         {
             var jTarget = $(oEvent.target);
             var oTargetObject = this._getContainingObj(jTarget);
@@ -153,6 +167,7 @@ var Workspace = oHelpers.createClass(
                         this.blurFocusedObject(true);
                         break;
                     }
+                case 'keypress':
                 case 'keyup':
                     if (this._oFocusObject)
                         _sendEvent(this._oFocusObject, oEvent);                        
