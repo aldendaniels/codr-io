@@ -96,6 +96,28 @@ var Toolbar = oHelpers.createClass(
             }
         }
         
+        /* Close dropdown on focus out */
+        if (sEventType == 'focusin')
+        {
+            var jOpenDropdown = $('.toolbar-item.open');
+            if (jActiveToolbarItem.length)
+            {
+                if (jOpenDropdown.length)
+                {
+                    if (!jOpenDropdown.is(jActiveToolbarItem))
+                    {
+                        this._closeOpenDropdown();
+                        this._openDropdown(jActiveToolbarItem)
+                    }
+                }
+                else
+                    this._openDropdown(jActiveToolbarItem)
+            }
+            else
+                this._closeOpenDropdown();
+            return;
+        }
+        
         /* Forward language events to menu. */
         if (jActiveToolbarItem.is('#mode'))
         {
