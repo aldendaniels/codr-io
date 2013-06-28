@@ -32,10 +32,6 @@ var PeoplePane = oHelpers.createClass(
     {
         return jElem.closest('#people').length > 0;
     },
-    wantsEvent: function()
-    {
-        return false;
-    },
     onEvent: function()
     {
     },
@@ -43,7 +39,7 @@ var PeoplePane = oHelpers.createClass(
     {
         $('#chat-box').focus();
     },
-    blur: function()
+    onBlur: function()
     {
     },
     /* END: DOM Event handling */

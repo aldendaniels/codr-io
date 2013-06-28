@@ -93,18 +93,17 @@ var Editor = oHelpers.createClass(
     {
         return jElem.closest(this._jEditorElem).length > 0;
     },
-    wantsEvent: function()
-    {
-        return false;
-    },
+    
     onEvent: function()
     {
     },
+    
     focus: function()
     {
         this._oAceEditor.focus();
     },
-    blur: function()
+    
+    onBlur: function()
     {
     },
     /* END: DOM Event handling */

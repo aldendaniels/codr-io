@@ -40,12 +40,6 @@ var Toolbar = oHelpers.createClass(
         $('#mode .toolbar-item-selection').text(oMode.getDisplayName());
     },
     
-    wantsEvent: function(sEventType)
-    {
-        return oHelpers.inArray(sEventType, ['mousedown', 'click', 'focusin', 'focusout']) ||
-               this._oModeMenu.wantsEvent(sEventType);
-    },
-    
     contains: function(jElem)
     {
         return jElem.closest('#toolbar').length > 0;
@@ -56,21 +50,46 @@ var Toolbar = oHelpers.createClass(
         this._openDropdown($('#title')); // TODO: This is a hack.
     },
     
-    blur: function()
+    onBlur: function()
     {
-         this._closeDropdown($('.toolbar-item.open'));
+         this._closeOpenDropdown();
     },
-    
+        
     onEvent: function(oEvent)
     {
         // Get data.
         var jTarget = $(oEvent.target);
-        var jActiveElem = $(document.ActiveElement);
+        var jActiveElem = $(document.activeElement);
         var sEventType = oEvent.type;
-
+        
         // Get target and active items (if any).
         var jTargetToolbarItem = jTarget.parents('.toolbar-item');
-        var jActiveToolbarItem = jActiveElem.parents('.toolbarItem');
+        var jActiveToolbarItem = jActiveElem.parents('.toolbar-item');
+        
+        // Toggle dropdowns on click.
+        if (sEventType == 'mousedown')
+        {
+            if (jTarget.closest('.toolbar-item-btn').length)
+            {
+                if (jTargetToolbarItem[0] == jActiveToolbarItem[0])
+                {
+                    this._blur();
+                }
+                else
+                {
+                    this._closeOpenDropdown();
+                    this._openDropdown(jTargetToolbarItem)
+                }
+                return;
+            }
+            
+            // Blur when clicking directly on the toolbar (e.g. not on dropdown).
+            if (jTarget.is('#toolbar') && jActiveToolbarItem)
+            {
+                this._blur();
+                return;
+            }
+        }
         
         /* Forward language events to menu. */
         if (jActiveToolbarItem.is('#mode'))
@@ -79,50 +98,37 @@ var Toolbar = oHelpers.createClass(
             return;
         }
         
-        switch (sEventType)
+        if (sEventType == 'keydown')
         {
-            case 'mousedown':
-                if (jTarget.closest('.toolbar-item-btn').length)
-                {
-                    if (jTargetToolbarItem == jActiveToolbarItem)
-                    {
-                        this._closeDropdown(jTargetToolbarItem);
-                    }
-                    else
-                    {
-                        this._openDropdown(jTargetToolbarItem)
-                        oEvent.preventDefault();
-                    }
-                    return;
-                }
-                break;
-                
-            case 'click':
-                                
-                /* Set title on button click. */
-                if (jTarget.is('#title-save'))
-                {
-                    this._setTitleToLocal();
-                }
-                
-                /* Set edit button on click. */
-                var jEditButton = jTarget.closest('#edit-button');
-                if (jEditButton.length)
-                {
-                    this._oWorkspace.setIsEditing(!jEditButton.hasClass('on'));
-                    this._oWorkspace.focusEditor();
-                    return;
-                }
-                
-                break;
-                
-            default:
-               //console.log('Unhandled event.');
-                
+            // Set title on ENTER.
+            if (jActiveToolbarItem.is('#title') && oEvent.which == 13 /* ENTER */)
+            {
+                this._setTitleToLocal();
+            }
+            return;
+        }
+        
+        if (sEventType == 'click')
+        {
+            // Set title on button click.
+            if (jTarget.is('#title-save'))
+            {
+                this._setTitleToLocal();
+            }
+            
+            // Toggle editing on button click.
+            var jEditButton = jTarget.closest('#edit-button');
+            if (jEditButton.length)
+            {
+                this._oWorkspace.setIsEditing(!jEditButton.hasClass('on'));
+                this._blur();
+            }
+            
+            return;                
         }
     },
     
-    //////////////// GENERIC DROPDOWN STUFF //////////////// 
+    //////////////// HELPERS //////////////// 
     
     _openDropdown: function(jItem)
     {
@@ -133,19 +139,22 @@ var Toolbar = oHelpers.createClass(
         }
     },
     
-    _closeDropdown: function(jItem, bBlur)
+    _closeOpenDropdown: function()
     {
-        jItem.removeClass('open');
+        $('.toolbar-item.open').removeClass('open');
     },
     
-    //////////////// HANDLE USER CHANGES  //////////////// 
-      
+    _blur: function()
+    {
+        this._oWorkspace.blurFocusedObject(this);    
+    },
+    
     _setModeToLocal: function(oMode)
     {
-        this._oSocket.send('setMode', oMode.getKey());
+        this._oSocket.send('setMode', { sMode: oMode.getName() });
         this.setMode(oMode);
         this._oWorkspace.setEditorMode(oMode);
-        this._oWorkspace.blurFocusedObject(this);        
+        this._blur();
     },
     
     _setTitleToLocal: function()
@@ -153,6 +162,6 @@ var Toolbar = oHelpers.createClass(
         var sTitle = $('#title-input').val();
         this._oSocket.send('setDocumentTitle', { 'sTitle': sTitle });
         $('#title .toolbar-item-selection').text(sTitle);
-        this._oWorkspace.blurFocusedObject(this);        
+        this._blur();    
     }
 });

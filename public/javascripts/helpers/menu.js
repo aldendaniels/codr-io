@@ -109,9 +109,6 @@ var Menu = oHelpers.createClass(
                         break;
                 }        
                 break;
-            
-            default:
-                console.log('Menu: unhandled "' + oEvent.type + '" event.');
         }
     },
     

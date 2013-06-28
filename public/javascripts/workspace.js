@@ -65,8 +65,9 @@ var Workspace = oHelpers.createClass(
         // On a new document creation, default the title to "Untitled".
         if (bIsNewDocument)
         {
-            this._setTitle(_sUNTITLED);
-            this._setMode(oNewDocumentMode);
+            this._oToolbar.setTitle(_sUNTITLED);
+            this._oToolbar.setMode(oNewDocumentMode);
+            this._oEditor.setMode(oNewDocumentMode);
             this.setIsEditing(bIsNewDocument /*bIsEditing*/ );
             this._oSocket.send('createDocument',
             {
@@ -91,7 +92,7 @@ var Workspace = oHelpers.createClass(
     {
         if (this._oFocusObject)
         {
-            this._oFocusObject.blur();
+            this._oFocusObject.onBlur();
         }
         if (this._aFocusHistory.length)
         {
@@ -136,13 +137,13 @@ var Workspace = oHelpers.createClass(
     {
         function _sendEvent(oObject, oEvent)
         {
-            if (oObject.wantsEvent(oEvent.type))
-                oObject.onEvent(oEvent);
+            oObject.onEvent(oEvent);
         }
                 
         oHelpers.on('BODY', 'mousedown click focusin keydown keyup', this, function(oEvent)
         {
-            var oTargetObject = this._getContainingObj($(oEvent.target));
+            var jTarget = $(oEvent.target);
+            var oTargetObject = this._getContainingObj(jTarget);
             switch (oEvent.type)
             {
                 // Foward keyboard events.
@@ -170,66 +171,24 @@ var Workspace = oHelpers.createClass(
                         {
                             if (!this._bDoNotAddNextFocusEventToHistory)
                                 this._aFocusHistory.push(this._oFocusObject);
-                            this._oFocusObject.blur();                        
+                            this._oFocusObject.onBlur();                        
                         }
                         this._bDoNotAddNextFocusEventToHistory = false;
                             
                         // Focus new element.
                         this._oFocusObject = oTargetObject;
                     }
+                
+                case 'mousedown':
+                    // Focus should always be in a text-entry box.
+                    if (jTarget.not('input, textarea'))
+                        oEvent.preventDefault();
                     
                 // Forward non-keyboard events.
                 default:
                     _sendEvent(oTargetObject, oEvent);                    
             }
         });
-        /*
-        
-        oHelpers.on(window, 'keypress', this, function(oEvent)
-        {            
-            // Save title on ENTER.
-            var jTarget = $(oEvent.target);
-            if (jTarget[0] == $('#title-input')[0])
-            {
-                if (oEvent.which == 13 /* ENTER *_/)
-                    this._setTitleToLocal();                
-            }            
-        });
-        
-        oHelpers.on(window, 'keyup keydown', this, function(oEvent)
-        {
-            // Mode menu option.
-            var jTarget = $(oEvent.target);
-            if (jTarget.closest('#mode-menu').length)
-                this._oModeMenu.onEvent(oEvent);            
-        });
-        
-        oHelpers.on(window, 'mousedown', this, function(oEvent)
-        {
-            // Maintain focus.
-            var jTarget = $(oEvent.target);
-            if (!jTarget.is('input, textarea'))
-                oEvent.preventDefault();
-
-            // Close toolbar.
-            var jOpenToolbarItem = $('.toolbar-item.open');
-            if (jOpenToolbarItem.length && !$(oEvent.target).closest('.toolbar-item.open').length)
-            {
-                jOpenToolbarItem.removeClass('open');
-                this._oEditor.focusEditor()
-            }
-        });
-        
-        // Prevent arrow keys from functioning in non-edit mode.
-        $(window).onKeyDown = null;
-        $(window)[0].addEventListener('keydown', oHelpers.createCallback(this, function(oEvent)
-        {
-            if (this._oEditor.isFocused() && !this._oEditor.isEditing())
-            {
-                oEvent.preventDefault;
-                oEvent.stopPropagation();
-            }
-        }), true /*useCapture *_/);*/
     },
 
     _handleServerAction: function(oAction)
