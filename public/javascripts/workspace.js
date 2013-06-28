@@ -169,8 +169,10 @@ var Workspace = oHelpers.createClass(
                         // Blur last-focused element.
                         if (this._oFocusObject)
                         {
-                            if (!this._bDoNotAddNextFocusEventToHistory)
+                            if (this._oFocusObject != this._oToolbar && !this._bDoNotAddNextFocusEventToHistory)
+                            {
                                 this._aFocusHistory.push(this._oFocusObject);
+                            }
                             this._oFocusObject.onBlur();                        
                         }
                         this._bDoNotAddNextFocusEventToHistory = false;
@@ -181,7 +183,7 @@ var Workspace = oHelpers.createClass(
                 
                 case 'mousedown':
                     // Focus should always be in a text-entry box.
-                    if (jTarget.not('input, textarea'))
+                    if (jTarget.is(':not(input, textarea)'))
                         oEvent.preventDefault();
                     
                 // Forward non-keyboard events.
