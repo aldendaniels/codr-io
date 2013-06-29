@@ -94,8 +94,7 @@ var Client = oHelpers.createClass(
                 this._oWorkspace.removeClient(this);
             else
                 this._bClosed = true;
-        }));        
-
+        }));
     },
     
     setUsername: function(sUsername)
@@ -180,7 +179,11 @@ var Client = oHelpers.createClass(
             this._oWorkspace.addClient(this);
         }
         else
+        {
+            // TODO (AldenD 06-29-2013): On document creation we could tell the workspace
+            // not to go to the database and directly give it the mode.
             this._oWorkspace = new Workspace(sDocumentID, this);
+        }
     }
 });
 
@@ -486,6 +489,8 @@ var Workspace = oHelpers.createClass(
                     'oData': {'sUsername': oClient.getUsername()}
                 });
                 break;
+            default:
+                oHelpers.assert(false, 'Unrecognized event type: "' + oAction.sType + '"');
         }
     },
 

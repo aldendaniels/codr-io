@@ -1,8 +1,9 @@
 var fs = require('fs');
-var oHelpers = require('./helpers');
-var assert = require('assert');
 var oOS = require('os');
 var oPath = require('path');
+var oHelpers = require('./helpers');
+
+// Create codr data directory (blocking).
 var g_sDataDirPath = (function()
 {
     var sCodrPath = oPath.join(oOS.tmpDir(), 'codr');

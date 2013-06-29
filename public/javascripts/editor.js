@@ -109,17 +109,13 @@ var Editor = oHelpers.createClass(
             case 'setDocumentData': // Fired after opening an existing document.
                 this._setText(oAction.oData.sText);
                 break;
-    
+            
             case 'setSelection':
                 this._onRemoteCursorMove(oAction.oData);
                 break;
             
             case 'removeSelection':
                 this._removeRemoteSelection();
-                break;
-            
-            case 'setMode':
-                this.setMode(g_oModes.oModesByName[oAction.oData.sMode]);
                 break;
             
             case 'aceDelta':

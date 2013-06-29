@@ -1,8 +1,4 @@
 
-/*
-    TODO: This is unused and untested code.
-*/
-
 var Toolbar = oHelpers.createClass(
 {
     /* External dependencies */

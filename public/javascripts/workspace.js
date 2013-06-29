@@ -1,45 +1,16 @@
 
-/*
-CODE STRUCTURE: (not implemented yet)
-
-    The App is organized into three objects:
-     1. Editor
-     2. Toolbar    (not done yet)
-     3. PeoplePane (not done yet)
-    None of the above sections know about each other.
-    
-    All of the above objects share a Socket instance.
-    When an event is received from the server each of
-    the classes (Editor, Tolbar, PeoplePane) have the
-    opportunity to handle the event. In some cases,
-    multiple objects can handle a single event. For example,
-    when the document mode is updated, we update both
-    the editor and the toolbar.
-    
-    All three are objects managed by an outer class named "Workspace."
-    The Workspace class has the following functions:
-     1. Bind DOM events and broadcast them to the appropriate objects.
-     2. Manage which section has UI focus.
-     3. Intercept actions as necessary.
-        For example, then the toolbar sends the setMode event down the socket,
-        the workspace can intercept this in order to update the edtor mode
-        before the event is sent.
-    
-    NOTE: All events should be bound on the BODY element by the workspace.
-    TODO: Change the menu element to stop attaching it's own event.
-    CAVEAT: This is not true for the ace editor.
-*/
-
 var _sUNTITLED = 'Untitled';
 
 var Workspace = oHelpers.createClass(
 {
     _oSocket: null,
+    
     _oEditor: null,
-    _oModeMenu: null,
-    _oMode: null,
+    _oToolbar: null,
     _oPeoplePane: null,
+    
     _oUserInfo: null,
+
     _aObjects: null,
     _oFocusObject: null,
     _aFocusHistory: null,
@@ -194,6 +165,10 @@ var Workspace = oHelpers.createClass(
                             if (this._oFocusObject != this._oToolbar && !this._bDoNotAddNextFocusEventToHistory)
                             {
                                 this._aFocusHistory.push(this._oFocusObject);
+                                
+                                // Eat our history tale.
+                                if (this._aFocusHistory.length == this._aObjects.length)
+                                    this._aFocusHistory.splice(0, 1);
                             }
                             this._oFocusObject.onBlur();                        
                         }

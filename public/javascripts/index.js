@@ -1,5 +1,5 @@
 
-var oApp = 
+var oInitApp = 
 {
     _oPendingChosenMode: null,
     
