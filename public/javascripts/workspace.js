@@ -10,11 +10,10 @@ var Workspace = oHelpers.createClass(
     _oPeoplePane: null,
     
     _oUserInfo: null,
-
-    _aObjects: null,
-    _oFocusObject: null,
-    _aFocusHistory: null,
-    _bDoNotAddNextFocusEventToHistory: false,
+    
+    _aObjects: null,    
+    _oFocusedObject: null,
+    _oLastFocusedObject: null,
 
     __type__: 'Workspace',    
 
@@ -61,14 +60,22 @@ var Workspace = oHelpers.createClass(
     
     blurFocusedObject: function(bDoNotAddNextFocusEventToHistory)
     {
-        if (this._oFocusObject && this._oFocusObject != this._oEditor)
-        {
-            this._oFocusObject.onBlur();
-            $(document.activeElement).blur();
-            if (this._aFocusHistory.length)
+        if (this._oFocusedObject && this._oFocusedObject != this._oEditor)
+        {            
+            if (this._oLastFocusedObject) // Focus last focused object.
             {
-                this._bDoNotAddNextFocusEventToHistory = (bDoNotAddNextFocusEventToHistory || false);
-                this._aFocusHistory.pop().focus();
+                this._oLastFocusedObject.focus();
+            }
+            else if (this._oEditor.isEditing())// Focus editor.
+            {
+                this._oEditor.focus();
+            }
+            else if (document.activeElement != document.body) // If is active elem.
+            {
+                // Blur focused object.
+                this._oFocusedObject.onBlur();
+                this._oFocusedObject = null;
+                $(document.activeElement).blur();
             }
         }
     },
@@ -92,7 +99,7 @@ var Workspace = oHelpers.createClass(
     {
         if ($('#workspace').hasClass('people-pane-expanded'))
         {
-            if (this._oFocusObject == this._oPeoplePane)
+            if (this._oFocusedObject == this._oPeoplePane)
             {
                 this.blurFocusedObject();
             }
@@ -142,40 +149,62 @@ var Workspace = oHelpers.createClass(
                 case 'keydown':
                     if (oEvent.which == 27) // ESC
                     {
-                        this.blurFocusedObject(true);
+                        this.blurFocusedObject();
                         break;
                     }
                 case 'keypress':
                 case 'keyup':
-                    if (this._oFocusObject)
-                        _sendEvent(this._oFocusObject, oEvent);                        
+                    if (this._oFocusedObject)
+                        _sendEvent(this._oFocusedObject, oEvent);                        
                     break;
                 
                 // Blur elem that last had focus.
                 case 'focusin':
-                    if (this._oFocusObject != oTargetObject)
+                    if (this._oFocusedObject != oTargetObject)
                     {
-                        // Reset focus history on editor focus.
-                        if (oTargetObject == this._oEditor)
-                            this._aFocusHistory = [];
-                        
-                        // Blur last-focused element.
-                        if (this._oFocusObject)
+                        if (this._oFocusedObject)
                         {
-                            if (this._oFocusObject != this._oToolbar && !this._bDoNotAddNextFocusEventToHistory)
-                            {
-                                this._aFocusHistory.push(this._oFocusObject);
-                                
-                                // Eat our history tale.
-                                if (this._aFocusHistory.length == this._aObjects.length)
-                                    this._aFocusHistory.splice(0, 1);
-                            }
-                            this._oFocusObject.onBlur();                        
-                        }
-                        this._bDoNotAddNextFocusEventToHistory = false;
+                            // Blur focused object.
+                            this._oFocusedObject.onBlur();
                             
-                        // Focus new element.
-                        this._oFocusObject = oTargetObject;
+                            /********************************************************************************
+                             * Update the "Last Focused" member
+                             ********************************************************************************
+                             *
+                             * When an ephemeral UI object loses focus (as when ESC is pressed), we revert
+                             * focus back to the subtantial UI object (if any) which had focus immediately
+                             * before the active ephemeral UI object.
+                             *
+                             * Below, we update the "_oLastFocusedObject" member to point to the "substantial"
+                             * UI object (if any) which, in this scenario, focus should revert to.
+                             *
+                             * DEFINITIONS:
+                             *
+                             *  - Ephemeral IU Object:  UI object users don't "live" in.
+                             *                          Example: toolbar.
+                             *
+                             *  - Subtantial UI Object: UI object users do "live" in (excluding editor *)
+                             *                          Example: PeoplePane
+                             *
+                             *  * If "_olastFocusedObject" is null, focus reverts to the editor. Focus never
+                             *    reverts away from the editor. ESC does nothing if the editor is focused.
+                             *    
+                             *******************************************************************************/ 
+                            
+                            var oEphemeralObjects   = [this._oToolbar   ];
+                            var oSubstantialObjects = [this._oPeoplePane];
+                            
+                            if (oHelpers.inArray(oTargetObject, oEphemeralObjects) &&
+                                oHelpers.inArray(this._oFocusedObject, oSubstantialObjects))
+                            {
+                                this._oLastFocusedObject = this._oFocusedObject;
+                            }
+                            else
+                                this._oLastFocusedObject = null;                                
+                        }
+                        
+                        // Remember focused object.
+                        this._oFocusedObject = oTargetObject;
                     }
                 
                 case 'mousedown':
