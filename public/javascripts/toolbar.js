@@ -42,11 +42,8 @@ var Toolbar = oHelpers.createClass(
         $('#edit-button').toggleClass('on', bIsEditing);
         $('#title-input').prop('disabled', !bIsEditing);
         $('#title-save').prop('disabled', !bIsEditing);
-        
-        if(bIsEditing)
-            $('.edit-mode-message').text('');
-        else
-            $('.edit-mode-message').text('Edit mode is requried to make changes.');
+        $('#title .hidden-focusable a').attr('tabIndex', (bIsEditing ? -1 : 1));
+        $('.edit-mode-message').text((bIsEditing ? '': 'Edit mode is requried to make changes.'));
     },
     
     contains: function(jElem)
