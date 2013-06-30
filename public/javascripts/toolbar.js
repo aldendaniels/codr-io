@@ -29,6 +29,7 @@ var Toolbar = oHelpers.createClass(
     {
         $('#title .toolbar-item-selection').text(sTitle);
         $('#title-input').val(sTitle);
+        $('#title .toolbar-item-btn').attr('title', sTitle);
     },
     
     setMode: function(oMode)
@@ -208,7 +209,7 @@ var Toolbar = oHelpers.createClass(
     {
         var sTitle = $('#title-input').val();
         this._oSocket.send('setDocumentTitle', { 'sTitle': sTitle });
-        $('#title .toolbar-item-selection').text(sTitle);
+        this.setTitle(sTitle);
         this._blur();    
     },
     
