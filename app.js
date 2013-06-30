@@ -479,9 +479,12 @@ var Workspace = oHelpers.createClass(
 				break;
             
             case 'aceDelta':
-                this._broadcastAction(oClient, oAction);
-                this._oAceDocument.applyDeltas([oAction.oData]);
-                this._setAutoSaveTimeout();
+                if(bClientHasEditRights)
+                {
+                    this._broadcastAction(oClient, oAction);
+                    this._oAceDocument.applyDeltas([oAction.oData]);
+                    this._setAutoSaveTimeout();
+                }
                 break;
 
             // People Pane
