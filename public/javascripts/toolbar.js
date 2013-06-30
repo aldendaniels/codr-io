@@ -42,8 +42,8 @@ var Toolbar = oHelpers.createClass(
         $('#edit-button').toggleClass('on', bIsEditing);
         $('#title-input').prop('disabled', !bIsEditing);
         $('#title-save').prop('disabled', !bIsEditing);
+        $('.edit-mode-message').toggle(!bIsEditing);
         $('#title .hidden-focusable a').attr('tabIndex', (bIsEditing ? -1 : 1));
-        $('.edit-mode-message').text((bIsEditing ? '': 'Edit mode is requried to make changes.'));
     },
     
     contains: function(jElem)
@@ -118,22 +118,15 @@ var Toolbar = oHelpers.createClass(
                 this._closeOpenDropdown();
             return;
         }
-        
-        /* Forward language events to menu. */
-        if (jActiveToolbarItem.is('#mode'))
-        {
-            this._oModeMenu.onEvent(oEvent);
-            return;
-        }
-        
+                
         if (sEventType == 'keydown')
         {
             // Set title on ENTER.
             if (jActiveToolbarItem.is('#title') && oEvent.which == 13 /* ENTER */)
             {
                 this._setTitleToLocal();
+                return;
             }
-            return;
         }
         
         if (sEventType == 'click')
@@ -142,6 +135,7 @@ var Toolbar = oHelpers.createClass(
             if (jTarget.is('#title-save'))
             {
                 this._setTitleToLocal();
+                return;
             }
             
             // Toggle editing on button click.
@@ -149,12 +143,14 @@ var Toolbar = oHelpers.createClass(
             if (jEditButton.length)
             {
                 this._toggleEditMode(jEditButton.hasClass('on'));
+                return;
             }
             
             // Show/Hide people pane.
             if (jTarget.closest('#people-pane-button').length)
             {
                 this._oWorkspace.togglePeoplePane();
+                return;
             }
             
             // Download document
@@ -166,10 +162,17 @@ var Toolbar = oHelpers.createClass(
                     sHref += '/'
                 }
                 window.location.href = sHref + 'download';
-            }
-            
-            return;                
+                return;
+            }       
         }
+        
+        /* Forward language events to menu. */
+        if (jActiveToolbarItem.is('#mode'))
+        {
+            this._oModeMenu.onEvent(oEvent);
+            return;
+        }
+
     },
     
     //////////////// HELPERS //////////////// 
