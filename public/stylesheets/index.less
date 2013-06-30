@@ -4,13 +4,16 @@
 
 body
 {
-    font-family: arial, sans-serif;
     margin: 0;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
     background-color: #fafafa;
+}
+
+body, textarea, input, button
+{
     font-family: verdana;    
 }
 
@@ -27,13 +30,14 @@ body
 body.home   #home      { display: block; }
 body.home   #workspace { display: none;  }
 
-.button
+button
 {
     
     /* Layout */
     display: block;
     padding: 8px;
     margin: 10px 5px 10px 5px; /* top, right, bottom, left */
+    font-size: 12pt;
 
     /* Colors */
     background-color: lighten(@codr-blue, 10%);
@@ -51,12 +55,12 @@ body.home   #workspace { display: none;  }
     border-radius: 3px;
     cursor: pointer;
 
-    &:hover:not(.disabled):not(.disable-hover)
+    &:hover
     {
         background-color: @codr-blue;
     }
 
-    &.disabled, &.disabled:hover
+    &:disabled, &:disabled:hover
     {
         background-color: lighten(@codr-blue, 20%);
         color: @codr-blue;
@@ -177,7 +181,6 @@ body.home   #workspace { display: none;  }
             float: left;
             height: 100%;
             position: relative;
-            overflow: hidden;
             
             .toolbar-item-btn
             {
@@ -188,6 +191,7 @@ body.home   #workspace { display: none;  }
 
                 height: 46px;
                 padding-top: 4px;
+                overflow: hidden;
                 
                 .toolbar-item-caption
                 {
@@ -233,11 +237,15 @@ body.home   #workspace { display: none;  }
                 border-bottom-right-radius: 5px;
                 background-color: #fafafa;
                 
-                .button
+                button
                 {
                     margin-left: 20px;
                     margin-right: 20px;
+                    width: 360px;
+                    height: 35px;
+                    font-size: 12pt;
                 }
+                
             }
             
             &.open
@@ -248,7 +256,6 @@ body.home   #workspace { display: none;  }
                 margin-right: -3px;
                 background-color: #fafafa;
                 box-shadow: 0 0 8px #aaa;
-                overflow: visible;
 
                 .toolbar-item-btn
                 {
@@ -350,6 +357,7 @@ body.home   #workspace { display: none;  }
                 right: 10px;
                 bottom: 10px;
                 top: 10px;
+                
             }
         }
         
@@ -358,12 +366,12 @@ body.home   #workspace { display: none;  }
         {
             display: inline-block;
             text-align: left;
-            height: 30px;
             margin-left: 15px;
             padding-left: 11px;
-            margin-top: 6px;            
-            padding-top: 5px;
-            padding-bottom: 0;
+            padding-right: 13px;
+            margin-top: 6px;
+            padding-top: 7px;            
+            padding-bottom: 8px;
            
             [class^="icon-check"]
             {

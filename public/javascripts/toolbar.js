@@ -38,7 +38,15 @@ var Toolbar = oHelpers.createClass(
     
     setIsEditing: function(bIsEditing)
     {
-        $('#edit-button').toggleClass('on', bIsEditing);  
+        $('.menu').toggleClass('disabled', !bIsEditing);
+        $('#edit-button').toggleClass('on', bIsEditing);
+        $('#title-input').prop('disabled', !bIsEditing);
+        $('#title-save').prop('disabled', !bIsEditing);
+        
+        if(bIsEditing)
+            $('.edit-mode-message').text('');
+        else
+            $('.edit-mode-message').text('Edit mode is requried to make changes.');
     },
     
     contains: function(jElem)
@@ -79,7 +87,7 @@ var Toolbar = oHelpers.createClass(
                 else
                 {
                     this._closeOpenDropdown();
-                    this._openDropdown(jTargetToolbarItem)
+                    this._openDropdown(jTargetToolbarItem);
                 }
                 return;
             }

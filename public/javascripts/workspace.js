@@ -11,7 +11,7 @@ var Workspace = oHelpers.createClass(
     
     _oUserInfo: null,
     
-    _aObjects: null,    
+    _aObjects: null,
     _oFocusedObject: null,
     _oLastFocusedObject: null,
 
@@ -48,6 +48,8 @@ var Workspace = oHelpers.createClass(
         }
         else // Open existing document.
         {
+            // A new client won't have edit mode so disable mode options 
+            $('.menu').toggleClass('disabled', true);
             this._oSocket.send('openDocument',
             {
                 sDocumentID: window.location.pathname.substr(1)

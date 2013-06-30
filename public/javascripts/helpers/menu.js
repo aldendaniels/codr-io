@@ -63,11 +63,12 @@ var Menu = oHelpers.createClass(
     onEvent: function(oEvent)
     {
         var jTarget = $(oEvent.target);
+        var bMenuDisabled = $('.menu').hasClass('disabled');
         switch(oEvent.type)
         {
             case 'click':
                 var jOption = jTarget.closest('.option');
-                if (jOption.length)
+                if (jOption.length && !bMenuDisabled)
                 {
                     this._oKeyable.select(jOption);
                     this._selectCur();
@@ -104,8 +105,11 @@ var Menu = oHelpers.createClass(
             
                     // On choice
                     case 13:
-                        this._selectCur();
-                        oEvent.preventDefault();
+                        if(!bMenuDisabled)
+                        {
+                            this._selectCur();
+                            oEvent.preventDefault();
+                        }
                         break;
                 }        
                 break;
@@ -114,7 +118,7 @@ var Menu = oHelpers.createClass(
     
     highlight: function(oOption)
     {
-        var jOption = this._jMenu.find('.option#' + this._fnGetKey(oOption));
+        var jOption = this._jMenu.find('.option' + this._fnGetKey(oOption));
         oHelpers.assert(jOption.length, 'Option not visible. ');
         this._oKeyable.select(jOption);
         this._scrollIntoView(jOption);
