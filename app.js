@@ -427,7 +427,9 @@ var Workspace = oHelpers.createClass(
     onClientAction: function(oClient, oAction)
     {
         this._assertDocumentLoaded();
-        switch(oAction.sType)
+		
+		var bClientHasEditRights = this._oCurrentEditingClient == oClient;
+		switch(oAction.sType)
         {
             case 'requestEditRights':
                 if (this._oCurrentEditingClient)
@@ -461,14 +463,20 @@ var Workspace = oHelpers.createClass(
                 break;
                 
             case 'setSelection':
-                this._broadcastAction(oClient, oAction);
-                this._oLastSelAction = oAction;
+                if(bClientHasEditRights)
+				{
+					this._broadcastAction(oClient, oAction);
+					this._oLastSelAction = oAction;
+				}
                 break;
             
             case 'setDocumentTitle':
-                this._broadcastAction(oClient, oAction);
-                this._oDocument.set('sTitle', oAction.oData.sTitle);
-                break;
+				if(bClientHasEditRights)
+				{
+					this._broadcastAction(oClient, oAction);
+					this._oDocument.set('sTitle', oAction.oData.sTitle);
+				}
+				break;
             
             case 'aceDelta':
                 this._broadcastAction(oClient, oAction);
