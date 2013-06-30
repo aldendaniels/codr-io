@@ -95,6 +95,11 @@ var Workspace = oHelpers.createClass(
         return this._oUserInfo;
     },
     
+    getEditorSelection: function()
+    {
+        return this._oEditor.getSelection();  
+    },
+    
     togglePeoplePane: function()
     {
         if ($('#workspace').hasClass('people-pane-expanded'))

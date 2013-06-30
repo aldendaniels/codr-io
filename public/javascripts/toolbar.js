@@ -143,8 +143,7 @@ var Toolbar = oHelpers.createClass(
             var jEditButton = jTarget.closest('#edit-button');
             if (jEditButton.length)
             {
-                this._oWorkspace.setIsEditing(!jEditButton.hasClass('on'));
-                this._oWorkspace.focusEditor();
+                this._toggleEditMode(jEditButton.hasClass('on'));
             }
             
             // Show/Hide people pane.
@@ -192,5 +191,19 @@ var Toolbar = oHelpers.createClass(
         this._oSocket.send('setDocumentTitle', { 'sTitle': sTitle });
         $('#title .toolbar-item-selection').text(sTitle);
         this._blur();    
+    },
+    
+    _toggleEditMode: function(bIsCurrentlyEditing)
+    {
+        if (bIsCurrentlyEditing) // Release edit rights.
+        {
+            this._oSocket.send('releaseEditRights');
+            this._oWorkspace.setIsEditing(false);
+        }
+        else
+        {
+            // TODO: Make the button look like it's doing something.
+            this._oSocket.send('requestEditRights', this._oWorkspace.getEditorSelection());
+        }
     }
 });

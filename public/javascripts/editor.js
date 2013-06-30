@@ -60,7 +60,7 @@ var Editor = oHelpers.createClass(
     
     getSelection: function()
     {
-        return this._oAceEditor.getSelectionRange()
+        return this._oAceEditor.getSelectionRange();
     },
 
     getMode: function()

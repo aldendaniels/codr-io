@@ -418,10 +418,12 @@ var Workspace = oHelpers.createClass(
                 if (this._oCurrentEditingClient)
                 {
                     this._oCurrentEditingClient.sendAction('removeEditRights');
-                    this._oRequestEditingInfo = {oClient: oClient, oSelection: oAction.oSelection};
+                    this._oRequestEditingInfo = {oClient: oClient, oSelection: oAction.oData};
                 }
                 else
+                {
                     this._grantEditRights(oClient, oAction.oData);
+                }
                 break;
         
             case 'releaseEditRights':
@@ -589,12 +591,9 @@ var Document = oHelpers.createClass(
     
     set: function(sKey, oValue)
     {
-        if (oValue === null)
-            oValue = '';
-
         var sProp = '_' + sKey;
         oHelpers.assert (sProp in this, 'Invalid key: ' + sKey);
-        oHelpers.assert (typeof(oValue) == typeof(this[sProp]), 'Invalid type: ' + typeof(oValue));
+        oHelpers.assert (typeof(oValue) == typeof(this[sProp]), 'Invalid type "' + typeof(oValue) + '" for key "' + sKey + '"');
         this[sProp] = oValue;
     },
     
