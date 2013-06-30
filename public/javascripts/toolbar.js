@@ -198,7 +198,7 @@ var Toolbar = oHelpers.createClass(
     
     _closeOpenDropdown: function()
     {
-        $('.toolbar-item.open').removeClass('open');
+        $('.toolbar-item.open').removeClass('open').scrollTop(0);
     },
     
     _blur: function()
