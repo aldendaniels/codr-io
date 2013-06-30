@@ -37,9 +37,23 @@ oApp.configure(function()
     oApp.get('/[a-z0-9]+/?$',     function(req, res) { res.sendfile('public/index.html'); });
     
     /* Preview files as HTML. */
-    oApp.get('/:DocumentID([a-z0-9]+)/preview?$', function(req, res)
+    /* Download file */
+    oApp.get('/:DocumentID([a-z0-9]+)/:Action(preview|download)/?$', function(req, res)
     {
         var sDocumentID = req.params['DocumentID'];
+        
+        // Set response headers for HTML preview or file download.
+        if (req.params['Action'] == 'download')
+        {
+            res.set('Content-Type', 'text/plain');
+            res.set('Content-Disposition', 'attachment; filename="' + sDocumentID + '"');
+        }
+        else if (req.params['Action'] == 'preview')
+        {
+            res.set('Content-Type', 'text/html');
+        }
+
+        // Send document text.
         var oDocument = null;
         if (sDocumentID in g_oWorkspaces)
         {
@@ -229,6 +243,7 @@ var Workspace = oHelpers.createClass(
             // Save pointer to document.
             this._oDocument = new Document(sDocumentJSON);
             this._oAceDocument = new oAceDocument(this._oDocument.get('sText'));
+            this._oAceDocument.setNewLineMode('windows'); // TODO (Will 6/29/2013) test in other environments
             this._bDocumentLoaded = true;
             
             // Fire client "load" callbacks.
