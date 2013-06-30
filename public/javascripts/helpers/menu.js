@@ -39,7 +39,7 @@ var Menu = oHelpers.createClass(
                 '<div class="menu-search">'+
                     '<input type="text" autocomplete="off"/>' +
                 '</div>' + 
-                '<div class="menu-options">' +
+                '<div class="menu-options" tabIndex="-1">' + // Tab index for FF.
                 '</div>' +
             '</div>'
         );

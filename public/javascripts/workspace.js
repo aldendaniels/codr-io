@@ -216,7 +216,7 @@ var Workspace = oHelpers.createClass(
                 
                 case 'mousedown':
                     // Focus should always be in a text-entry box.
-                    if (jTarget.is(':not(input, textarea)'))
+                    if (jTarget.is(':not(input, textarea)') || jTarget.prop('disabled'))
                         oEvent.preventDefault();
                     
                 // Forward non-keyboard events.
