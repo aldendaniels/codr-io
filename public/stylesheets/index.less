@@ -204,6 +204,8 @@ button
         {
             height: 100%;
             position: relative;
+            z-index: 10;
+            overflow: hidden;
             
             .toolbar-item-btn
             {
@@ -211,10 +213,8 @@ button
                 transition: background-color 0.2s;
                 padding-left: 10px;
                 padding-right: 10px;
-
                 height: 46px;
                 padding-top: 4px;
-                overflow: hidden;
                 
                 .toolbar-item-caption
                 {
@@ -271,11 +271,12 @@ button
             &.open
             {
                 background-color: white;
-                z-index: 10;
                 margin-left: -3px;
                 margin-right: -3px;
                 background-color: #fafafa;
                 box-shadow: 0 0 8px #aaa;
+                overflow: visible;
+                z-index: 20;
 
                 .toolbar-item-btn
                 {
@@ -291,7 +292,6 @@ button
                     left: 0;
                     background-color: #fafafa;
                     height: 10px;
-                    z-index: 20;
                     width: 100%;
                 }
                 
