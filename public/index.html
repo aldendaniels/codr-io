@@ -28,7 +28,7 @@
                 <div id="toolbar-logo" class="logo">codr.io</div>
                 <div class="divider"></div>
                 
-                <div id="title" class="toolbar-item">
+                <div id="title" class="toolbar-item text-input-menu">
                     <div class="toolbar-item-btn">
                         <div class="toolbar-item-caption">Title</div>
                         <div class="toolbar-item-selection">Loading...</div>
@@ -59,12 +59,21 @@
                 </div>
                 <div class="divider"></div>
                 
+                <div id="download-menu" class="toolbar-item text-input-menu">
+                    <div class="toolbar-item-btn">
+                        <img src="download.png">
+                        <div class="toolbar-item-selection">Loading...</div>
+                    </div>
+                    <div class="toolbar-dropdown-top-border"></div>
+                    <div class="toolbar-dropdown">
+                        <input type="text" id="download-as" placeholder="File name"></input>
+                        <div class="horizontal-divider"></div>
+                        <button id="download">Download</button>
+                    </div>
+                </div>
+                <div class="divider"></div>
+                
                 <div id="toolbar-content-right">
-                    
-                    <div class="divider"></div>
-                    <button id="download-button" class="disable-hover">
-                        <span class="text">Ugly button</span>
-                    </button>
                     
                     <div class="divider"></div>
                     <button id="edit-button" class="disable-hover">

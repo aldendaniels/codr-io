@@ -155,7 +155,7 @@ var Toolbar = oHelpers.createClass(
             }
             
             // Download document
-            if (jTarget.closest('#download-button').length)
+            if (jTarget.closest('#download').length)
             {
                 var sHref = window.location.href;
                 if (sHref[-1] != '/')
