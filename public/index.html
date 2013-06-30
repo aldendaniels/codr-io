@@ -35,6 +35,7 @@
                     </div>
                     <div class="toolbar-dropdown-top-border"></div>
                     <div class="toolbar-dropdown">
+                        <div id="title-message" class="edit-mode-message">Requires edit mode</div>
                         <input type="text" id="title-input" disabled=disabled></input>
                         <div class="horizontal-divider"></div>
                         <button id="title-save" disabled=disabled>Save</button>
@@ -52,18 +53,26 @@
                     </div>
                     <div class="toolbar-dropdown-top-border"></div>
                     <div class="toolbar-dropdown">
+                        <div id="mode-message" class="edit-mode-message">Requires edit mode</div>
                         <div id="mode-menu"></div>
                     </div>
                 </div>
                 <div class="divider"></div>
                 
                 <div id="toolbar-content-right">
+                    
+                    <div class="divider"></div>
+                    <button id="download-button" class="disable-hover">
+                        <span class="text">Ugly button</span>
+                    </button>
+                    
                     <div class="divider"></div>
                     <button id="edit-button" class="disable-hover">
                         <i class="icon-check"></i>
                         <i class="icon-check-empty"></i>
                         <span class="text">Edit Mode</span>
                     </button>
+                    
                     <a href="javascript:void(0)" id="people-pane-button">
                         <span class="icon-person"></span>
                     </a>

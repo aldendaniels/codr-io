@@ -157,6 +157,17 @@ var Toolbar = oHelpers.createClass(
                 this._oWorkspace.togglePeoplePane();
             }
             
+            // Download document
+            if (jTarget.closest('#download-button').length)
+            {
+                var sHref = window.location.href;
+                if (sHref[-1] != '/')
+                {
+                    sHref += '/'
+                }
+                window.location.href = sHref + 'download';
+            }
+            
             return;                
         }
     },
