@@ -39,21 +39,12 @@ var Toolbar = oHelpers.createClass(
     
     setIsEditing: function(bIsEditing)
     {
-        // Toggle edit button style.
-        $('#edit-button').toggleClass('on', bIsEditing);
-
-        // Toggle mode menu editability.
         $('.menu').toggleClass('disabled', !bIsEditing);
-        
-        // Toggle title editability.
-        $('#title-input, #title-save').prop('disabled', !bIsEditing);
-        $('#title .hidden-focusable a').attr('tabIndex', (bIsEditing ? -1 : 1));
-        if ($('.toolbar-item.open').is('#title'))
-            $('#title .hidden-focusable a').focus();
-
-        // Show the "edit mode required" message.
+        $('#edit-button').toggleClass('on', bIsEditing);
+        $('#title-input').prop('disabled', !bIsEditing);
+        $('#title-save').prop('disabled', !bIsEditing);
         $('.edit-mode-message').toggle(!bIsEditing);
-
+        $('#title .hidden-focusable a').attr('tabIndex', (bIsEditing ? -1 : 1));
     },
     
     contains: function(jElem)
@@ -137,6 +128,13 @@ var Toolbar = oHelpers.createClass(
                 this._setTitleToLocal();
                 return;
             }
+            
+            // Download on ENTER.
+            if (jActiveToolbarItem.is('#download-menu') && oEvent.which == 13 /* ENTER */)
+            {
+                this._download();
+                return;
+            }
         }
         
         if (sEventType == 'click')
@@ -166,12 +164,7 @@ var Toolbar = oHelpers.createClass(
             // Download document
             if (jTarget.closest('#download').length)
             {
-                var sHref = window.location.href;
-                if (sHref[-1] != '/')
-                {
-                    sHref += '/'
-                }
-                window.location.href = sHref + 'download';
+                this._download();
                 return;
             }       
         }
@@ -198,7 +191,7 @@ var Toolbar = oHelpers.createClass(
     
     _closeOpenDropdown: function()
     {
-        $('.toolbar-item.open').removeClass('open').scrollTop(0);
+        $('.toolbar-item.open').removeClass('open');
     },
     
     _blur: function()
@@ -220,6 +213,17 @@ var Toolbar = oHelpers.createClass(
         this._oSocket.send('setDocumentTitle', { 'sTitle': sTitle });
         this.setTitle(sTitle);
         this._blur();    
+    },
+    
+    _download: function()
+    {
+        var sHref = window.location.href;
+        if (sHref[-1] != '/')
+        {
+            sHref += '/'
+        }
+        var sFilename = $('#download-as').val();
+        window.location.href = sHref + 'download?filename=' + sFilename;
     },
     
     _toggleEditMode: function(bIsCurrentlyEditing)

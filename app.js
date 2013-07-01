@@ -2,6 +2,7 @@
 // Include Libraries.
 var oOS = require('os');
 var oPath = require('path');
+var oUrl = require('url');
 var oExpress         = require('express');
 var oWS             = require('ws');
 var oHTTP           = require('http');
@@ -37,24 +38,42 @@ oApp.configure(function()
     oApp.get('/[a-z0-9]+/?$',     function(req, res) { res.sendfile('public/index.html'); });
     
     /* Preview files as HTML. */
-    /* Download file */
-    oApp.get('/:DocumentID([a-z0-9]+)/:Action(preview|download)/?$', function(req, res)
-    {
-        var sDocumentID = req.params['DocumentID'];
+    oApp.get('/:DocumentID([a-z0-9]+)/preview/?$', function(req, res)
+    {   
+        // Set response headers for HTML preview.
+        res.set('Content-Type', 'text/html');
         
-        // Set response headers for HTML preview or file download.
-        if (req.params['Action'] == 'download')
-        {
-            res.set('Content-Type', 'text/plain');
-            res.set('Content-Disposition', 'attachment; filename="' + sDocumentID + '"');
-        }
-        else if (req.params['Action'] == 'preview')
-        {
-            res.set('Content-Type', 'text/html');
-        }
-
         // Send document text.
         var oDocument = null;
+        var sDocumentID = req.params['DocumentID'];
+        if (sDocumentID in g_oWorkspaces)
+        {
+            oDocument = g_oWorkspaces[sDocumentID].getDocument();
+            res.send(oDocument.get('sText'));
+        }
+        else
+        {
+            oDatabase.getDocument(sDocumentID, this, function(sDocumentJSON)
+            {
+                oDocument = new Document(sDocumentJSON);
+                res.send(oDocument.get('sText'));
+            });
+        }
+    });
+    
+    /* Download file */
+    oApp.get('/:DocumentID([a-z0-9]+)/download$', function(req, res)
+    {
+        // Parse the url and get the file name
+        var sFilename = oUrl.parse(req.url, true).query.filename;
+        
+        // Set response headers for file download.
+        res.set('Content-Type', 'text/plain');
+        res.set('Content-Disposition', 'attachment; filename="' + sFilename + '"');
+        
+        // Send document text.
+        var oDocument = null;
+        var sDocumentID = req.params['DocumentID'];
         if (sDocumentID in g_oWorkspaces)
         {
             oDocument = g_oWorkspaces[sDocumentID].getDocument();
