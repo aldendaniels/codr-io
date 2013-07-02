@@ -233,6 +233,7 @@ var Toolbar = oHelpers.createClass(
         }
         var sFilename = $('#download-as').val();
         window.location.href = sHref + 'download?filename=' + sFilename;
+        this._blur();
     },
     
     _toggleEditMode: function(bIsCurrentlyEditing)

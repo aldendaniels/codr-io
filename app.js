@@ -68,8 +68,11 @@ oApp.configure(function()
         var sFilename = oUrl.parse(req.url, true).query.filename;
         
         // Set response headers for file download.
+        // Default to plain text in case there is no file name.
         res.set('Content-Type', 'text/plain');
-        res.set('Content-Disposition', 'attachment; filename="' + sFilename + '"');
+        
+        // Content-Type is automatically determined if there is a file name.
+        res.attachment(sFilename);
         
         // Send document text.
         var oDocument = null;
