@@ -279,20 +279,20 @@ var Workspace = oHelpers.createClass(
         // Assign the client a username.
         oClient.setUsername(this._generateNewClientName());
         
-        // Add the client.
+        // Add the client: Automatically allow editing if you're the only client.
         this._aClients.push(oClient);
-        if (this._bDocumentLoaded)
-        {
-            this._setClientInitialValue(oClient);
-            oClient.onDocumentLoad();
-        }
-        
-        // Automatically start editing if you're the only client.
         if (this._aClients.length == 1)
         {
             this._oCurrentEditingClient = oClient;
         }
         
+        // Initialize client.
+        if (this._bDocumentLoaded)
+        {
+            this._setClientInitialValue(oClient);
+            oClient.onDocumentLoad();
+        }
+                
         // Propagate to the other clients.
         if (this._bDocumentLoaded)
         {
@@ -311,8 +311,6 @@ var Workspace = oHelpers.createClass(
         if (oClient == this._oCurrentEditingClient)
         {
             this._removeSelection();
-            this._oCurrentEditingClient = null;
-            this._oLastSelAction = null;
         }
 
         // Remove the client.
@@ -341,7 +339,7 @@ var Workspace = oHelpers.createClass(
                 });
                 this._aCurrentlyTyping.splice(this._aCurrentlyTyping.indexOf(oClient), 1);
             }
-    
+            
             this._broadcastAction(oClient,
             {
                 'sType': 'removeUser',
@@ -472,7 +470,6 @@ var Workspace = oHelpers.createClass(
                 else
                 {
                     this._removeSelection();
-                    this._oCurrentEditingClient = null;
                 }
                 break;
             
@@ -578,6 +575,8 @@ var Workspace = oHelpers.createClass(
             sType: 'removeSelection',
             oData: null
         });
+        this._oCurrentEditingClient = null
+        this._oLastSelAction = null;
     },
 
     _save: function()

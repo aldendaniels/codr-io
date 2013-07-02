@@ -60,7 +60,7 @@ var Workspace = oHelpers.createClass(
         this._attachDOMEvents();
     },
     
-    blurFocusedObject: function(bDoNotAddNextFocusEventToHistory)
+    blurFocusedObject: function()
     {
         if (this._oFocusedObject && this._oFocusedObject != this._oEditor)
         {            
@@ -84,6 +84,7 @@ var Workspace = oHelpers.createClass(
     
     focusEditor: function()
     {
+        this.blurFocusedObject();
         this._oEditor.focus();  
     },
     
@@ -125,6 +126,10 @@ var Workspace = oHelpers.createClass(
         $('BODY').toggleClass('is-editing', bIsEditing);
         this._oToolbar.setIsEditing(bIsEditing);
         this._oEditor.setIsEditing(bIsEditing);
+        // Set focus to editor when setting edit mode to true,
+        // if focus is not elswhere.
+        if (bIsEditing && !this._oFocusedObject)
+            this._oEditor.focus();
     },
     
     _getContainingObj: function(jElem)

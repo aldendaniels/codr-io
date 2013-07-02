@@ -40,6 +40,9 @@ var Editor = oHelpers.createClass(
         this._oAceEditSession = this._oAceEditor.getSession();
         this._oAceDocument = this._oAceEditSession.getDocument();
         
+        // Set readonly by default.
+        this._oAceEditor.setReadOnly(true);
+        
         // Set initial ace editor settings.
         this._oAceEditor.setFontSize(14);
         this._oAceEditor.setShowPrintMargin(false);
