@@ -39,12 +39,21 @@ var Toolbar = oHelpers.createClass(
     
     setIsEditing: function(bIsEditing)
     {
-        $('.menu').toggleClass('disabled', !bIsEditing);
+        // Toggle edit button style.
         $('#edit-button').toggleClass('on', bIsEditing);
-        $('#title-input').prop('disabled', !bIsEditing);
-        $('#title-save').prop('disabled', !bIsEditing);
-        $('.edit-mode-message').toggle(!bIsEditing);
+
+        // Toggle mode menu editability.
+        $('.menu').toggleClass('disabled', !bIsEditing);
+        
+        // Toggle title editability.
+        $('#title-input, #title-save').prop('disabled', !bIsEditing);
         $('#title .hidden-focusable a').attr('tabIndex', (bIsEditing ? -1 : 1));
+        if ($('.toolbar-item.open').is('#title'))
+            $('#title .hidden-focusable a').focus();
+
+        // Show the "edit mode required" message.
+        $('.edit-mode-message').toggle(!bIsEditing);
+
     },
     
     contains: function(jElem)
@@ -191,7 +200,7 @@ var Toolbar = oHelpers.createClass(
     
     _closeOpenDropdown: function()
     {
-        $('.toolbar-item.open').removeClass('open');
+        $('.toolbar-item.open').removeClass('open').scrollTop(0);
     },
     
     _blur: function()
