@@ -50,6 +50,9 @@ var Editor = oHelpers.createClass(
         // Attach Ace gotoline command to different shortcut
         this._oAceEditor.commands.bindKey('Ctrl-G|Command-G', 'gotoline');
         this._oAceEditor.commands.bindKey('Ctrl-L|Command-L', '');
+		
+		// Do not include white space in selection
+		this._oAceEditor.setSelectionStyle('text');
         
         // Attach events.
         this._attachAceEvents();
