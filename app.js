@@ -49,14 +49,13 @@ oApp.configure(function()
         if (sDocumentID in g_oWorkspaces)
         {
             oDocument = g_oWorkspaces[sDocumentID].getDocument();
-            res.send(oDocument.get('sText'));
+            res.send(oDocument.sText);
         }
         else
         {
             oDatabase.getDocument(sDocumentID, this, function(sDocumentJSON)
             {
-                oDocument = new Document(sDocumentJSON);
-                res.send(oDocument.get('sText'));
+                res.send(parseDocument(sDocument.JSON).sText);
             });
         }
     });
@@ -82,14 +81,14 @@ oApp.configure(function()
         if (sDocumentID in g_oWorkspaces)
         {
             oDocument = g_oWorkspaces[sDocumentID].getDocument();
-            res.send(oDocument.get('sText'));
+            res.send(oDocument.sText);
         }
         else
         {
             oDatabase.getDocument(sDocumentID, this, function(sDocumentJSON)
             {
-                oDocument = new Document(sDocumentJSON);
-                res.send(oDocument.get('sText'));
+                oDocument = parseDocument(sDocumentJSON);
+                res.send(oDocument.sText);
             });
         }
     });
@@ -246,7 +245,6 @@ var Workspace = oHelpers.createClass(
     _oLastSelAction: null,
 
     // PeoplePane
-    _aChatHistory: null,
     _iGeneratedClientNames: 0,
     _aCurrentlyTyping: null,
     
@@ -255,7 +253,6 @@ var Workspace = oHelpers.createClass(
         g_oWorkspaces[sDocumentID] = this;
         this._sDocumentID = sDocumentID;
         this._aClients = [];
-        this._aChatHistory = [];
         this._aCurrentlyTyping = [];
         
         // Add the intial client.
@@ -265,8 +262,8 @@ var Workspace = oHelpers.createClass(
         oDatabase.getDocument(sDocumentID, this, function(sDocumentJSON)
         {
             // Save pointer to document.
-            this._oDocument = new Document(sDocumentJSON);
-            this._oAceDocument = new oAceDocument(this._oDocument.get('sText'));
+            this._oDocument = parseDocument(sDocumentJSON);
+            this._oAceDocument = new oAceDocument(this._oDocument.sText);
             this._oAceDocument.setNewLineMode('windows'); // TODO (Will 6/29/2013) test in other environments
             this._bDocumentLoaded = true;
             
@@ -396,13 +393,13 @@ var Workspace = oHelpers.createClass(
             // Set mode (language.)
             oClient.sendAction('setMode',
             {
-                sMode: this._oDocument.get('sMode')
+                sMode: this._oDocument.sMode
             });
     
             // Set title.
             oClient.sendAction('setDocumentTitle', 
             {
-                sTitle: this._oDocument.get('sTitle')
+                sTitle: this._oDocument.sTitle
             });
             
             // Set currently viewing.
@@ -428,14 +425,14 @@ var Workspace = oHelpers.createClass(
             }
             
             // Set chat history.
-            for (var i = 0; i < this._aChatHistory.length; i++)
+            for (var i = 0; i < this._oDocument.aChatHistory.length; i++)
             {
                 oClient.sendAction('newChatMessage',
                 {
-                    'sUsername': this._aChatHistory[i].sUsername,
-                    'sMessage':  this._aChatHistory[i].sMessage
+                    'sUsername': this._oDocument.aChatHistory[i].sUsername,
+                    'sMessage':  this._oDocument.aChatHistory[i].sMessage
                 });
-            }            
+            }
         }
     },
     
@@ -480,7 +477,7 @@ var Workspace = oHelpers.createClass(
             
             case 'setMode':
                 this._broadcastAction(oClient, oAction);
-                this._oDocument.set('sMode', oAction.oData.sMode);
+                this._oDocument.sMode = oAction.oData.sMode;
                 break;
                 
             case 'setSelection':
@@ -495,7 +492,7 @@ var Workspace = oHelpers.createClass(
 				if(bClientHasEditRights)
 				{
 					this._broadcastAction(oClient, oAction);
-					this._oDocument.set('sTitle', oAction.oData.sTitle);
+					this._oDocument.sTitle = oAction.oData.sTitle;
 				}
 				break;
             
@@ -518,7 +515,23 @@ var Workspace = oHelpers.createClass(
                     }
                 };
                 this._broadcastAction(oClient, oNewAction);
-                this._aChatHistory.push(oNewAction.oData);
+                this._oDocument.aChatHistory.push(oNewAction.oData);
+                this._setAutoSaveTimeout();
+                break;
+
+            case 'changeUsername':
+                this._broadcastAction(oClient, {
+                    'sType': 'removeUser',
+                    'oData': {'sUsername': oClient.getUsername()}
+                });
+
+                oClient.setUsername(oAction.oData.sUsername);
+
+                this._broadcastAction(oClient, {
+                    'sType': 'addUser',
+                    'oData': {'sUsername': oClient.getUsername()}
+                });
+                
                 break;
 
             case 'startTyping':
@@ -589,7 +602,7 @@ var Workspace = oHelpers.createClass(
         this._assertDocumentLoaded();
         this._updateDocumentText();
         this._clearAutoSaveTimeout();
-        oDatabase.saveDocument(this._sDocumentID, this._oDocument.toJSON(), this, function(sError)
+        oDatabase.saveDocument(this._sDocumentID, serializeDocument(this._oDocument), this, function(sError)
         {
             // Handle save errors.
         });
@@ -612,7 +625,7 @@ var Workspace = oHelpers.createClass(
     
     _updateDocumentText: function()
     {
-        this._oDocument.set('sText', this._oAceDocument.getValue());
+        this._oDocument.sText = this._oAceDocument.getValue();
     },
     
     _assertDocumentLoaded: function()
@@ -621,46 +634,27 @@ var Workspace = oHelpers.createClass(
     }
 });
 
-
-var Document = oHelpers.createClass(
+function parseDocument(sJSON)
 {
-    _bReadOnly:     false,
-    _aChildrenIDs:  null,
-    _sParentID:     '',
-    _sMode:         '',
-    _sText:         '',
-    _sTitle:        'Untitled',
+    var oBlankDocument = {
+        bReadOnly: false,
+        aChildrenIDs: [],
+        sParentID: '',
+        sMode: '',
+        sText: '',
+        sTitle: 'Untitled',
+        aChatHistory: []
+    };
 
-    __init__: function(sJSON)
-    {
-        var oData = JSON.parse(sJSON);
-        for (sKey in oData)
-            this.set(sKey, oData[sKey]);
-    },
-    
-    set: function(sKey, oValue)
-    {
-        var sProp = '_' + sKey;
-        oHelpers.assert (sProp in this, 'Invalid key: ' + sKey);
-        oHelpers.assert (typeof(oValue) == typeof(this[sProp]), 'Invalid type "' + typeof(oValue) + '" for key "' + sKey + '"');
-        this[sProp] = oValue;
-    },
-    
-    get: function(sKey)
-    {
-        var sProp = '_' + sKey;
-        oHelpers.assert (sProp in this, 'Invalid key: ' + sKey);
-        return JSON.parse(JSON.stringify(this[sProp])); // Deep clone.
-    },
+    var oParsed = JSON.parse(sJSON);
+    for (var sKey in oParsed)
+        oBlankDocument[sKey] = oParsed[sKey];
 
-    toJSON: function()
-    {
-        var oData = {};
-        for (sProp in this)
-        {
-            if (sProp.charAt(0) == '_' && typeof(this[sProp]) != 'function')
-                oData[sProp.substr(1)] = this[sProp];
-        }
-        return JSON.stringify(oData);
-    }
-});
+    return oBlankDocument;
+
+}
+
+function serializeDocument(oDocument)
+{
+    return JSON.stringify(oDocument);
+}

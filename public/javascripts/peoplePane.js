@@ -8,6 +8,7 @@ var PeoplePane = oHelpers.createClass(
     _aTypingUsers: null,
     _bTyping: false,
     _iTypingTimeout: null,
+    _iUnseen: 0,
     
     __type__: 'PeoplePane',    
 
@@ -22,6 +23,12 @@ var PeoplePane = oHelpers.createClass(
         
         // Listen to socket events.
         this._oSocket.bind('message', this, this._handleServerAction);
+
+        var oRealThis = this;
+        $('#username').on('blur', function(oEvent)
+        {
+            oRealThis.onEvent(oEvent);
+        });
     },
     
     contains: function(jElem)
@@ -69,11 +76,19 @@ var PeoplePane = oHelpers.createClass(
                 }
             }            
         }
+
+        if (sEventType == 'blur')
+        {
+            if (jTarget.is('#username'))
+                this._changeUsername(jTarget.val());
+        }
     },
 
     focus: function()
     {
         $('#chat-box').focus();
+        this._iUnseen = 0;
+        this._reRender();
     },
 
     onBlur: function()
@@ -116,12 +131,25 @@ var PeoplePane = oHelpers.createClass(
 
     _addNewChatMessage: function(sUsername, sMessage)
     {
+        if (!this._isPaneOpen())
+            this._iUnseen++;
+
         this._aHistory.push(
         {
             'sUsername': sUsername,
             'sMessage': sMessage
         });
         this._reRender();
+    },
+
+    _changeUsername: function(sUsername)
+    {
+        this._oSocket.send('changeUsername',
+        {
+            'sUsername': sUsername
+        });
+
+        this._oWorkspace.getUserInfo()['sUsername'] = sUsername;
     },
 
     _sendNewMessage: function(sMessage)
@@ -167,6 +195,9 @@ var PeoplePane = oHelpers.createClass(
         var jTyping = $(document.createElement('div'));
         jTyping.append('<br/><br/>Typing: ' + this._englishFormatArray(this._aTypingUsers));
         jWrapper.append(jTyping);
+
+        // Update the notifications.
+        $('#people-pane-button-notification').text(this._iUnseen || '');
     },
 
     _englishFormatArray: function(aArray)
@@ -189,6 +220,11 @@ var PeoplePane = oHelpers.createClass(
         this._bTyping = false;
         this._iTypingTimeout = null;
         this._oSocket.send('endTyping');
+    },
+    
+    _isPaneOpen: function()
+    {
+        return $('#workspace').hasClass('people-pane-expanded');
     }
 });
 
