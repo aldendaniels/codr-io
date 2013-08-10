@@ -651,7 +651,6 @@ function parseDocument(sJSON)
         oBlankDocument[sKey] = oParsed[sKey];
 
     return oBlankDocument;
-
 }
 
 function serializeDocument(oDocument)

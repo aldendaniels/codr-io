@@ -23,7 +23,7 @@
         </div>
         
         <div id="workspace" class="">
-            <div id="toolbar">
+            <div id="toolbar-top">
                 
                 <a id="toolbar-logo" class="logo" href="http://codr.io/">codr.io</a>
                 <div class="divider"></div>
@@ -59,20 +59,6 @@
                 </div>
                 <div class="divider"></div>
                 
-                <div id="download-menu" class="toolbar-item text-input-menu">
-                    <div class="toolbar-item-btn">
-                        <img src="images/download.png">
-                        <div class="toolbar-item-selection">Loading...</div>
-                    </div>
-                    <div class="toolbar-dropdown-top-border"></div>
-                    <div class="toolbar-dropdown">
-                        <input type="text" id="download-as" placeholder="File name"></input>
-                        <div class="horizontal-divider"></div>
-                        <button id="download">Download</button>
-                    </div>
-                </div>
-                <div class="divider"></div>
-                
                 <div id="toolbar-content-right">
                     
                     <div class="divider"></div>
@@ -87,11 +73,25 @@
                     </a>
                 </div>
             </div>
+            <div id="toolbar-left">
+                <div id="download-menu" class="toolbar-item text-input-menu">
+                    <div class="toolbar-item-btn">
+                        <img src="images/download.png">
+                    </div>
+                    <div class="toolbar-dropdown-left-border"></div>
+                    <div class="toolbar-dropdown">
+                        <input type="text" id="download-as" placeholder="File name"></input>
+                        <div class="horizontal-divider"></div>
+                        <button id="download">Download</button>
+                    </div>
+                </div>
+            </div>
             <div id="people">
-                <div id="line-top"></div>
-                <div id="comments-wrapper"></div>
-                <input type="text" id="username" />
-                <textarea type="text" id="chat-box"></textarea>
+                <table id="people-sizer">
+                    <tr><td><span id="people-viewing"></span></td></tr>
+                    <tr id="chat-history"><td>Chat history</td></tr>
+                    <tr><td><textarea type="text" id="chat-box"></textarea></td></tr>
+                </table>
             </div>
             <div id="edit"></div>
         </div>

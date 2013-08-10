@@ -1,6 +1,8 @@
 
+@top-toolbar-height: 50px;
 @codr-blue: #319ac2;
 @share-pane-width: 200px;
+@left-toolbar-width: 75px;
 
 body
 {
@@ -156,10 +158,93 @@ button
             right: @share-pane-width + 1px !important;
         }
     }
-    
-    #toolbar
+
+    #toolbar-top,
+    #toolbar-left
     {
-        height: 50px;
+        .toolbar-item
+        {
+            position: relative;
+            z-index: 10;
+            overflow: hidden;
+
+            .toolbar-item-btn
+            {
+                cursor: pointer;
+                transition: background-color 0.2s;
+            }
+
+            &:not(.open) .toolbar-item-btn:hover
+            {
+                background-color: rgba(255, 255, 255, 0.5);
+            }
+
+            .toolbar-dropdown
+            {
+                display: block;
+                background-color: white;
+                background-color: #fafafa;
+                
+                button
+                {
+                    margin-left: 8px;
+                    width: 384px;
+                    height: 35px;
+                    font-size: 12pt;
+                }
+                
+            }
+
+            &.open
+            {
+                background-color: white;
+                background-color: #fafafa;
+                box-shadow: 0 0 8px #aaa;
+                overflow: visible;
+                z-index: 20;
+
+                .toolbar-dropdown
+                {
+                    box-shadow: 0px 0px 8px #aaa;
+                }
+            }
+
+            &.text-input-menu
+            {
+                .toolbar-dropdown
+                {
+                    width: 400px;
+                }
+                
+                input
+                {
+                    width: 362px;
+                    margin-left: 5px;
+                    margin-top: 10px;
+                    padding: 12px;
+                    border: 1px white solid;
+                    box-shadow: 0 0 5px #bbb inset;
+                    border-radius: 5px;
+                    outline: none;
+                    font-size: 12pt;
+                }
+                
+                .horizontal-divider
+                {
+                    margin-top: 20px;
+                    margin-bottom: 19px;
+                    border-top: 1px #ddd solid;
+                    border-bottom: 1px white solid;
+                    margin-left: -@toolbarDropdownPadding;
+                    margin-right: -@toolbarDropdownPadding;
+                }
+            }
+        }
+    }
+    
+    #toolbar-top
+    {
+        height: @top-toolbar-height;
         border-bottom: 1px #ccc solid;
         
         > * {
@@ -180,7 +265,7 @@ button
         
         .divider
         {
-            height: 50px;
+            height: @top-toolbar-height;
             border-right: 1px #f5f5f5 solid;
             border-left: 1px #ccc solid;
         }
@@ -210,14 +295,9 @@ button
         .toolbar-item
         {
             height: 100%;
-            position: relative;
-            z-index: 10;
-            overflow: hidden;
             
             .toolbar-item-btn
             {
-                cursor: pointer;
-                transition: background-color 0.2s;
                 padding-left: 10px;
                 padding-right: 10px;
                 height: 46px;
@@ -239,51 +319,20 @@ button
                     white-space: nowrap;
                     text-overflow: ellipsis;
                 }
-                
-               
-                [class^="icon-"]
-                {
-                    font-size: 26pt;
-                    position: relative;
-                    top: -2px;
-                }                                    
-            }
-            
-            &:not(.open) .toolbar-item-btn:hover
-            {
-                background-color: rgba(255, 255, 255, 0.5);
             }
             
             .toolbar-dropdown
             {
                 margin-top: 1px;
                 padding: @toolbarDropdownPadding;
-                display: block;
-                background-color: white;
                 border-bottom-left-radius: 5px;
                 border-bottom-right-radius: 5px;
-                background-color: #fafafa;
-                
-                button
-                {
-                    margin-left: 20px;
-                    margin-right: 20px;
-                    width: 360px;
-                    height: 35px;
-                    font-size: 12pt;
-                }
-                
             }
             
             &.open
             {
-                background-color: white;
                 margin-left: -3px;
                 margin-right: -3px;
-                background-color: #fafafa;
-                box-shadow: 0 0 8px #aaa;
-                overflow: visible;
-                z-index: 20;
 
                 .toolbar-item-btn
                 {
@@ -302,12 +351,6 @@ button
                     width: 100%;
                 }
                 
-                .toolbar-dropdown
-                {
-                    top: 51px; /* flush with button. */
-                    box-shadow: 0px 0px 8px #aaa;
-                }
-                
                 .toolbar-item-selection
                 {
                     display: none;
@@ -321,45 +364,8 @@ button
                 }
             }
         }
-    
+
         /***************** TITLE OPTION *********************/
-        
-        .toolbar-item.text-input-menu
-        {
-            .toolbar-dropdown
-            {
-                width: 400px;
-            }
-            
-            input
-            {
-                width: 362px;
-                margin-left: 5px;
-                margin-top: 10px;
-                padding: 12px;
-                border: 1px white solid;
-                box-shadow: 0 0 5px #bbb inset;
-                border-radius: 5px;
-                outline: none;
-                font-size: 12pt;
-            }
-            
-            .horizontal-divider
-            {
-                margin-top: 20px;
-                margin-bottom: 19px;
-                border-top: 1px #ddd solid;
-                border-bottom: 1px white solid;
-                margin-left: -@toolbarDropdownPadding;
-                margin-right: -@toolbarDropdownPadding;
-            }
-            
-            #title-save
-            {
-                width: 387px;
-                margin-left: 5px;                
-            }
-        }
         
         .toolbar-item#title
         {
@@ -370,16 +376,6 @@ button
             }
         }
         
-        .toolbar-item#download-menu
-        {
-            width: 65px;
-            &.open
-            {
-                width: 71px;
-            }
-        }
-                    
-                    
         /***************** MODE OPTION *********************/
         
         .toolbar-item#mode
@@ -402,10 +398,6 @@ button
                 position: relative;
                 border: 1px #ddd solid;
             }
-        }
-        
-        .edit-mode-message
-        {
         }
         
         /***************** EDIT BUTTON *********************/
@@ -474,8 +466,8 @@ button
     #edit
     {
         position: absolute;
-        top: 51px;
-        left: 0;
+        top: @top-toolbar-height + 1px;
+        left: @left-toolbar-width;
         right: 0;
         bottom: 0;
     }
@@ -484,32 +476,81 @@ button
     {
         display: none;
         position: absolute;
-        top: 51px;
+        top: @top-toolbar-height + 1px;
         right: 0;
         bottom: 0;
         width: @share-pane-width;
         border-left: 1px #ccc solid;
         
-        .divider
+        #people-sizer
         {
-            border-top: 1px #ccc solid;
-            border-bottom: 1px #f5f5f5 solid;
-        }    
-    
-        #line-top
-        {
-            border-top: 1px #f5f5f5 solid;
+            height: 100%;
+
+            #chat-history
+            {
+                height: 100%;
+            }
         }
 
         #chat-box
         {
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            left: 0;
             margin: 1em;
             height: 4em;
             font-size: 10pt;
+        }
+    }
+        
+    #toolbar-left
+    {
+        position: absolute;
+        top: @top-toolbar-height;
+        bottom: 0;
+        left: 0;
+        width: @left-toolbar-width;
+
+        .toolbar-item
+        {
+            width: 100%;
+            
+            .toolbar-item-btn [class^="icon-"]
+            {
+                font-size: 26pt;
+                position: relative;
+                top: -2px;
+            }                                    
+            
+            .toolbar-dropdown
+            {
+                position: absolute;
+                left: @left-toolbar-width;
+                margin-left: 1px;
+                padding: @toolbarDropdownPadding;
+                border-bottom-right-radius: 5px;
+                border-top-right-radius: 5px;
+            }
+            
+            &.open
+            {
+                margin-top: -3px;
+                margin-bottom: -3px;
+
+                .toolbar-item-btn
+                {
+                    padding-left: 13px;
+                    border-left: 2px @codr-blue solid;
+                    padding-top: 3px;    
+                }
+
+                .toolbar-dropdown-left-border
+                {
+                    position: absolute;
+                    top: 0;
+                    left: @left-toolbar-width - 2px;
+                    background-color: #fafafa;
+                    width: 10px;
+                    height: 100%;
+                }
+            }
         }
     }
 }

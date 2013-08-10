@@ -58,7 +58,7 @@ var Toolbar = oHelpers.createClass(
     
     contains: function(jElem)
     {
-        return jElem.closest('#toolbar').length > 0;
+        return jElem.closest('#toolbar-top,#toolbar-left').length > 0;
     },
     
     focus: function()
@@ -100,7 +100,7 @@ var Toolbar = oHelpers.createClass(
             }
             
             // Blur when clicking directly on the toolbar (e.g. not on dropdown).
-            if (jTarget.is('#toolbar') && jActiveToolbarItem)
+            if (jTarget.is('#toolbar-top,#toolbar-left') && jActiveToolbarItem)
             {
                 this._blur();
                 return;
