@@ -156,9 +156,9 @@ var Editor = oHelpers.createClass(
     _setPeopleViewing: function()
     {
         if (this._iNumUsers == 1)
-            $('#num-viewing').text(this._iNumUsers + ' other person is viewing');
+            $('#num-viewing').text(this._iNumUsers + ' other viewer');
         else
-            $('#num-viewing').text(this._iNumUsers + ' other people are viewing');
+            $('#num-viewing').text(this._iNumUsers + ' other viewers');
     },
 
     _setCurrentEditor: function(sUsername)
