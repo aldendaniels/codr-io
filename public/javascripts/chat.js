@@ -24,14 +24,16 @@ var Chat = oHelpers.createClass(
         this._oSocket.bind('message', this, this._handleServerAction);
     },
     
-    onChatOpen: function()
+    onOpen: function()
     {
         this._bChatOpen = true;
         this._iUnseen = 0;
+        this._reRender();
     },
     
-    onChatClose: function()
+    onClose: function()
     {
+        console.log('on close');
         this._bChatOpen = false;
     },
     
@@ -111,6 +113,7 @@ var Chat = oHelpers.createClass(
     {
         if (!this._bChatOpen)
             this._iUnseen++;
+            
         this._aHistory.push(
         {
             'sUsername': sUsername,
@@ -173,7 +176,8 @@ var Chat = oHelpers.createClass(
         $('#chat-typing-names').text(this._englishFormatArray(this._aTypingUsers));
 
         // Update the notifications.
-        //$('#people-pane-button-notification').text(this._iUnseen || '');
+        $('#chat-unread-count').text(this._iUnseen);
+        $('#chat-unread-count').toggle(!!this._iUnseen);
     },
 
     _englishFormatArray: function(aArray)

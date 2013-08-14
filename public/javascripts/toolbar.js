@@ -195,16 +195,28 @@ var Toolbar = oHelpers.createClass(
     
     _openDropdown: function(jItem)
     {
+        // Open dropdown
         if (!jItem.hasClass('open'))
         {
             jItem.addClass('open');
             jItem.find(':focusable').first().focus().select();            
         }
+        
+        /* Notify chat. */
+        if (jItem.is('#chat-menu'))
+            this._oChat.onOpen();
     },
     
     _closeOpenDropdown: function()
     {
-        $('.toolbar-item.open').removeClass('open').scrollTop(0);
+        // Close dropdown.
+        var jItem = $('.toolbar-item.open');
+        jItem.removeClass('open').scrollTop(0);
+        
+        /* Notify chat. */
+        if (jItem.is('#chat-menu'))
+            this._oChat.onClose();
+
     },
     
     _blur: function()
