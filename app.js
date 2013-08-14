@@ -526,18 +526,57 @@ var Workspace = oHelpers.createClass(
                 break;
 
             case 'changeUsername':
+                var sNewUsername = oAction.oData.sUsername;
+
+                // Check for errors
+                var sError = '';
+                if (!sNewUsername)
+                    sError = 'Username may not be blank.';
+
+                for (var i = 0; i < this._aClients.length; i++)
+                {
+                    if (this._aClients[i] != oClient && this._aClients[i].getUsername() == sNewUsername)
+                        sError = 'This username has already been taken.';
+                }
+
+                // Handle errors
+                if (sError)
+                {
+                    oClient.sendAction('invalidUsernameChange',
+                    {
+                        'sReason': sError
+                    });
+                    break;
+                }
+
+                // Remove old user
                 this._broadcastAction(oClient, {
                     'sType': 'removeUser',
                     'oData': {'sUsername': oClient.getUsername()}
                 });
 
-                oClient.setUsername(oAction.oData.sUsername);
+                // Tell client his new name.
+                oClient.sendAction('newUsernameAccepted', 
+                {
+                    'sUsername': sNewUsername
+                });                
+                oClient.setUsername(sNewUsername);
 
+                // Change the name of the current editing client.
+                if (this._oCurrentEditingClient == oClient)
+                {
+                    this._broadcastAction(null,
+                    {
+                        sType: 'setCurrentEditor',
+                        oData: {'sUsername': sNewUsername}
+                    })
+                }
+
+                // Add the new client to the list of viewing people.
                 this._broadcastAction(oClient, {
                     'sType': 'addUser',
                     'oData': {'sUsername': oClient.getUsername()}
                 });
-                
                 break;
 
             case 'startTyping':

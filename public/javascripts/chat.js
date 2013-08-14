@@ -45,6 +45,13 @@ var Chat = oHelpers.createClass(
 
         if (sEventType == 'click')
         {
+            if (jTarget.is('#chat-identify-ok-button'))
+            {
+                this._oSocket.send('changeUsername',
+                {
+                    'sUsername': $('#chat-identify').val()
+                });
+            }
             return;
         }
         
@@ -101,6 +108,16 @@ var Chat = oHelpers.createClass(
             case 'endTyping':
                 this._aTypingUsers.splice(this._aTypingUsers.indexOf(oAction.oData.sUsername), 1);
                 this._reRender();
+                break;
+
+            case 'invalidUsernameChange':
+                $('#chat-identify-error-message').text(oAction.oData.sReason);
+                break;
+
+            case 'newUsernameAccepted':
+                $('#chat').removeClass('identify');
+                $('#chat-box').prop('disabled', false);
+                this._oWorkspace.getUserInfo()['sUsername'] = oAction.oData.sUsername;
                 break;
             
             default:

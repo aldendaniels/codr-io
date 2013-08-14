@@ -57,7 +57,7 @@
                     </div>
                     <div class="toolbar-dropdown-top-border"></div>
                     <div class="toolbar-dropdown">
-                        <div id="mode-message" class="edit-mode-message">edit mode required to make changes</div>
+                        <div id="mode-message" class="edit-mode-message">Edit mode required to make changes</div>
                         <div id="mode-menu"></div>
                     </div>
                 </div>
@@ -81,12 +81,18 @@
                         <div id="chat-unread-count" style="display: none;"></div>
                     </div>
                     <div class="toolbar-dropdown-left-border"></div>
-                    <div class="toolbar-dropdown" id="chat">
+                    <div class="toolbar-dropdown identify" id="chat">
+                        <div id="chat-identify-wrapper">
+                            Please identify yourself:
+                            <input type="text" id="chat-identify" />
+                            <button id="chat-identify-ok-button">Ok</button>
+                            <div id="chat-identify-error-message"></div>
+                        </div>
                         <div id="chat-history"></div>
                         <div id="chat-typing">
                             <b>Typing: </b><span id="chat-typing-names"></span>
                         </div>
-                        <textarea type="text" id="chat-box"></textarea>
+                        <textarea type="text" id="chat-box" disabled="disabled"></textarea>
                     </div>
                 </div>
                 <div class="divider"></div>

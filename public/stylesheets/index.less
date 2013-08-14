@@ -606,6 +606,30 @@ button
 
 #chat
 {
+    #chat-identify-wrapper
+    {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        display: none;
+        background-color: #fafafa;
+        margin: 1em;
+
+
+        #chat-identify-error-message
+        {
+            font-style: italic;
+            color: red;
+        }
+    }
+
+    &.identify #chat-identify-wrapper
+    {
+        display: block;
+    }
+
     #chat-history
     {
         margin: 5px;
@@ -635,7 +659,7 @@ button
         margin-left: 5px;
     }
     
-    textarea
+    #chat-box
     {
         padding: 12px;
         width: 362px;
