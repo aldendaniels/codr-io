@@ -7,6 +7,7 @@ var Toolbar = oHelpers.createClass(
     
     /* Internal state */
     _oModeMenu: null,
+    _oChat: null,
     
     __type__: 'Toolbar',    
 
@@ -23,6 +24,9 @@ var Toolbar = oHelpers.createClass(
             function(oMode) { return oMode.getDisplayName();                     }, // Get item display text.
             this._setModeToLocal
         );
+        
+        // Create the chat object.
+        this._oChat = new Chat(oWorkspace, oSocket);
     },
     
     setTitle: function(sTitle)
@@ -177,6 +181,13 @@ var Toolbar = oHelpers.createClass(
             this._oModeMenu.onEvent(oEvent);
             return;
         }
+        
+        /* Forward chat events to chat. */
+        if (jActiveToolbarItem.is('#chat-menu'))
+        {
+            this._oChat.onEvent(oEvent);
+            return;
+        }        
 
     },
     

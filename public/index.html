@@ -74,20 +74,22 @@
                 </div>
             </div>
             <div id="toolbar-left">
+                
                 <div id="chat-menu" class="toolbar-item text-input-menu">
                     <div class="toolbar-item-btn">
                         <i class="icon-chat left-icon"></i>
                     </div>
                     <div class="toolbar-dropdown-left-border"></div>
-                    <div class="toolbar-dropdown" id="chat" style="height: 100px; color: red;">
-                        <b>Does not work yet</b>
-                        <!--
-                            <div id="chat-history"></div>
-                            <textarea type="text" id="chat-box"></textarea>
-                        -->
+                    <div class="toolbar-dropdown" id="chat">
+                        <div id="chat-history"></div>
+                        <div id="chat-typing">
+                            <b>typing:</b><span id="chat-typing-names"></span>
+                        </div>
+                        <textarea type="text" id="chat-box"></textarea>
                     </div>
                 </div>
                 <div class="divider"></div>
+                
                 <div id="download-menu" class="toolbar-item text-input-menu">
                     <div class="toolbar-item-btn">
                         <i class="icon-down-circled2 left-icon"></i>
@@ -122,7 +124,7 @@
         <script type="text/javascript" src="javascripts/ace/ace.js"></script>
         <script type="text/javascript" src="javascripts/editor.js"></script>
         <script type="text/javascript" src="javascripts/helpers/jquery-selectors.js"></script>
-        <!--<script type="text/javascript" src="javascripts/peoplePane.js"></script>-->
+        <script type="text/javascript" src="javascripts/chat.js"></script>
         <script type="text/javascript" src="javascripts/toolbar.js"></script>
         <script type="text/javascript" src="javascripts/workspace.js"></script>
         <script type="text/javascript">
