@@ -99,12 +99,12 @@ var PeoplePane = oHelpers.createClass(
     {
         switch(oAction.sType)
         {
-            case 'addUser':
+            case 'addUser': // This is also caught in editor.js
                 this._aCurUsers.push(oAction.oData.sUsername);
                 this._reRender();
                 break;
                 
-            case 'removeUser':
+            case 'removeUser': // This is also caught in editor.js
                 this._aCurUsers.splice(this._aCurUsers.indexOf(oAction.oData.sUsername), 1);
                 this._reRender();
                 break;

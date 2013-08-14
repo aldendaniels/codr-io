@@ -309,16 +309,17 @@ var Workspace = oHelpers.createClass(
     
     removeClient: function(oClient)
     {
+        // Remove the client first thing, so we don't accidentally send him events.
+        var iIndex = this._aClients.indexOf(oClient);
+        this._aClients.splice(iIndex, 1);
+        
         // Remove editing rights.
         if (oClient == this._oCurrentEditingClient)
         {
-            this._removeSelection();
+            this._removeEditRights();
         }
 
-        // Remove the client.
-        var iIndex = this._aClients.indexOf(oClient);
-        this._aClients.splice(iIndex, 1);
-                
+        
         // Close the document (if no editors left).
         if (this._aClients.length === 0)
         {
@@ -367,6 +368,11 @@ var Workspace = oHelpers.createClass(
             {
                 sDocumentID: this._sDocumentID
             });
+
+            oClient.sendAction('setCurrentEditor',
+            {
+                sUsername: oClient.getUsername()
+            });
         }
         
         // Otherwise, Send current document state.
@@ -379,11 +385,11 @@ var Workspace = oHelpers.createClass(
             });
             
             // Grant edit perms.
-            if (this._oCurrentEditingClient == oClient)
+            oClient.sendAction('setCurrentEditor',
             {
-                oClient.sendAction('editRightsGranted');
-            }
-    
+                sUsername: this._oCurrentEditingClient ? this._oCurrentEditingClient.getUsername() : null
+            });
+
             // Set selection.
             if (this._oLastSelAction)
             {
@@ -471,7 +477,7 @@ var Workspace = oHelpers.createClass(
                 }
                 else
                 {
-                    this._removeSelection();
+                    this._removeEditRights();
                 }
                 break;
             
@@ -562,7 +568,7 @@ var Workspace = oHelpers.createClass(
         return 'User ' + this._iGeneratedClientNames;
     },
 
-    _broadcastAction: function(oSendingClient, oAction)
+    _broadcastAction: function(oSendingClient /*May be null*/, oAction)
     {
         // Send actions to all other clients.
         this._assertDocumentLoaded();
@@ -576,7 +582,11 @@ var Workspace = oHelpers.createClass(
     
     _grantEditRights: function(oClient, oSelection)
     {
-        oClient.sendAction('editRightsGranted');
+        this._broadcastAction(null,
+        {
+            sType: 'setCurrentEditor',
+            oData: {'sUsername': oClient.getUsername()}
+        });
         this._oCurrentEditingClient = oClient;
         this._broadcastAction(oClient,
         {
@@ -585,14 +595,15 @@ var Workspace = oHelpers.createClass(
         });
     },
     
-    _removeSelection: function()
+    _removeEditRights: function()
     {
         oHelpers.assert(this._oCurrentEditingClient, 'You can\'t remove a selection if there\'s no editing client.')
-        this._broadcastAction(this._oCurrentEditingClient,
+        this._broadcastAction(null,
         {
-            sType: 'removeSelection',
-            oData: null
+            sType: 'setCurrentEditor',
+            oData: {'sUsername': null}
         });
+
         this._oCurrentEditingClient = null
         this._oLastSelAction = null;
     },

@@ -24,7 +24,7 @@ var Workspace = oHelpers.createClass(
         
         // Init objects.
         this._oToolbar    = new Toolbar(this, oSocket);
-        this._oEditor     = new Editor(oSocket);
+        this._oEditor     = new Editor(this, oSocket);
         
         // Init DOM focus.
         this._aObjects = [this._oToolbar, this._oEditor];
@@ -247,8 +247,9 @@ var Workspace = oHelpers.createClass(
                 this._oSocket.send('releaseEditRights'); // Notify server of action receipt.
                 break;
                 
-            case 'editRightsGranted':
-                this.setIsEditing(true);
+            case 'setCurrentEditor': // This is also caught in editor.js
+                if (this.getUserInfo().sUsername == oAction.oData.sUsername)
+                    this.setIsEditing(true);
                 break;
                 
             case 'setDocumentID': // Fired after creating a new document.

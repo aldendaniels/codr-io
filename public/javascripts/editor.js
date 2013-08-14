@@ -10,6 +10,7 @@ var Editor = oHelpers.createClass(
 {
     // Connection state.
     _oSocket: null,
+    _oWorkspace: null,
     
     // Ace editor objects.
     _oAceEditor: null,
@@ -25,17 +26,21 @@ var Editor = oHelpers.createClass(
     _iRemoteCursorMarkerID2: null,
     _oLastSelectionRange: null,
     _jEditorElem: null,
+    _iNumUsers: 0,
 
     __type__: 'Editor',    
 
-    __init__: function(oSocket)
+    __init__: function(oWorkspace, oSocket)
     {
-        // Attach socket.
         this._oSocket = oSocket;
+        this._oWorkspace = oWorkspace;
+
+        // Attach socket.
         this._oSocket.bind('message', this, this._handleServerAction);
         
         // Create ace editor.
         this._jEditorElem = $('#' + EDITOR_ID);
+        this._jSummaryBar = $('#summary-bar');
         this._oAceEditor = ace.edit(EDITOR_ID);
         this._oAceEditSession = this._oAceEditor.getSession();
         this._oAceDocument = this._oAceEditSession.getDocument();
@@ -56,6 +61,9 @@ var Editor = oHelpers.createClass(
         
         // Attach events.
         this._attachAceEvents();
+
+        this._setPeopleViewing();
+        this._setCursorPosSummary();
     },
     
     setMode: function(oMode)
@@ -96,7 +104,7 @@ var Editor = oHelpers.createClass(
     
     contains: function(jElem)
     {
-        return jElem.closest(this._jEditorElem).length > 0;
+        return jElem.closest(this._jEditorElem).length > 0 || jElem.closest(this._jSummaryBar).length > 0;
     },
 
     focus: function()
@@ -120,19 +128,54 @@ var Editor = oHelpers.createClass(
                 this._onRemoteCursorMove(oAction.oData);
                 break;
             
-            case 'removeSelection':
-                this._removeRemoteSelection();
-                break;
-            
             case 'aceDelta':
                 this._oAceDocument.applyDeltas([oAction.oData]);
                 break;
-            
+
+            case 'setCurrentEditor': // This is also caught in workspace.js
+                this._setCurrentEditor(oAction.oData.sUsername);
+                break;
+
+            case 'addUser':
+                this._iNumUsers++;
+                this._setPeopleViewing();
+                break;
+
+            case 'removeUser':
+                this._iNumUsers--;
+                this._setPeopleViewing();
+                break;
+
             default:
                 return false;
         }
 
         return true;
+    },
+
+    _setPeopleViewing: function()
+    {
+        if (this._iNumUsers == 1)
+            $('#num-viewing').text(this._iNumUsers + ' other person is viewing');
+        else
+            $('#num-viewing').text(this._iNumUsers + ' other people are viewing');
+    },
+
+    _setCurrentEditor: function(sUsername)
+    {
+        // Update status bar.
+        var sText = '';
+        if (sUsername === null)
+            sText = 'No one is editing';
+        else if (sUsername == this._oWorkspace.getUserInfo()['sUsername'])
+            sText = 'You are editing';
+        else
+            sText = sUsername + ' is editing';
+        $('#editors-name').text(sText);
+
+        // Remove cursor.
+        if (sUsername === null)
+            this._removeRemoteSelection()
     },
 
     _onRemoteCursorMove: function(oSel)
@@ -149,6 +192,8 @@ var Editor = oHelpers.createClass(
         {
             this._iRemoteCursorMarkerID1 = this._oAceEditSession.addMarker(oNewRange, 'remote-selection', 'text', true);   
         }
+
+        this._setCursorPosSummary(oSel);
     },
     
     _removeRemoteSelection: function()
@@ -164,6 +209,14 @@ var Editor = oHelpers.createClass(
             this._oAceEditSession.removeMarker(this._iRemoteCursorMarkerID2);
             this._iRemoteCursorMarkerID2 = null;
         }
+    },
+
+    _setCursorPosSummary: function(oSel)
+    {
+        var iRow = oSel ? oSel.start.row : 0;
+        var iCol = oSel ? oSel.start.column : 0;
+        $('#line-number').text(iRow);
+        $('#col-number').text(iCol);
     },
 
     _attachAceEvents: function()
@@ -184,6 +237,8 @@ var Editor = oHelpers.createClass(
                 this._oSocket.send('setSelection', oSelectionRange);
                 this._oLastSelectionRange = oSelectionRange;
             }            
+
+            this._setCursorPosSummary(oSelectionRange);
         }
     },
     

@@ -3,6 +3,7 @@
 @codr-blue: #319ac2;
 @share-pane-width: 200px;
 @left-toolbar-width: 65px;
+@bottom-bar-height: 25px;
 
 body
 {
@@ -462,7 +463,22 @@ button
         top: @top-toolbar-height + 1px;
         left: @left-toolbar-width;
         right: 0;
+        bottom: @bottom-bar-height;
+    }
+
+    #summary-bar
+    {
+        position: absolute;
         bottom: 0;
+        left: @left-toolbar-width;
+        right: 0;
+        height: @bottom-bar-height;
+
+        #summary-bar-right-section
+        {
+            float: right;
+            margin-right: 2em;
+        }
     }
     
     i.left-icon{
