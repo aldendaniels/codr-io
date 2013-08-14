@@ -7,7 +7,6 @@ var Workspace = oHelpers.createClass(
     
     _oEditor: null,
     _oToolbar: null,
-    _oPeoplePane: null,
     
     _oUserInfo: null,
     
@@ -25,11 +24,10 @@ var Workspace = oHelpers.createClass(
         
         // Init objects.
         this._oToolbar    = new Toolbar(this, oSocket);
-        this._oPeoplePane = new PeoplePane(this, oSocket);
         this._oEditor     = new Editor(oSocket);
         
         // Init DOM focus.
-        this._aObjects = [this._oToolbar, this._oEditor, this._oPeoplePane];
+        this._aObjects = [this._oToolbar, this._oEditor];
         this._aFocusHistory = [];
         
         // On a new document creation, default the title to "Untitled".
@@ -101,24 +99,6 @@ var Workspace = oHelpers.createClass(
     getEditorSelection: function()
     {
         return this._oEditor.getSelection();  
-    },
-    
-    togglePeoplePane: function()
-    {
-        if ($('#workspace').hasClass('people-pane-expanded'))
-        {
-            if (this._oFocusedObject == this._oPeoplePane)
-            {
-                this.blurFocusedObject();
-            }
-            $('#workspace').removeClass('people-pane-expanded');
-        }
-        else
-        {
-            $('#workspace').addClass('people-pane-expanded');
-            this._oPeoplePane.focus();
-        }
-        this._oEditor.resize();  
     },
     
     setIsEditing: function(bIsEditing)
@@ -210,7 +190,6 @@ var Workspace = oHelpers.createClass(
                              *                          Example: toolbar.
                              *
                              *  - Subtantial UI Object: UI object users do "live" in (excluding editor *)
-                             *                          Example: PeoplePane
                              *
                              *  * If "_olastFocusedObject" is null, focus reverts to the editor. Focus never
                              *    reverts away from the editor. ESC does nothing if the editor is focused.
@@ -218,7 +197,7 @@ var Workspace = oHelpers.createClass(
                              *******************************************************************************/ 
                             
                             var oEphemeralObjects   = [this._oToolbar   ];
-                            var oSubstantialObjects = [this._oPeoplePane];
+                            var oSubstantialObjects = [];
                             
                             if (oHelpers.inArray(oTargetObject, oEphemeralObjects) &&
                                 oHelpers.inArray(this._oFocusedObject, oSubstantialObjects))

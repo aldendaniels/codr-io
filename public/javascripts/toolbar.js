@@ -163,13 +163,6 @@ var Toolbar = oHelpers.createClass(
                 return;
             }
             
-            // Show/Hide people pane.
-            if (jTarget.closest('#people-pane-button').length)
-            {
-                this._oWorkspace.togglePeoplePane();
-                return;
-            }
-            
             // Download document
             if (jTarget.closest('#download').length)
             {

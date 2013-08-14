@@ -4,7 +4,8 @@
         <title>Codr</title>
         <link rel=StyleSheet href="stylesheets/index.css" type="text/css" />
         <link rel=StyleSheet href="stylesheets/menu.css" type="text/css" />
-        <link rel=StyleSheet href="stylesheets/fontello/css/fontello.css" type="text/css" />
+        <link rel=StyleSheet href="fontello/css/fontello.css" type="text/css" />
+        
         <link href='http://fonts.googleapis.com/css?family=Sanchez' rel='stylesheet' type='text/css'>
     </head>
     <body>
@@ -25,7 +26,10 @@
         <div id="workspace" class="">
             <div id="toolbar-top">
                 
-                <a id="toolbar-logo" class="logo" href="http://codr.io/">codr.io</a>
+                <a id="toolbar-logo" href="http://codr.io/">
+                    <i class="icon-cloud left-icon"></i>
+                    <i class="icon-code left-icon"></i>
+                </a>
                 <div class="divider"></div>
                 
                 <div id="title" class="toolbar-item text-input-menu">
@@ -67,16 +71,26 @@
                         <span class="text">Editing</span>
                     </button>
                     <div class="divider"></div>
-                    <a href="javascript:void(0)" id="people-pane-button">
-                        <span class="icon-person"></span>
-                        <span id="people-pane-button-notification"></span>
-                    </a>
                 </div>
             </div>
             <div id="toolbar-left">
+                <div id="chat-menu" class="toolbar-item text-input-menu">
+                    <div class="toolbar-item-btn">
+                        <i class="icon-chat left-icon"></i>
+                    </div>
+                    <div class="toolbar-dropdown-left-border"></div>
+                    <div class="toolbar-dropdown" id="chat" style="height: 100px; color: red;">
+                        <b>Does not work yet</b>
+                        <!--
+                            <div id="chat-history"></div>
+                            <textarea type="text" id="chat-box"></textarea>
+                        -->
+                    </div>
+                </div>
+                <div class="divider"></div>
                 <div id="download-menu" class="toolbar-item text-input-menu">
                     <div class="toolbar-item-btn">
-                        <img src="images/download.png">
+                        <i class="icon-down-circled2 left-icon"></i>
                     </div>
                     <div class="toolbar-dropdown-left-border"></div>
                     <div class="toolbar-dropdown">
@@ -86,13 +100,6 @@
                     </div>
                 </div>
                 <div class="divider"></div>
-            </div>
-            <div id="people">
-                <table id="people-sizer">
-                    <tr><td><span id="people-viewing"></span></td></tr>
-                    <tr id="chat-history"><td>Chat history</td></tr>
-                    <tr><td><textarea type="text" id="chat-box"></textarea></td></tr>
-                </table>
             </div>
             <div id="edit"></div>
         </div>
@@ -115,7 +122,7 @@
         <script type="text/javascript" src="javascripts/ace/ace.js"></script>
         <script type="text/javascript" src="javascripts/editor.js"></script>
         <script type="text/javascript" src="javascripts/helpers/jquery-selectors.js"></script>
-        <script type="text/javascript" src="javascripts/peoplePane.js"></script>
+        <!--<script type="text/javascript" src="javascripts/peoplePane.js"></script>-->
         <script type="text/javascript" src="javascripts/toolbar.js"></script>
         <script type="text/javascript" src="javascripts/workspace.js"></script>
         <script type="text/javascript">

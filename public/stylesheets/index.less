@@ -2,7 +2,7 @@
 @top-toolbar-height: 50px;
 @codr-blue: #319ac2;
 @share-pane-width: 200px;
-@left-toolbar-width: 75px;
+@left-toolbar-width: 65px;
 
 body
 {
@@ -267,14 +267,30 @@ button
         #toolbar-logo
         {
             margin-top: -1px;
-            width: 150px;
+            width: @left-toolbar-width;
             text-align: center;
             text-decoration: none;
             outline: none;
+            padding-top: 5px;
             
             &:focus
             {
                 color: darken(@codr-blue, 15%);
+            }
+            
+            .icon-cloud
+            {
+                color: @codr-blue;                
+            }
+            
+            .icon-code
+            {
+                font-size: 1.5em;
+                color: white;
+                position: absolute;
+                left: 13px;
+                top: 14px;
+                text-shadow: none;
             }
         }
         
@@ -437,30 +453,6 @@ button
                 color: desaturate(darken(@codr-blue, 40%), 40%);
             }
         }
-
-        #people-pane-button
-        {
-            display: inline-block;
-            padding-top: 3px;
-            height: 45px;
-            width: 50px;
-            text-align: center;
-            color: gray;
-            font-size: 30px;
-            text-decoration: None;
-            position: relative;
-        }
-
-        #people-pane-button-notification
-        {
-            font-size: 10pt;
-            color: red;
-            position: absolute;
-            right: 0px;
-            top: 5px;
-            width: 16px;
-            text-align: left;
-        }
     }
     
     #edit
@@ -472,42 +464,24 @@ button
         bottom: 0;
     }
     
-    #people
-    {
-        display: none;
-        position: absolute;
-        top: @top-toolbar-height + 1px;
-        right: 0;
-        bottom: 0;
-        width: @share-pane-width;
-        border-left: 1px #ccc solid;
-        
-        #people-sizer
-        {
-            height: 100%;
-
-            #chat-history
-            {
-                height: 100%;
-            }
-        }
-
-        #chat-box
-        {
-            margin: 1em;
-            height: 4em;
-            font-size: 10pt;
-        }
+    i.left-icon{
+        font-size: 2.7em;
+        line-height: 0;
+        color: #555;
+        position: relative;
+        left: -2px;
+        -webkit-text-stroke: 1px;
+        text-shadow: 1px 2px 3px white;
     }
-        
+    
     #toolbar-left
     {        
         position: absolute;
         top: @top-toolbar-height + 1;
         bottom: 0;
         left: 0;
-        width: @left-toolbar-width;
         border-top: 1px #f5f5f5 solid;
+        width: @left-toolbar-width;
         
         .divider
         {
@@ -525,7 +499,7 @@ button
        
             .toolbar-item-btn
             {
-                padding-left: 10px;
+                padding-left: 3px;
                 height: @icon-height;
                 padding-top: @icon-botton-padding-top;
             }                   
@@ -556,7 +530,7 @@ button
                 .toolbar-item-btn
                 {
                     padding-top: @icon-botton-padding-top + @icon-open-growth;
-                    padding-left: 7px;
+                    padding-left: 0px;
                     border-left: 3px @codr-blue solid;
                     height: @icon-height + @icon-open-growth;
                 }
@@ -613,20 +587,22 @@ button
 
 .ace_scroller
 {
-   box-shadow: 0 0 5px #ccc inset;
    margin-right: -2px;
 }
 
 .ace_gutter
 {
     width: 49px !important;
-    border-right: 1px #ccc solid;
+    background-color: white !important;
+    border-left: 1px #ccc solid;
+    border-right: 1px #eee solid;
 }
 
 .ace_gutter-layer
 {
     width: 49px !important;
 }
+
 
 .ace-tm .ace_gutter-active-line,
 .ace-tm .ace_marker-layer .ace_active-line
