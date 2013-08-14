@@ -157,9 +157,15 @@ var Chat = oHelpers.createClass(
         // Show chat history.
         for (var i = 0; i < this._aHistory.length; i++)
         {
-            var jMessage = $(document.createElement('div'));
             var oMessage = this._aHistory[i];
-            jMessage.text(oMessage.sUsername + ': ' + oMessage.sMessage).append('<br/><br/>');
+            var jMessage = $(
+                '<div class="chat-message">' +
+                   '<span class="chat-message-from"></span>' +
+                   '<span class="chat-message-text"></span>' +
+                '</div>'
+            );
+            jMessage.find('.chat-message-from').text(oMessage.sUsername + ': ');
+            jMessage.find('.chat-message-text').text(oMessage.sMessage);
             jHistory.append(jMessage);
         }
 

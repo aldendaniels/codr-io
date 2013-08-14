@@ -290,8 +290,8 @@ button
                 font-size: 15pt;
                 color: white;
                 position: absolute;
-                left: 15px;
-                top: 14px;
+                left: 16px;
+                top: 15px;
                 text-shadow: none;
             }
         }
@@ -571,12 +571,44 @@ button
 {
     #chat-history
     {
+        margin: 5px;
+        padding: 12px;
         border: 1px #ccc solid;
         background-color: white;
         height: 300px;
         overflow: auto;
+        
+        .chat-message
+        {
+            margin-bottom: 10px;
+            
+            .chat-message-from
+            {
+                color: #888;
+            }
+        }
     }
     
+    #chat-typing
+    {
+        margin-top: 10px;
+        color: #888;
+        font-size: 8pt;
+        font-family: arial;
+        margin-left: 5px;
+    }
+    
+    textarea
+    {
+        padding: 12px;
+        width: 362px;
+        margin-left: 5px;
+        margin-top: 10px;
+        border: 1px white solid;
+        box-shadow: 0 0 5px #bbb inset;
+        outline: none;
+        resize: none;
+    }
 }
 
 
