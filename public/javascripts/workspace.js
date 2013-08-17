@@ -145,8 +145,12 @@ var Workspace = oHelpers.createClass(
                         break;
                     }
                     
-                    // TODO: Make this work on a Mac.
-                    if (oEvent.ctrlKey && oEvent.which == 83)
+                    // TODO: Think through keyboard controls for a mac.
+                    // Disable native browser handling for saving/searching.
+                    // Note: We do this for searching even though ACE does natively
+                    //       because we also want to disable native searching when
+                    //       the ACE editor does not have focus.
+                    if (oEvent.ctrlKey && oHelpers.inArray(oEvent.which, [83, 70, 71]))
                     {
                         oEvent.preventDefault();
                     }
