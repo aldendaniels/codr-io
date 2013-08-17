@@ -145,15 +145,8 @@ var Workspace = oHelpers.createClass(
                         break;
                     }
                     
-                     // Diable native searching (Ctrl + F, Ctrl + G)
-                     // This is because users should always use ace searching. Also
-                     // searching causes weired scrolling behavior in closed menu items.
-                     // TODO: Make this work on a Mac.
-                     // TODO: Eventually come up with a better solution (maybe), since you
-                     //       can still search from the menu. We could possibley use off-screen
-                     //       positioning for hidden menu items instead of overflow:hidden to
-                     //       avoid this searching bug.
-                    if (oEvent.ctrlKey && (oEvent.which == 70 || oEvent.which == 71))
+                    // TODO: Make this work on a Mac.
+                    if (oEvent.ctrlKey && oEvent.which == 83)
                     {
                         oEvent.preventDefault();
                     }
