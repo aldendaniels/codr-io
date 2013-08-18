@@ -550,6 +550,7 @@ var Workspace = oHelpers.createClass(
                 }
 
                 // Remove old user
+                // TODO: This is a bit of a hack.
                 this._broadcastAction(oClient, {
                     'sType': 'removeUser',
                     'oData': {'sUsername': oClient.getUsername()}
