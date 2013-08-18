@@ -21,7 +21,7 @@ process.env.DATA_PATH = process.env.DATA_PATH || (process.env.IS_PROD ? '/home/u
         return sDataPath;
     }()
 ));
-
+ 
 // Include app libraries.
 var oAceDocument    = require('./aceDocument').Document;
 var oDatabase       = require('./database');
