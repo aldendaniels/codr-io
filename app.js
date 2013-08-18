@@ -1,13 +1,28 @@
 
-// Include Libraries.
-var oOS = require('os');
-var oPath = require('path');
-var oUrl = require('url');
-var oExpress         = require('express');
+// Include helper libraries.
+var oOS             = require('os');
+var oPath           = require('path');
+var fs              = require('fs');
+var oUrl            = require('url');
+var oExpress        = require('express');
 var oWS             = require('ws');
 var oHTTP           = require('http');
 var oLessMiddleware = require('less-middleware');
 var oHelpers        = require('./helpers');
+
+// Set environmental variables.
+process.env.IS_PROD   = Boolean(process.env.IS_PROD);
+process.env.PORT      = process.env.PORT      || (process.env.IS_PROD ? 80 : 8080);
+process.env.DATA_PATH = process.env.DATA_PATH || (process.env.IS_PROD ? '/home/ubuntu/data' : (function()
+    {
+        var sDataPath = oPath.join(oOS.tmpDir(), 'data');
+        if(!fs.existsSync(sDataPath))
+            fs.mkdirSync(sDataPath);
+        return sDataPath;
+    }()
+));
+
+// Include app libraries.
 var oAceDocument    = require('./aceDocument').Document;
 var oDatabase       = require('./database');
 
@@ -22,8 +37,8 @@ process.on('uncaughtException', function (err)
 var oApp = oExpress();
 oApp.configure(function()
 {
-    oApp.set('port', process.env.PORT || 8080);
-    var oTempDir = oPath.join(oOS.tmpDir(), 'codr\\static');
+    oApp.set('port', process.env.PORT);
+    var oTempDir = oPath.join(oOS.tmpDir(), 'codr_static');
     oApp.use(oLessMiddleware(
     {
         src: __dirname + '/public',
