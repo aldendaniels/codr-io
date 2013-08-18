@@ -34,8 +34,46 @@ oApp.configure(function()
     oApp.use(oExpress.static(oTempDir));
 
     /* Save static index.html */
-    oApp.get('^/$',               function(req, res) { res.sendfile('public/index.html'); });
-    oApp.get('/[a-z0-9]+/?$',     function(req, res) { res.sendfile('public/index.html'); });
+    oApp.get('^/$',                     function(req, res) { res.sendfile('public/index.html'); });
+    oApp.get('^/[a-z0-9]+/?$',          function(req, res) { res.sendfile('public/index.html'); });
+    oApp.get('^/snapshot/[a-z0-9]+/?$', function(req, res) { res.sendfile('public/index.html'); });
+
+    oApp.get('^/ajax/:DocumentID([a-z0-9]+)/?$', function(req, res) {
+
+        function send(oDocument)
+        {
+            res.set('Content-Type', 'text/json');
+
+            if (oDocument.bIsSnapshot)
+            {
+                res.send(JSON.stringify(
+                {
+                    'sText': oDocument.sText,
+                    'sMode': oDocument.sMode,
+                    'sTitle': oDocument.sTitle
+                }));
+            }
+            else
+            {
+                var sError = 'The document has not been published. Please click <a href="/' + sDocumentID + '/">here</a> to see the original.';
+                res.send(JSON.stringify({'sError': sError}));
+            }
+
+        }
+
+        var sDocumentID = req.params['DocumentID'];
+        if (sDocumentID in g_oWorkspaces)
+        {
+            send(g_oWorkspaces[sDocumentID].getDocument());
+        }
+        else
+        {
+            oDatabase.getDocument(sDocumentID, this, function(sDocumentJSON)
+            {
+                send(parseDocument(sDocumentJSON));
+            });
+        }
+    });
     
     /* Preview files as HTML. */
     oApp.get('/:DocumentID([a-z0-9]+)/preview/?$', function(req, res)
@@ -177,6 +215,12 @@ var Client = oHelpers.createClass(
         }
     },
 
+    abort: function(sMessage)
+    {
+        this.sendAction('error', {'sMessage': sMessage});
+        this._oSocket.close();
+    },
+
     _onClientAction: function(sJSONAction)
     {
         var oAction = JSON.parse(sJSONAction);
@@ -266,6 +310,18 @@ var Workspace = oHelpers.createClass(
             this._oAceDocument = new oAceDocument(this._oDocument.sText);
             this._oAceDocument.setNewLineMode('windows'); // TODO (Will 6/29/2013) test in other environments
             this._bDocumentLoaded = true;
+
+            if (this._oDocument.bIsSnapshot)
+            {
+                var sErrorMessage = 'This document has been published and can not be edited.' +
+                                    'To see the published version click <a href="/snapshot/' + sDocumentID + '">here</a>.';
+                for (var i = 0; i < this._aClients.length; i++)
+                    this._aClients[i].abort(sErrorMessage);
+
+                delete g_oWorkspaces[this._sDocumentID];
+
+                return;
+            }
             
             // Fire client "load" callbacks.
             for (var i in this._aClients)
@@ -451,6 +507,8 @@ var Workspace = oHelpers.createClass(
   
     onClientAction: function(oClient, oAction)
     {
+        oHelpers.assert(!this._oDocument.bIsSnapshot, 'Clients can\'t send actions to a published document.');
+
         this._assertDocumentLoaded();
 		
 		var bClientHasEditRights = this._oCurrentEditingClient == oClient;
@@ -650,9 +708,13 @@ var Workspace = oHelpers.createClass(
 
     _save: function()
     {
+        if (this._oDocument.bIsSnapshot)
+            return;
+        
         this._assertDocumentLoaded();
         this._updateDocumentText();
         this._clearAutoSaveTimeout();
+
         oDatabase.saveDocument(this._sDocumentID, serializeDocument(this._oDocument), this, function(sError)
         {
             // Handle save errors.
@@ -694,7 +756,8 @@ function parseDocument(sJSON)
         sMode: '',
         sText: '',
         sTitle: 'Untitled',
-        aChatHistory: []
+        aChatHistory: [],
+        bIsSnapshot: false
     };
 
     var oParsed = JSON.parse(sJSON);

@@ -91,6 +91,26 @@ var Workspace = oHelpers.createClass(
         this._oEditor.setMode(oMode);
     },
 
+    /////// NOTE! Only to be used by init-app.js in the case of a published document!
+    setMode: function(sMode)
+    {
+
+        var oMode = g_oModes.oModesByName[sMode];
+        this._oEditor.setMode(oMode);
+        this._oToolbar.setMode(oMode);
+    },
+
+    setTitle: function(sTitle)
+    {
+        this._oToolbar.setTitle(sTitle);
+    },
+
+    setEditorText: function(sText)
+    {
+        this._oEditor.setText(sText);
+    },
+    ///////// END NOTE
+
     getUserInfo: function()
     {
         return this._oUserInfo;
@@ -111,7 +131,7 @@ var Workspace = oHelpers.createClass(
         if (bIsEditing && !this._oFocusedObject)
             this._oEditor.focus();
     },
-    
+
     _getContainingObj: function(jElem)
     {
         for (var i in this._aObjects)
@@ -234,9 +254,7 @@ var Workspace = oHelpers.createClass(
                 break;
                 
             case 'setMode':
-                var oMode = g_oModes.oModesByName[oAction.oData.sMode];
-                this._oToolbar.setMode(oMode);
-                this._oEditor.setMode(oMode);
+                this.setMode(oAction.oData.sMode);
                 break;
                 
             case 'removeEditRights':
@@ -251,6 +269,10 @@ var Workspace = oHelpers.createClass(
                 
             case 'setDocumentID': // Fired after creating a new document.
                 window.history.replaceState(null, '', '/' + oAction.oData.sDocumentID);
+                break;
+
+            case 'error':
+                document.write(oAction.oData.sMessage);
                 break;
                 
             default:

@@ -2,6 +2,7 @@
 var oInitApp = 
 {
     _oPendingChosenMode: null,
+    _oWorkspace: null,
     
     /// CALLED FOR EXISTING DOCUMENT ///
     
@@ -21,9 +22,32 @@ var oInitApp =
     
     initWorkspace: function(bIsNewDocument, oNewDocumentMode)
     {
-        var sURL = 'ws://' + window.document.location.host + '/';
+        if (IS_SNAPSHOT)
+            var sURL = null;
+        else
+            var sURL = 'ws://' + window.document.location.host + '/';
+
         var oSocket = new oHelpers.WebSocket(sURL);
-        return new Workspace(oSocket, bIsNewDocument, oNewDocumentMode);
+        this._oWorkspace = new Workspace(oSocket, bIsNewDocument, oNewDocumentMode);
+    },
+
+    getSnapshotData: function()
+    {
+        oHelpers.assert(IS_SNAPSHOT, 'Should be published.');
+
+        var sDocumentID = /^\/snapshot\/([a-z0-9]+)\/?$/.exec(document.location.pathname)[1];
+        $.get('/ajax/' + sDocumentID + '/', oHelpers.createCallback(this, function(oResponse)
+        {
+            if (oResponse.sError)
+            {
+                document.write(oResponse.sError);
+                return;
+            }
+
+            this._oWorkspace.setEditorText(oResponse.sText);
+            this._oWorkspace.setMode(oResponse.sMode);
+            this._oWorkspace.setTitle(oResponse.sTitle);
+        }));
     },
         
         

@@ -44,9 +44,13 @@ var oHelpers = {
         _aOutbox: [], // We queue sent messages until connection opens.
         _bIsOpen: false,
         
-        __init__: function(url)
+        __init__: function(sUrl)
         {
-            this._oSocket = new WebSocket(url);
+            // We fake a socket for published documents.
+            if (sUrl === null)
+                return;
+
+            this._oSocket = new WebSocket(sUrl);
             
             this._oSocket.onmessage = oHelpers.createCallback(this, function(oEvent)
             {
@@ -77,6 +81,9 @@ var oHelpers = {
         
         send: function(sEventType, oEventData)
         {
+            if (this._oSocket === null)
+                return;
+
             var sMessage = JSON.stringify({ sType: sEventType, oData: oEventData });
             if (this._bIsOpen)
                 this._oSocket.send(sMessage);
