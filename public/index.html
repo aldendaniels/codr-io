@@ -2,9 +2,9 @@
 <html lang="en">
     <head>
         <title>Codr</title>
-        <link rel=StyleSheet href="stylesheets/index.css" type="text/css" />
-        <link rel=StyleSheet href="stylesheets/menu.css" type="text/css" />
-        <link rel=StyleSheet href="fontello/css/fontello.css" type="text/css" />
+        <link rel=StyleSheet href="/stylesheets/index.css" type="text/css" />
+        <link rel=StyleSheet href="/stylesheets/menu.css" type="text/css" />
+        <link rel=StyleSheet href="/fontello/css/fontello.css" type="text/css" />
         
         <link href='http://fonts.googleapis.com/css?family=Sanchez' rel='stylesheet' type='text/css'>
     </head>
@@ -12,6 +12,7 @@
         
         <script type="text/javascript">
             var IS_NEW_DOCUMENT = window.location.pathname === '/';
+            var IS_SNAPSHOT = /^\/snapshot/.test(window.location.pathname);
             if (IS_NEW_DOCUMENT) // New document.
                 document.body.className = "home";
         </script>
@@ -128,12 +129,12 @@
         </div>
         
         <!-- Load menu chooser -->
-        <script type="text/javascript" src="javascripts/helpers/jquery-2.0.2.min.js"></script>
-        <script type="text/javascript" src="javascripts/helpers/helpers.js"></script>
-        <script type="text/javascript" src="javascripts/helpers/keyable.js"></script>
-        <script type="text/javascript" src="javascripts/helpers/menu.js"></script>
-        <script type="text/javascript" src="javascripts/ace-mode-list.js"></script>
-        <script type="text/javascript" src="javascripts/init-app.js"></script>
+        <script type="text/javascript" src="/javascripts/helpers/jquery-2.0.2.min.js"></script>
+        <script type="text/javascript" src="/javascripts/helpers/helpers.js"></script>
+        <script type="text/javascript" src="/javascripts/helpers/keyable.js"></script>
+        <script type="text/javascript" src="/javascripts/helpers/menu.js"></script>
+        <script type="text/javascript" src="/javascripts/ace-mode-list.js"></script>
+        <script type="text/javascript" src="/javascripts/init-app.js"></script>
         <script type="text/javascript">
             if (IS_NEW_DOCUMENT)
             {
@@ -142,16 +143,19 @@
         </script>
         
         <!-- Load workspace -->
-        <script type="text/javascript" src="javascripts/ace/ace.js"></script>
-        <script type="text/javascript" src="javascripts/editor.js"></script>
-        <script type="text/javascript" src="javascripts/helpers/jquery-selectors.js"></script>
-        <script type="text/javascript" src="javascripts/chat.js"></script>
-        <script type="text/javascript" src="javascripts/toolbar.js"></script>
-        <script type="text/javascript" src="javascripts/workspace.js"></script>
+        <script type="text/javascript" src="/javascripts/ace/ace.js"></script>
+        <script type="text/javascript" src="/javascripts/editor.js"></script>
+        <script type="text/javascript" src="/javascripts/helpers/jquery-selectors.js"></script>
+        <script type="text/javascript" src="/javascripts/chat.js"></script>
+        <script type="text/javascript" src="/javascripts/toolbar.js"></script>
+        <script type="text/javascript" src="/javascripts/workspace.js"></script>
         <script type="text/javascript">
             if (!IS_NEW_DOCUMENT) /* A new document connects on mode choice*/
             {
                 oInitApp.initWorkspace();
+
+                if (IS_SNAPSHOT)
+                    oInitApp.getSnapshotData();
             }
         </script>
         

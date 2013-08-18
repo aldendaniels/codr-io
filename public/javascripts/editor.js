@@ -115,13 +115,33 @@ var Editor = oHelpers.createClass(
     // Called by workspace, but not needed.
     onBlur: function()  {},
     onEvent: function() {},
-    
+
+    setIsEditing: function(bIsEditing)
+    {
+        this._bIsEditing = bIsEditing;
+        this._oAceEditor.setReadOnly(!bIsEditing);
+
+        if (bIsEditing)
+        {
+            // Hide remove cursor & send set the cursor position.
+            this._removeRemoteSelection();
+            if (this._oSocket)
+                this._onAceSelectionChange();
+        }
+    },
+
+    setText: function(sText)
+    {
+        this._oAceDocument.setValue(sText);
+        this._oAceEditor.moveCursorTo(0, 0);
+    },
+
     _handleServerAction: function(oAction)
     {
         switch(oAction.sType)
         {
             case 'setDocumentData': // Fired after opening an existing document.
-                this._setText(oAction.oData.sText);
+                this.setText(oAction.oData.sText);
                 break;
             
             case 'setSelection':
@@ -246,25 +266,5 @@ var Editor = oHelpers.createClass(
     {
         if (this._bIsEditing)
             this._oSocket.send('aceDelta', oAceDelta.data);
-    },
-
-    setIsEditing: function(bIsEditing)
-    {
-        this._bIsEditing = bIsEditing;
-        this._oAceEditor.setReadOnly(!bIsEditing);
-
-        if (bIsEditing)
-        {
-            // Hide remove cursor & send set the cursor position.
-            this._removeRemoteSelection();
-            if (this._oSocket)
-                this._onAceSelectionChange();
-        }
-    },
-
-    _setText: function(sText)
-    {
-        this._oAceDocument.setValue(sText);
-        this._oAceEditor.moveCursorTo(0, 0);
     }
 });
