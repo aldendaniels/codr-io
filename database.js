@@ -21,7 +21,7 @@ var oFileDatabase =
         this.documentExists(sID, this, function(bExists)
         {
             oHelpers.assert(bExists, 'Document does not exist');  
-            fs.readFile(oPath.join(process.env.DATA_PATH, sID), function (sIgnoredErr, oFileData) //oFileData is a raw buffer
+            fs.readFile(oPath.join(g_oConfig.sDataPath, sID), function (sIgnoredErr, oFileData) //oFileData is a raw buffer
             {
                 oHelpers.createCallback(oScope, fnOnResponse)(oFileData);
             })
@@ -30,12 +30,12 @@ var oFileDatabase =
 
     saveDocument: function(sID, sData, oScope, fnOnResponse)
     {
-        fs.writeFile(oPath.join(process.env.DATA_PATH, sID), sData, oHelpers.createCallback(oScope, fnOnResponse));
+        fs.writeFile(oPath.join(g_oConfig.sDataPath, sID), sData, oHelpers.createCallback(oScope, fnOnResponse));
     },
 
     documentExists: function(sID, oScope, fnOnResponse)
     {
-        fs.exists(oPath.join(process.env.DATA_PATH, sID), oHelpers.createCallback(oScope, fnOnResponse))
+        fs.exists(oPath.join(g_oConfig.sDataPath, sID), oHelpers.createCallback(oScope, fnOnResponse))
     }
 };
 

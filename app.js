@@ -1,30 +1,47 @@
 
 // Include helper libraries.
-var oOS             = require('os');
-var oPath           = require('path');
-var fs              = require('fs');
-var oUrl            = require('url');
-var oExpress        = require('express');
-var oWS             = require('ws');
-var oHTTP           = require('http');
-var oLessMiddleware = require('less-middleware');
-var oHelpers        = require('./helpers');
-
-// Set environmental variables.
-process.env.IS_PROD   = Boolean(process.env.IS_PROD);
-process.env.PORT      = process.env.PORT      || (process.env.IS_PROD ? 80 : 8080);
-process.env.DATA_PATH = process.env.DATA_PATH || (process.env.IS_PROD ? '/home/ubuntu/data' : (function()
-    {
-        var sDataPath = oPath.join(oOS.tmpDir(), 'data');
-        if(!fs.existsSync(sDataPath))
-            fs.mkdirSync(sDataPath);
-        return sDataPath;
-    }()
-));
- 
-// Include app libraries.
+var oOS                 = require('os');
+var oPath               = require('path');
+var fs                  = require('fs');
+var oUrl                = require('url');
+var oExpress            = require('express');
+var oWS                 = require('ws');
+var oHTTP               = require('http');
+var oLessMiddleware     = require('less-middleware');
+var oUglifyJSMiddleware = require('uglify-js-middleware');
+var oHelpers            = require('./helpers');
 var oAceDocument    = require('./aceDocument').Document;
 var oDatabase       = require('./database');
+
+// Set/validation production environmental variables.
+GLOBAL.g_oConfig = (function()
+{
+    // Get arguments.
+    var oArgs = {};
+    for (var i = 2; i < process.argv.length; i++)
+    {
+        var aParts = process.argv[i].split('=');
+        oArgs[aParts[0]] = aParts[1];
+    }
+    
+    // Populate Config object.
+    var oConfig = {};
+    oConfig.bIsProd   =  (oArgs.is_prod   ? !!oArgs.is_prod : false);
+    oConfig.iPort     =  (oArgs.port      ? parseInt(oArgs.port) : (oConfig.bIsProd ? 80 : 8080));
+    oConfig.sDataPath =  (oArgs.data_path ? oArgs.data_path : function()
+                            {
+                                if (oConfig.bIsProd)
+                                    return '/home/ubuntu/data';
+                                else
+                                {
+                                    var sDataPath = oPath.join(oOS.tmpDir(), 'data');
+                                    if(!fs.existsSync(sDataPath))
+                                        fs.mkdirSync(sDataPath);
+                                    return sDataPath;
+                                }
+                            }());
+    return oConfig;
+}());
 
 // Error handling.
 // TODO: This is a horrible hack.
@@ -37,7 +54,9 @@ process.on('uncaughtException', function (err)
 var oApp = oExpress();
 oApp.configure(function()
 {
-    oApp.set('port', process.env.PORT);
+    oApp.set('port', g_oConfig.iPort);
+    
+    // Configure LESS middleware.
     var oTempDir = oPath.join(oOS.tmpDir(), 'codr_static');
     oApp.use(oLessMiddleware(
     {
@@ -45,8 +64,21 @@ oApp.configure(function()
         dest: oTempDir
     }));
     
-    oApp.use(oExpress.static(oPath.join(__dirname, 'public')));
+    // Configure UglifyJS middleware in Production
+    if (g_oConfig.bIsProd)
+    {
+        oApp.use(oUglifyJSMiddleware(
+        {
+            src : __dirname + '/public',
+            dest: oTempDir,
+            uglytext: false,
+            mangle: true,
+            squeeze: true
+        }));        
+    }
+    
     oApp.use(oExpress.static(oTempDir));
+    oApp.use(oExpress.static(oPath.join(__dirname, 'public')));
 
     /* Save static index.html */
     oApp.get('^/$',                     function(req, res) { res.sendfile('public/index.html'); });

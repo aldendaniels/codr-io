@@ -108,5 +108,15 @@ module.exports =
     {
         if (!bCondition)
             throw sMessage;
+    },
+    
+    inArray: function(oItem, aArray)
+    {
+        for (var i in aArray)
+        {
+            if (aArray[i] == oItem)
+                return true;
+        }
+        return false
     }
 };
