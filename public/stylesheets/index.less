@@ -672,6 +672,46 @@ button
     }
 }
 
+#share-menu
+{
+    .share-wrapper
+    {
+        position: relative;
+        height: 56px;
+
+        .share-button
+        {
+            position: absolute;
+            width: 304px !important;
+            margin: 0 !important;
+            height: 44px !important;
+            border-radius: 3px 0 0 3px !important;
+        }
+
+        .share-copy-input
+        {
+            position: absolute;
+            width: 100px !important;
+            right: 0;
+            margin: 0 !important;
+            box-sizing: border-box;
+        }
+
+        &.enabled
+        {
+            .share-button
+            {
+                display: none;
+            }
+
+            .share-copy-input
+            {
+                width: 400px !important;
+            }
+        }
+    }
+}
+
 /***************** ACE EDITOR STYLES *********************/
 
 @selectionColor: saturate(darken(@codr-blue, 10%), 50%);

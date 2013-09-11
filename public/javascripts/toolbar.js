@@ -27,6 +27,8 @@ var Toolbar = oHelpers.createClass(
         
         // Create the chat object.
         this._oChat = new Chat(oWorkspace, oSocket);
+
+        this._oSocket.bind('message', this, this._handleServerAction);
     },
     
     setTitle: function(sTitle)
@@ -40,7 +42,7 @@ var Toolbar = oHelpers.createClass(
     {
         $('#mode .toolbar-item-selection').text(oMode.getDisplayName());
     },
-    
+
     setIsEditing: function(bIsEditing)
     {
         // Toggle edit button style.
@@ -132,7 +134,7 @@ var Toolbar = oHelpers.createClass(
                 this._closeOpenDropdown();
             return;
         }
-                
+
         if (sEventType == 'keydown')
         {
             // Set title on ENTER.
@@ -173,6 +175,19 @@ var Toolbar = oHelpers.createClass(
                 this._download();
                 return;
             }       
+
+            // Create clone
+            if (jTarget.is('#clone-button'))
+            {
+                this._oSocket.send('cloneDocument');
+            }
+
+            // Create snapshot
+            if (jTarget.is('#snapshot-button'))
+            {
+                this._oSocket.send('snapshotDocument');
+            }
+
         }
         
         /* Forward language events to menu. */
@@ -264,5 +279,26 @@ var Toolbar = oHelpers.createClass(
             // TODO: Make the button look like it's doing something.
             this._oSocket.send('requestEditRights', this._oWorkspace.getEditorSelection());
         }
+    },
+
+    _handleServerAction: function(oAction)
+    {
+        switch(oAction.sType)
+        {
+            case 'setCloneUrl':
+                var sUrl = document.location.origin + oAction.oData.sUrl;
+                $('#clone-input').val(sUrl).prop('disabled', false).select().closest('.share-wrapper').addClass('enabled');
+                break;
+
+            case 'setSnapshotUrl':
+                var sUrl = document.location.origin + oAction.oData.sUrl;
+                $('#snapshot-input').val(sUrl).prop('disabled', false).select().closest('.share-wrapper').addClass('enabled');
+                break;
+
+            default:
+                return false;
+        }
+
+        return true;
     }
 });

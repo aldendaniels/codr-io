@@ -52,6 +52,8 @@ var Workspace = oHelpers.createClass(
             {
                 sDocumentID: window.location.pathname.substr(1)
             });            
+
+            this._setCollaborateUrl()
         }
         
         // Attach DOM events.
@@ -269,6 +271,7 @@ var Workspace = oHelpers.createClass(
                 
             case 'setDocumentID': // Fired after creating a new document.
                 window.history.replaceState(null, '', '/' + oAction.oData.sDocumentID);
+                this._setCollaborateUrl()
                 break;
 
             case 'error':
@@ -279,5 +282,10 @@ var Workspace = oHelpers.createClass(
                 return false;
         }
         return true;
-    }    
+    },
+
+    _setCollaborateUrl: function()
+    {
+        $('#collaborate-url').val(document.location.href);
+    }
 });

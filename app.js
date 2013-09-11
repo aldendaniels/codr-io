@@ -702,6 +702,29 @@ var Workspace = oHelpers.createClass(
                     'oData': {'sUsername': oClient.getUsername()}
                 });
                 break;
+
+            case 'cloneDocument':
+            case 'snapshotDocument':
+
+                this._assertDocumentLoaded();
+                this._updateDocumentText();
+
+                // Silly way to copy the document.... But it works.
+                var oNewDocument = parseDocument(serializeDocument(this._oDocument));
+                if (oAction.sType == 'cloneDocument')
+                    oNewDocument.bIsSnapshot = false;
+                else
+                    oNewDocument.bIsSnapshot = true;
+
+                oDatabase.createDocument(serializeDocument(oNewDocument), this, function(sID)
+                {
+                    if (oAction.sType == 'cloneDocument')
+                        oClient.sendAction('setCloneUrl', {'sUrl': '/' + sID});
+                    else
+                        oClient.sendAction('setSnapshotUrl', {'sUrl': '/snapshot/' + sID});
+                });
+
+                break;
             default:
                 oHelpers.assert(false, 'Unrecognized event type: "' + oAction.sType + '"');
         }
