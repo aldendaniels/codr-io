@@ -34,6 +34,7 @@ GLOBAL.g_oConfig = (function()
     // Populate Config object.
     var oConfig = {};
     oConfig.bIsProd   =  (oArgs.is_prod == '1');
+    oConfig.bUglify =  (oArgs.uglify == '1' || oConfig.bIsProd);
     oConfig.bCompress =  (oArgs.compress == '1' || oConfig.bIsProd);
     oConfig.iPort     =  (oArgs.port      ? parseInt(oArgs.port) : (oConfig.bIsProd ? 80 : 8080));
     oConfig.sDataPath =  (oArgs.data_path ? oArgs.data_path : function()
@@ -68,6 +69,11 @@ oApp.configure(function()
 {
     oApp.set('port', g_oConfig.iPort);
     
+    if (g_oConfig.bCompress)
+    {
+        oApp.use(oExpress.compress());
+    }
+
     // Configure LESS middleware.
     oApp.use(oLessMiddleware(
     {
@@ -76,7 +82,7 @@ oApp.configure(function()
     }));
     
     // Configure UglifyJS middleware in Production.
-    if (g_oConfig.bCompress)
+    if (g_oConfig.bUglify)
     {
         oApp.use(oUglifyJSMiddleware(
         {
@@ -85,7 +91,7 @@ oApp.configure(function()
             uglytext: false,
             mangle: true,
             squeeze: true
-        }));        
+        }));
     }
     
     oApp.use(oExpress.static(sCodrStaticOutputPath));
