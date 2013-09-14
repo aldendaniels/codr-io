@@ -9,30 +9,25 @@ var Menu = oHelpers.createClass(
     _oKeyable: null,
     _sLastQuery: '',
     
-    __init__: function(aOptions, jParent, oScope, fnIsFav, fnGetKey, fnGetDisplayText, fnOnSelect)
+    __init__: function(aOptions, jParent, iNumFavoriteOptions, oScope, fnGetKey, fnGetDisplayText, fnOnSelect)
     {
         // Save options.
-        this._aNormalOptions = aOptions.slice();
-        this._aFavOptions = [];
+        this._aNormalOptions = aOptions.slice(iNumFavoriteOptions);
+        this._aFavOptions = aOptions.slice(0, iNumFavoriteOptions);
+        
+        // Map options by key.
         this._oOptionsByKey = {};
-        for (var iOptionIndex in this._aNormalOptions)
+        for (var iOptionIndex in aOptions)
         {
-            var oOption = this._aNormalOptions[iOptionIndex];
+            var oOption = aOptions[iOptionIndex];
             this._oOptionsByKey[fnGetKey(oOption)] = oOption;
-            if (fnIsFav(oOption))
-            {
-                this._aFavOptions.push(oOption);
-                this._aNormalOptions.splice(iOptionIndex, 1);
-                continue;
-            }
-            iOptionIndex++;
         }
         
         // Save callbacks.
         this._fnGetKey          = oHelpers.createCallback(oScope, fnGetKey);
         this._fnGetDisplayText  = oHelpers.createCallback(oScope, fnGetDisplayText);
         this._fnOnSelect        = oHelpers.createCallback(oScope, fnOnSelect);
-
+    
         // Init.
         this._jMenu = $(
             '<div class="menu" >' +
@@ -45,7 +40,7 @@ var Menu = oHelpers.createClass(
         );
         this._oKeyable = new Keyable(this._jMenu);
         this._renderOptions();
-        jParent.append(this._jMenu);
+        $(jParent).append(this._jMenu);
         this._oKeyable.attach();
         this._oKeyable.update();
     },

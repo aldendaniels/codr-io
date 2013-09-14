@@ -160,6 +160,9 @@ var g_oModes = {}; // Exports.
     };*/
    
     /************** BELOW CREATED BY US **************/
+
+    // Select favorite modes.
+    var aCodrFavModeNames = ['text', 'html', 'javascript', 'css', 'python', 'mysql'];
     
     var CodrMode = oHelpers.createClass(
     {
@@ -189,34 +192,53 @@ var g_oModes = {}; // Exports.
         {
             return this._oAceMode.mode;
         },
+        
+        isFavorite: function()
+        {
+           return $.inArray(this.getName(), aCodrFavModeNames) != -1;
+        }
     });
 
-    // Select favorite modes.
-    var aCodrFavModeNames = ['html', 'text', 'javascript', 'css', 'python', 'mysql'];
 
     // Wrap Ace's mode objects in our own.
+    // Sort Favorite modes to top.
     var aCodrModes = [];
-    var aCodrFavModes = [];
     var oCodrModesByName = {};
     for (var iModeOffset in modes)
     {
-        // Push codr mode.
-        var oCodrMode = new CodrMode(modes[iModeOffset]);        
-        aCodrModes.push(oCodrMode);
+        // Push CodrMode (excluding favorites).
+        var oCodrMode = new CodrMode(modes[iModeOffset]);
+        if (!oCodrMode.isFavorite())
+            aCodrModes.push(oCodrMode);
         
-        // Push favorite codre mode.
-        if ($.inArray(oCodrMode.getName(), aCodrFavModeNames) != -1)
-            aCodrFavModes.push(oCodrMode);
-        
-        // Map codr mode by name.
+        // Map CodrMode by name.
         oCodrModesByName[oCodrMode.getName()] = oCodrMode;
     }
     
+    // Prefix favorite modes to list in order.
+    var aFavModes = [];
+    for (var iNameOffset in aCodrFavModeNames)
+    {
+        var sName = aCodrFavModeNames[iNameOffset];
+        var oCodrMode = oCodrModesByName[sName];
+        aFavModes.push(oCodrMode);
+    }
+    aCodrModes = aFavModes.concat(aCodrModes);
+    
+    // Expose g_oModes object.
     g_oModes = { 
         
-        aModes: aCodrModes,
-        aFavModes: aCodrFavModes,
-        oModesByName: oCodrModesByName
+        aModes:            aCodrModes,
+        oModesByName:      oCodrModesByName,
+        iNumFavoriteModes: aFavModes.length,
+        createModeMenu:    function(jParent, oScope, fnOnModeSelect)
+        {
+            return new Menu( this.aModes, jParent, this.iNumFavoriteModes, null, 
+                             function(oMode) { return oMode.getName();         }, // Get key
+                             function(oMode) { return oMode.getDisplayName();  }, // Get item display text.
+                             oHelpers.createCallback(oScope, fnOnModeSelect)      // On Item Selection.
+                        );
+        }
     }
     
 })();

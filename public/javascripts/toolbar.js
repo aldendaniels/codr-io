@@ -18,12 +18,7 @@ var Toolbar = oHelpers.createClass(
         this._oWorkspace = oWorkspace;
         
         // Create the mode menu.
-        this._oModeMenu = new Menu(g_oModes.aModes, $('#mode-menu'), this,
-            function(oMode) { return $.inArray(oMode, g_oModes.aFavModes) != -1; }, // Is favorite.
-            function(oMode) { return oMode.getName();                            }, // Get key
-            function(oMode) { return oMode.getDisplayName();                     }, // Get item display text.
-            this._setModeToLocal
-        );
+        this._oModeMenu = g_oModes.createModeMenu('#mode-menu', this, this._setModeToLocal);
         
         // Create the chat object.
         this._oChat = new Chat(oWorkspace, oSocket);

@@ -4,7 +4,7 @@ var oInitApp =
     _oPendingChosenMode: null,
     _oWorkspace: null,
     
-    /// CALLED FOR EXISTING DOCUMENT ///
+    /// CALLED FOR NEW DOCUMENT ///
     
     initModeChooser: function()
     {
@@ -56,12 +56,7 @@ var oInitApp =
     _createModeMenu: function(fnOnModeSelect)
     {
         // Init menu.
-        var oMenu = new Menu(g_oModes.aModes, $('#modes'), this,
-            function(oMode) { return $.inArray(oMode, g_oModes.aFavModes) != -1; }, // Is favorite
-            function(oMode) { return oMode.getName();                            }, // Get key
-            function(oMode) { return oMode.getDisplayName();                     }, // Get item display text.
-            fnOnModeSelect
-        );
+        var oMenu = g_oModes.createModeMenu('#modes', this, fnOnModeSelect);
         oMenu.focusInput();
         
         // Maintain focus.
