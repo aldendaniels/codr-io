@@ -286,6 +286,6 @@ var Workspace = oHelpers.createClass(
 
     _setCollaborateUrl: function()
     {
-        $('#collaborate-url').val(document.location.href);
+        $('#collaborate-url').val(document.location.href.slice(7));
     }
 });

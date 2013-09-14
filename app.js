@@ -292,7 +292,7 @@ var Client = oHelpers.createClass(
         {
             case 'createDocument':
                 this._bCreatedDocument = true;
-                oDatabase.createDocument(JSON.stringify(oAction.oData), this, function(sDocumentID)
+                oDatabase.createDocument(serializeDocument(oAction.oData), this, function(sDocumentID)
                 {
                     this._addToWorkspace(sDocumentID);
                 });
@@ -560,6 +560,12 @@ var Workspace = oHelpers.createClass(
                 });
             }
         }
+
+        for (var i = 0; i < this._oDocument.aChildrenIDs.length; i++)
+        {
+            var sID = this._oDocument.aChildrenIDs[i];
+            oClient.sendAction('addSnapshot', {'sUrl': '/snapshot/' + sID, 'oDate': this._oDocument.oDateCreated})
+        }
     },
     
     getDocument: function()
@@ -720,7 +726,6 @@ var Workspace = oHelpers.createClass(
                 });
                 break;
 
-            case 'cloneDocument':
             case 'snapshotDocument':
 
                 this._assertDocumentLoaded();
@@ -728,17 +733,17 @@ var Workspace = oHelpers.createClass(
 
                 // Silly way to copy the document.... But it works.
                 var oNewDocument = parseDocument(serializeDocument(this._oDocument));
-                if (oAction.sType == 'cloneDocument')
-                    oNewDocument.bIsSnapshot = false;
-                else
-                    oNewDocument.bIsSnapshot = true;
+                oNewDocument.bIsSnapshot = true;
+                oNewDocument.aChildrenIDs = [];
+                oNewDocument.oDateCreated = new Date();
 
                 oDatabase.createDocument(serializeDocument(oNewDocument), this, function(sID)
                 {
-                    if (oAction.sType == 'cloneDocument')
-                        oClient.sendAction('setCloneUrl', {'sUrl': '/' + sID});
-                    else
-                        oClient.sendAction('setSnapshotUrl', {'sUrl': '/snapshot/' + sID});
+                    this._oDocument.aChildrenIDs.push(sID);
+                    this._broadcastAction(null, {
+                        sType: 'addSnapshot', 
+                        oData: {'sUrl': '/snapshot/' + sID, 'oDate': oNewDocument.oDateCreated}
+                    });
                 });
 
                 break;
@@ -836,6 +841,11 @@ var Workspace = oHelpers.createClass(
 
 function parseDocument(sJSON)
 {
+    return _normalizeDocument(JSON.parse(sJSON));
+}
+
+function _normalizeDocument(oDocument)
+{
     var oBlankDocument = {
         bReadOnly: false,
         aChildrenIDs: [],
@@ -844,17 +854,18 @@ function parseDocument(sJSON)
         sText: '',
         sTitle: 'Untitled',
         aChatHistory: [],
-        bIsSnapshot: false
+        bIsSnapshot: false,
+        oDateCreated: new Date()
     };
 
-    var oParsed = JSON.parse(sJSON);
-    for (var sKey in oParsed)
-        oBlankDocument[sKey] = oParsed[sKey];
+    for (var sKey in oDocument)
+        oBlankDocument[sKey] = oDocument[sKey];
 
+    oBlankDocument.oDateCreated = new Date(oBlankDocument.oDateCreated);
     return oBlankDocument;
 }
 
 function serializeDocument(oDocument)
 {
-    return JSON.stringify(oDocument);
+    return JSON.stringify(_normalizeDocument(oDocument));
 }

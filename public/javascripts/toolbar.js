@@ -172,12 +172,6 @@ var Toolbar = oHelpers.createClass(
                 return;
             }       
 
-            // Create clone
-            if (jTarget.is('#clone-button'))
-            {
-                this._oSocket.send('cloneDocument');
-            }
-
             // Create snapshot
             if (jTarget.is('#snapshot-button'))
             {
@@ -281,14 +275,13 @@ var Toolbar = oHelpers.createClass(
     {
         switch(oAction.sType)
         {
-            case 'setCloneUrl':
+            case 'addSnapshot':
                 var sUrl = document.location.origin + oAction.oData.sUrl;
-                $('#clone-input').val(sUrl).prop('disabled', false).select().closest('.share-wrapper').addClass('enabled');
-                break;
-
-            case 'setSnapshotUrl':
-                var sUrl = document.location.origin + oAction.oData.sUrl;
-                $('#snapshot-input').val(sUrl).prop('disabled', false).select().closest('.share-wrapper').addClass('enabled');
+                var oDate = new Date(oAction.oData.oDate);
+                var sDate = oDate.toDateString() + ' ' + oDate.getHours() + ':' + oDate.getMinutes();
+                var jSnapshotLink = $('<a class="snapshot-link"></a>');
+                jSnapshotLink.attr('href', sUrl).text(sDate);
+                $('#snapshots').append(jSnapshotLink);
                 break;
 
             default:
