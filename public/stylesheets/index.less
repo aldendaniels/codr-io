@@ -1,3 +1,4 @@
+@import "helpers.less";
 
 @top-toolbar-height: 50px;
 @codr-blue: #319ac2;
@@ -137,6 +138,60 @@ button
     }        
 }
 
+#snapshot-notify-bar
+{
+    display: none;   
+}
+body.snapshot
+{
+    @snapshot-notify-height: 30px;
+    
+    #workspace-main
+    {
+        position: absolute;
+        top: @snapshot-notify-height;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+    
+    #snapshot-notify-bar
+    {
+        @color: #7e9da8;
+        height: @snapshot-notify-height - 2px;
+        #gradient > .vertical(@color, darken(@color, 10%));
+        border-top: 1px darken(@color, 10%) solid;
+        border-bottom: 1px darken(@color, 30%) solid;
+        color: white;
+        display: block;
+        
+        div
+        {
+            padding-top: 5px;
+            padding-left: 10px;
+            font-weight: bold;
+            color: darken(@color, 40%);
+            text-shadow: 1px 2px 3px lighten(@color, 10%);
+            text-align: center;
+        }
+    }
+    
+    #toolbar-content-right
+    {
+        display: none;
+    }
+    
+    .toolbar-item-btn
+    {
+        border-top-color: #fafafa !important;
+    }
+}
+
+.edit-mode-message > .snapshot                  { display: none; }
+.edit-mode-message > .not-editing               { display: inline; }
+body.snapshot .edit-mode-message > .snapshot    { display: inline; }
+body.snapshot .edit-mode-message > .not-editing { display: none; }
+
 #workspace
 {
     position: absolute;
@@ -175,8 +230,8 @@ button
                 cursor: pointer;
                 transition: background-color 0.2s;
             }
-
-            &:not(.open) .toolbar-item-btn:hover
+            
+            &:not(.open):not(.disabled) .toolbar-item-btn:hover
             {
                 background-color: rgba(255, 255, 255, 0.5);
             }
@@ -527,7 +582,13 @@ button
                 padding-left: 3px;
                 height: @icon-height;
                 padding-top: @icon-botton-padding-top;
-            }                   
+            }
+            
+            &.disabled .left-icon
+            {
+                color: #aaa;
+                cursor: default;
+            }
             
             .toolbar-dropdown
             {

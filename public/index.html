@@ -15,6 +15,8 @@
             var IS_SNAPSHOT = /^\/snapshot/.test(window.location.pathname);
             if (IS_NEW_DOCUMENT) // New document.
                 document.body.className = "home";
+            if (IS_SNAPSHOT)
+                document.body.className += " snapshot"
         </script>
         
         <div id="home">
@@ -25,132 +27,146 @@
         </div>
         
         <div id="workspace" class="">
-            <div id="toolbar-top">
+            
+            <div id="snapshot-notify-bar">
+                <div>This file is readonly. You can fork this file to create an editable copy.</div>
+            </div>
+
+            <div id="workspace-main">
                 
-                <a id="toolbar-logo" href="http://codr.io/">
-                    <i class="icon-cloud left-icon"></i>
-                    <i class="icon-code left-icon"></i>
-                </a>
-                <div class="divider"></div>
-                
-                <div id="title" class="toolbar-item text-input-menu">
-                    <div class="toolbar-item-btn">
-                        <div class="toolbar-item-caption">Title</div>
-                        <div class="toolbar-item-selection">Loading...</div>
-                    </div>
-                    <div class="toolbar-dropdown-top-border"></div>
-                    <div class="toolbar-dropdown">
-                        <div id="title-message" class="edit-mode-message">Edit mode required to make changes</div>
-                        <input type="text" id="title-input" disabled=disabled></input>
-                        <div class="horizontal-divider"></div>
-                        <button id="title-save" disabled=disabled>Save</button>
-                        <div class="hidden-focusable">
-                            <a href="javascript:void(0)">#</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="divider"></div>
-                
-                <div id="mode" class="toolbar-item">
-                    <div class="toolbar-item-btn">
-                        <div class="toolbar-item-caption">Language</div>
-                        <div class="toolbar-item-selection">Loading...</div>
-                    </div>
-                    <div class="toolbar-dropdown-top-border"></div>
-                    <div class="toolbar-dropdown">
-                        <div id="mode-message" class="edit-mode-message">Edit mode required to make changes</div>
-                        <div id="mode-menu"></div>
-                    </div>
-                </div>
-                <div class="divider"></div>
-                
-                <div id="toolbar-content-right">
+                <div id="toolbar-top">
                     
+                    <a id="toolbar-logo" href="http://codr.io/">
+                        <i class="icon-cloud left-icon"></i>
+                        <i class="icon-code left-icon"></i>
+                    </a>
                     <div class="divider"></div>
-                    <button id="edit-button" class="disable-hover"><i class="icon-check"></i>
-                        <i class="icon-check-empty"></i>
-                        <span class="text">Editing</span>
-                    </button>
+                    
+                    <div id="title" class="toolbar-item text-input-menu">
+                        <div class="toolbar-item-btn">
+                            <div class="toolbar-item-caption">Title</div>
+                            <div class="toolbar-item-selection">Loading...</div>
+                        </div>
+                        <div class="toolbar-dropdown-top-border"></div>
+                        <div class="toolbar-dropdown">
+                            <div id="title-message" class="edit-mode-message">
+                                <span class="not-editing">Edit mode required to make changes</span>
+                                <span class="snapshot">Changes not allowed in read-only files</span>
+                            </div>
+                            <input type="text" id="title-input" disabled=disabled></input>
+                            <div class="horizontal-divider"></div>
+                            <button id="title-save" disabled=disabled>Save</button>
+                            <div class="hidden-focusable">
+                                <a href="javascript:void(0)">#</a>
+                            </div>
+                        </div>
+                    </div>
                     <div class="divider"></div>
-                </div>
-            </div>
-            <div id="toolbar-left">
-                
-                <div id="chat-menu" class="toolbar-item text-input-menu">
-                    <div class="toolbar-item-btn">
-                        <i class="icon-chat left-icon"></i>
-                        <div id="chat-unread-count" style="display: none;"></div>
-                    </div>
-                    <div class="toolbar-dropdown-left-border"></div>
-                    <div class="toolbar-dropdown identify" id="chat">
-                        <div id="chat-identify-wrapper">
-                            Please identify yourself:
-                            <input type="text" id="chat-identify" />
-                            <button id="chat-identify-ok-button">Ok</button>
-                            <div id="chat-identify-error-message"></div>
+                    
+                    <div id="mode" class="toolbar-item">
+                        <div class="toolbar-item-btn">
+                            <div class="toolbar-item-caption">Language</div>
+                            <div class="toolbar-item-selection">Loading...</div>
                         </div>
-                        <div id="chat-history"></div>
-                        <div id="chat-typing">
-                            <b>Typing: </b><span id="chat-typing-names"></span>
+                        <div class="toolbar-dropdown-top-border"></div>
+                        <div class="toolbar-dropdown">
+                            <div id="mode-message" class="edit-mode-message">
+                                <span class="not-editing">Edit mode required to make changes</span>
+                                <span class="snapshot">Changes not allowed in read-only files</span>
+                            </div>
+                            <div id="mode-menu"></div>
                         </div>
-                        <textarea type="text" id="chat-box" disabled="disabled"></textarea>
+                    </div>
+                    <div class="divider"></div>
+                    
+                    <div id="toolbar-content-right">
+                        
+                        <div class="divider"></div>
+                        <button id="edit-button" class="disable-hover"><i class="icon-check"></i>
+                            <i class="icon-check-empty"></i>
+                            <span class="text">Editing</span>
+                        </button>
+                        <div class="divider"></div>
                     </div>
                 </div>
-                <div class="divider"></div>
-                
-                <div id="download-menu" class="toolbar-item text-input-menu">
-                    <div class="toolbar-item-btn">
-                        <i class="icon-down-circled2 left-icon"></i>
+                <div id="toolbar-left">
+                    
+                    <div id="chat-menu" class="toolbar-item text-input-menu">
+                        <div class="toolbar-item-btn">
+                            <i class="icon-chat left-icon"></i>
+                            <div id="chat-unread-count" style="display: none;"></div>
+                        </div>
+                        <div class="toolbar-dropdown-left-border"></div>
+                        <div class="toolbar-dropdown identify" id="chat">
+                            <div id="chat-identify-wrapper">
+                                Please identify yourself:
+                                <input type="text" id="chat-identify" />
+                                <button id="chat-identify-ok-button">Ok</button>
+                                <div id="chat-identify-error-message"></div>
+                            </div>
+                            <div id="chat-history"></div>
+                            <div id="chat-typing">
+                                <b>Typing: </b><span id="chat-typing-names"></span>
+                            </div>
+                            <textarea type="text" id="chat-box" disabled="disabled"></textarea>
+                        </div>
                     </div>
-                    <div class="toolbar-dropdown-left-border"></div>
-                    <div class="toolbar-dropdown">
-                        <input type="text" id="download-as" placeholder="File name"></input>
-                        <div class="horizontal-divider"></div>
-                        <button id="download">Download</button>
+                    <div class="divider"></div>
+                    
+                    <div id="download-menu" class="toolbar-item text-input-menu">
+                        <div class="toolbar-item-btn">
+                            <i class="icon-down-circled2 left-icon"></i>
+                        </div>
+                        <div class="toolbar-dropdown-left-border"></div>
+                        <div class="toolbar-dropdown">
+                            <input type="text" id="download-as" placeholder="File name"></input>
+                            <div class="horizontal-divider"></div>
+                            <button id="download">Download</button>
+                        </div>
                     </div>
+                    <div class="divider"></div>
+                    <div class="toolbar-item text-input-menu">
+                        <div class="toolbar-item-btn">
+                            <i class="icon-link left-icon"></i>
+                        </div>
+                        <div class="toolbar-dropdown-left-border"></div>
+                        <div class="toolbar-dropdown">
+                            <div class="link-section-title">Editable link (collaborate)</div>
+                            <input id="collaborate-url" type="text" placeholder="Result"></input>
+                            <div class="link-section-title">Readonly link (post on a forum)</div>
+                            <div id="snapshots"></div>
+                            <button class="share-button" id="snapshot-button">Create new</button>
+                        </div>
+                    </div>
+                    <div class="divider"></div>
+                    <!--
+                    <div class="toolbar-item text-input-menu">
+                        <div class="toolbar-item-btn">
+                            <i class="icon-split left-icon"></i>
+                        </div>
+                        <div class="toolbar-dropdown-left-border"></div>
+                        <div class="toolbar-dropdown">
+                            <button>Create clone:</button>
+                        </div>
+                    </div>
+                    <div class="divider"></div>-->
                 </div>
-                <div class="divider"></div>
-                <div class="toolbar-item text-input-menu">
-                    <div class="toolbar-item-btn">
-                        <i class="icon-link left-icon"></i>
-                    </div>
-                    <div class="toolbar-dropdown-left-border"></div>
-                    <div class="toolbar-dropdown">
-                        <div class="link-section-title">Editable link (collaborate)</div>
-                        <input id="collaborate-url" type="text" placeholder="Result"></input>
-                        <div class="link-section-title">Readonly link (post on a forum)</div>
-                        <div id="snapshots"></div>
-                        <button class="share-button" id="snapshot-button">Create new</button>
-                    </div>
+                <div id="edit"></div>
+                <div id="summary-bar">
+                    <table>
+                        <tr>
+                            <td>
+                                <span id="num-viewing"></span> |
+                                <span id="editors-name"></span>
+                            </td>
+                            <td id="summary-bar-right-section">
+                                ln: <span id="line-number">0</span> | 
+                                col: <span id="col-number">0</span>
+                            </td>
+                        </tr>
+                    </table>
                 </div>
-                <div class="divider"></div>
-                <!--
-                <div class="toolbar-item text-input-menu">
-                    <div class="toolbar-item-btn">
-                        <i class="icon-split left-icon"></i>
-                    </div>
-                    <div class="toolbar-dropdown-left-border"></div>
-                    <div class="toolbar-dropdown">
-                        <button>Create clone:</button>
-                    </div>
-                </div>
-                <div class="divider"></div>-->
-            </div>
-            <div id="edit"></div>
-            <div id="summary-bar">
-                <table>
-                    <tr>
-                        <td>
-                            <span id="num-viewing"></span> |
-                            <span id="editors-name"></span>
-                        </td>
-                        <td id="summary-bar-right-section">
-                            ln: <span id="line-number">0</span> | 
-                            col: <span id="col-number">0</span>
-                        </td>
-                    </tr>
-                </table>
-            </div>
+            </dov>
         </div>
         
         <!-- Load menu chooser -->
@@ -180,7 +196,11 @@
                 oInitApp.initWorkspace();
 
                 if (IS_SNAPSHOT)
+                {
                     oInitApp.getSnapshotData();
+                    $('#chat-menu').addClass('disabled');
+                }
+                    
             }
         </script>
         

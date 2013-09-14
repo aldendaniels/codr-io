@@ -95,7 +95,8 @@ var Toolbar = oHelpers.createClass(
                 else
                 {
                     this._closeOpenDropdown();
-                    this._openDropdown(jTargetToolbarItem);
+                    if (!jTargetToolbarItem.is('.disabled'))
+                        this._openDropdown(jTargetToolbarItem);
                 }
                 return;
             }
