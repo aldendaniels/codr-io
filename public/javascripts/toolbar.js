@@ -141,6 +141,7 @@ var Toolbar = oHelpers.createClass(
             if (jActiveToolbarItem.is('#title') && oEvent.which == 13 /* ENTER */)
             {
                 this._setTitleToLocal();
+                oEvent.preventDefault();
                 return;
             }
             

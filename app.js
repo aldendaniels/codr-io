@@ -2,7 +2,7 @@
 // Include helper libraries.
 var oOS                 = require('os');
 var oPath               = require('path');
-var fs                  = require('fs');
+var oFS                  = require('fs');
 var oUrl                = require('url');
 var oExpress            = require('express');
 var oWS                 = require('ws');
@@ -10,8 +10,15 @@ var oHTTP               = require('http');
 var oLessMiddleware     = require('less-middleware');
 var oUglifyJSMiddleware = require('uglify-js-middleware');
 var oHelpers            = require('./helpers');
-var oAceDocument    = require('./aceDocument').Document;
-var oDatabase       = require('./database');
+var oAceDocument        = require('./aceDocument').Document;
+var oDatabase           = require('./database');
+
+// Error handling.
+// TODO: This is a horrible hack.
+process.on('uncaughtException', function (err)
+{
+    console.error(err); // Keep node from exiting.
+});
 
 // Set/validation production environmental variables.
 GLOBAL.g_oConfig = (function()
@@ -21,12 +28,13 @@ GLOBAL.g_oConfig = (function()
     for (var i = 2; i < process.argv.length; i++)
     {
         var aParts = process.argv[i].split('=');
-        oArgs[aParts[0]] = aParts[1];
+        oArgs[aParts[0].trim()] = aParts[1].trim();
     }
     
     // Populate Config object.
     var oConfig = {};
-    oConfig.bIsProd   =  (oArgs.is_prod   ? !!oArgs.is_prod : false);
+    oConfig.bIsProd   =  (oArgs.is_prod == '1');
+    oConfig.bCompress =  (oArgs.compress == '1' || oConfig.bIsProd);
     oConfig.iPort     =  (oArgs.port      ? parseInt(oArgs.port) : (oConfig.bIsProd ? 80 : 8080));
     oConfig.sDataPath =  (oArgs.data_path ? oArgs.data_path : function()
                             {
@@ -35,20 +43,24 @@ GLOBAL.g_oConfig = (function()
                                 else
                                 {
                                     var sDataPath = oPath.join(oOS.tmpDir(), 'data');
-                                    if(!fs.existsSync(sDataPath))
-                                        fs.mkdirSync(sDataPath);
+                                    if(!oFS.existsSync(sDataPath))
+                                        oFS.mkdirSync(sDataPath);
                                     return sDataPath;
                                 }
                             }());
     return oConfig;
 }());
 
-// Error handling.
-// TODO: This is a horrible hack.
-process.on('uncaughtException', function (err)
+// Create empty codr_static directory.
+var sCodrStaticOutputPath = oPath.join(oOS.tmpDir(), 'codr_static');
+if (oFS.existsSync(sCodrStaticOutputPath))
 {
-    console.error(err); // Keep node from exiting.
-});
+    oHelpers.emptyDirSync(sCodrStaticOutputPath);
+}
+else
+{
+    oFS.mkdirSync(sCodrStaticOutputPath);
+}
 
 // Create express app.
 var oApp = oExpress();
@@ -57,27 +69,26 @@ oApp.configure(function()
     oApp.set('port', g_oConfig.iPort);
     
     // Configure LESS middleware.
-    var oTempDir = oPath.join(oOS.tmpDir(), 'codr_static');
     oApp.use(oLessMiddleware(
     {
         src: __dirname + '/public',
-        dest: oTempDir
+        dest: sCodrStaticOutputPath
     }));
     
-    // Configure UglifyJS middleware in Production
-    if (g_oConfig.bIsProd)
+    // Configure UglifyJS middleware in Production.
+    if (g_oConfig.bCompress)
     {
         oApp.use(oUglifyJSMiddleware(
         {
             src : __dirname + '/public',
-            dest: oTempDir,
+            dest: sCodrStaticOutputPath,
             uglytext: false,
             mangle: true,
             squeeze: true
         }));        
     }
     
-    oApp.use(oExpress.static(oTempDir));
+    oApp.use(oExpress.static(sCodrStaticOutputPath));
     oApp.use(oExpress.static(oPath.join(__dirname, 'public')));
 
     /* Save static index.html */
