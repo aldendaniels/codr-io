@@ -1,3 +1,6 @@
+var oFS   = require('fs');
+var oPath = require('path');
+
 var Callback = {
     /*
      * This function solves the problem of the value of "this" not persisting for callbacks.
@@ -53,7 +56,7 @@ var Callback = {
 };
 
 
-module.exports =
+var oHelpers =
 {
     createClass: function(oProps)
     {
@@ -118,5 +121,26 @@ module.exports =
                 return true;
         }
         return false
+    },
+    
+    emptyDirSync: function(sPath)
+    {
+        if (oFS.existsSync(sPath))
+        {
+            oFS.readdirSync(sPath).forEach(function(sFile, iFileIndex)
+            {
+                var sCurPath = oPath.join(sPath, sFile);
+                if(oFS.statSync(sCurPath).isDirectory())
+                {
+                    oHelpers.emptyDirSync(sCurPath); // Recurse.
+                    oFS.rmdirSync(sCurPath); // Delete dir.
+                }
+                else
+                    oFS.unlinkSync(sCurPath); // Delete file.
+            });
+        }
     }
 };
+
+// Export helpers.
+module.exports = oHelpers;
