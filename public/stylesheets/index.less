@@ -777,10 +777,24 @@ body.snapshot .edit-mode-message > .not-editing { display: none; }
         padding: 6px;
         text-decoration: none;
         color: darken(@codr-blue, 10%);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        
+        .date
+        {
+            color: #aaa;
+            padding-right: 10px;
+            display: inline-block;
+        }
         
         &:hover
         {
             color: darken(@codr-blue, 40%);
+            .date
+            {
+                color: #777;
+            }
         }
     }
     
