@@ -59,7 +59,8 @@ var Toolbar = oHelpers.createClass(
     
     contains: function(jElem)
     {
-        return jElem.closest('#toolbar-top,#toolbar-left').length > 0;
+        // #snapshot-notify-bar is a hack . . . it functions like unused toolbar.
+        return jElem.closest('#toolbar-top,#toolbar-left,#snapshot-notify-bar').length > 0;
     },
     
     focus: function()

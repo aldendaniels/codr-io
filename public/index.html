@@ -113,21 +113,7 @@
                         </div>
                     </div>
                     <div class="divider"></div>
-                    
-                    <!-- Download Menu -->
-                    <div id="download-menu" class="toolbar-item">
-                        <div class="toolbar-item-btn">
-                            <i class="icon-down-circled2 left-icon"></i>
-                        </div>
-                        <div class="toolbar-dropdown-left-border"></div>
-                        <div class="toolbar-dropdown">
-                            <input class="toolbar-input" type="text" id="download-as" placeholder="File name"></input>
-                            <div class="horizontal-divider"></div>
-                            <button id="download">Download</button>
-                        </div>
-                    </div>
-                    <div class="divider"></div>
-                    
+
                     <!-- Link Menu -->
                     <div id="link-menu" class="toolbar-item">
                         <div class="toolbar-item-btn">
@@ -148,7 +134,22 @@
                             <button class="share-button" id="snapshot-button">Create new snapshot</button>
                         </div>
                     </div>
+
                     
+                    <!-- Download Menu -->
+                    <div class="divider"></div>
+                    <div id="download-menu" class="toolbar-item">
+                        <div class="toolbar-item-btn">
+                            <i class="icon-down-circled2 left-icon"></i>
+                        </div>
+                        <div class="toolbar-dropdown-left-border"></div>
+                        <div class="toolbar-dropdown">
+                            <input class="toolbar-input" type="text" id="download-as" placeholder="File name"></input>
+                            <div class="horizontal-divider"></div>
+                            <button id="download">Download</button>
+                        </div>
+                    </div>
+                                       
                     <div class="divider"></div>
                     <!--
                     <div class="toolbar-item">
@@ -194,6 +195,14 @@
                 </div>
             </dov>
         </div>
+
+        <script type="text/javascript">
+            if (IS_SNAPSHOT)
+            {
+                document.getElementById('chat-menu').className  += ' disabled';
+                document.getElementById('link-menu').className  += ' disabled';
+            }
+        </script>
         
         <!-- Load menu chooser -->
         <script type="text/javascript" src="/javascripts/helpers/jquery-2.0.2.min.js"></script>
@@ -222,11 +231,7 @@
                 oInitApp.initWorkspace();
 
                 if (IS_SNAPSHOT)
-                {
-                    oInitApp.getSnapshotData();
-                    $('#chat-menu').addClass('disabled');
-                }
-                    
+                    oInitApp.getSnapshotData();                    
             }
         </script>
         
