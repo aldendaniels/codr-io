@@ -58,26 +58,32 @@ button
 
     /* Other */    
     outline: none;
-    border: 1px transparent solid;
-    border-radius: 3px;
+    border: 1px darken(@codr-blue, 3%) solid;
     cursor: pointer;
+    &::-moz-focus-inner
+    {
+        border: 0;
+    }
 
     &:hover
     {
         background-color: @codr-blue;
+        border-color: darken(@codr-blue, 8%);
     }
 
     &:disabled, &:disabled:hover
     {
         background-color: lighten(@codr-blue, 20%);
-        color: @codr-blue;
+        border-color: lighten(@codr-blue, 15%);
+        color: darken(@codr-blue, 5%);
         cursor: default;
     }
     
     &:focus
     {
-        border-color: darken(@codr-blue, 15%);
-        box-shadow: 0 0 3px rgba(0, 0, 0, 0.2);
+        border-color: darken(@codr-blue, 20%);
+        box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
+        outline: none;
     }
 }
 
@@ -293,7 +299,6 @@ body.snapshot .edit-mode-message > .not-editing { display: none; }
                 padding: 12px;
                 border: 1px white solid;
                 box-shadow: 0 0 5px #bbb inset;
-                border-radius: 5px;
                 outline: none;
                 font-size: 12pt;
             }
@@ -495,13 +500,16 @@ body.snapshot .edit-mode-message > .not-editing { display: none; }
         {
             display: inline-block;
             text-align: left;
-            margin-left: 19px;
-            margin-right: 17px;
-            width: 111px;
-            padding-left: 7px;
+
+            margin-left: 7px;
+            margin-right: 5px;
             margin-top: 6px;
-            padding-top: 6px;
+
+            width: 111px;
             height: 37px;
+
+            padding-left: 7px;
+            padding-top: 5px;
            
             [class^="icon-check"]
             {
@@ -523,8 +531,16 @@ body.snapshot .edit-mode-message > .not-editing { display: none; }
             
             &:not(.on) 
             {
-                background-color: lighten(desaturate(@codr-blue, 40%), 10%);
-                color: desaturate(darken(@codr-blue, 40%), 40%);
+                @blue: lighten(desaturate(@codr-blue, 40%), 20%);
+                background-color: @blue;
+                border-color: darken(@blue, 10%);
+                color: desaturate(darken(@codr-blue, 30%), 40%);
+                
+                &:hover
+                {
+                    background-color: darken(@blue, 10%);
+                    border-color: darken(@blue, 20%);
+                }
             }
         }
     }
@@ -816,6 +832,16 @@ body.snapshot .edit-mode-message > .not-editing { display: none; }
         }
     }
     
+}
+
+#toolbar-content-bottom  
+{
+    .toolbar-dropdown
+    {
+        top: auto !important;
+        bottom: 2px !important;
+        border-bottom-right-radius: 0 !important;
+    }
 }
 
 /***************** ACE EDITOR STYLES *********************/
