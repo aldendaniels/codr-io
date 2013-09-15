@@ -277,6 +277,7 @@ var Toolbar = oHelpers.createClass(
         switch(oAction.sType)
         {
             case 'addSnapshot':
+                $('#snapshots #placeholder').remove();
                 var sUrl = document.location.origin + '/v/' + oAction.oData.sID;
                 var sDate = oHelpers.formatDateTime(new Date(oAction.oData.oDate));
                 $('<a class="snapshot-link"></a>').attr('href', sUrl)
