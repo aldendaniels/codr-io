@@ -35,7 +35,7 @@ var oInitApp =
     {
         oHelpers.assert(IS_SNAPSHOT, 'Should be published.');
 
-        var sDocumentID = /^\/snapshot\/([a-z0-9]+)\/?$/.exec(document.location.pathname)[1];
+        var sDocumentID = /^\/v\/([a-z0-9]+)\/?$/.exec(document.location.pathname)[1];
         $.get('/ajax/' + sDocumentID + '/', oHelpers.createCallback(this, function(oResponse)
         {
             if (oResponse.sError)

@@ -100,7 +100,7 @@ oApp.configure(function()
     /* Save static index.html */
     oApp.get('^/$',                     function(req, res) { res.sendfile('public/index.html'); });
     oApp.get('^/[a-z0-9]+/?$',          function(req, res) { res.sendfile('public/index.html'); });
-    oApp.get('^/snapshot/[a-z0-9]+/?$', function(req, res) { res.sendfile('public/index.html'); });
+    oApp.get('^/v/[a-z0-9]+/?$',        function(req, res) { res.sendfile('public/index.html'); });
 
     oApp.get('^/ajax/:DocumentID([a-z0-9]+)/?$', function(req, res) {
 
@@ -378,7 +378,7 @@ var Workspace = oHelpers.createClass(
             if (this._oDocument.bIsSnapshot)
             {
                 var sErrorMessage = 'This document has been published and can not be edited.' +
-                                    'To see the published version click <a href="/snapshot/' + sDocumentID + '">here</a>.';
+                                    'To see the published version click <a href="/v/' + sDocumentID + '">here</a>.';
                 for (var i = 0; i < this._aClients.length; i++)
                     this._aClients[i].abort(sErrorMessage);
 
@@ -561,10 +561,10 @@ var Workspace = oHelpers.createClass(
             }
         }
 
-        for (var i = 0; i < this._oDocument.aChildrenIDs.length; i++)
+        for (var i = 0; i < this._oDocument.aSnapshots.length; i++)
         {
-            var sID = this._oDocument.aChildrenIDs[i];
-            oClient.sendAction('addSnapshot', {'sUrl': '/snapshot/' + sID, 'oDate': this._oDocument.oDateCreated})
+            var oSnapshot = this._oDocument.aSnapshots[i];
+            oClient.sendAction('addSnapshot', oSnapshot);
         }
     },
     
@@ -734,15 +734,20 @@ var Workspace = oHelpers.createClass(
                 // Silly way to copy the document.... But it works.
                 var oNewDocument = parseDocument(serializeDocument(this._oDocument));
                 oNewDocument.bIsSnapshot = true;
-                oNewDocument.aChildrenIDs = [];
+                oNewDocument.aSnapshots = [];
                 oNewDocument.oDateCreated = new Date();
 
                 oDatabase.createDocument(serializeDocument(oNewDocument), this, function(sID)
                 {
-                    this._oDocument.aChildrenIDs.push(sID);
-                    this._broadcastAction(null, {
+                    var oSnapshot = {
+                        sID: sID,
+                        oDateCreated: oNewDocument.oDateCreated
+                    };
+                    this._oDocument.aSnapshots.push(oSnapshot);
+                    this._broadcastAction(null,
+                    {
                         sType: 'addSnapshot', 
-                        oData: {'sUrl': '/snapshot/' + sID, 'oDate': oNewDocument.oDateCreated}
+                        oData: oSnapshot
                     });
                 });
 
@@ -848,7 +853,7 @@ function _normalizeDocument(oDocument)
 {
     var oBlankDocument = {
         bReadOnly: false,
-        aChildrenIDs: [],
+        aSnapshots: [],
         sParentID: '',
         sMode: '',
         sText: '',

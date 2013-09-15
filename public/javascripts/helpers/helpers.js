@@ -108,6 +108,22 @@ var oHelpers = {
         }  
     }),
     
+    formatDateTime: function(d)
+    {
+        return '' +
+                       
+            // Date
+            ( '0' + (d.getMonth() + 1) ).slice(-2) + '/' +
+            ( '0' + d.getDate()        ).slice(-2) + '/' +
+            d.getFullYear() +
+            
+            // Time
+            ' at ' +
+            ( '0' + d.getHours() % 12 ).slice(-2) + ':' +
+            ( '0' + d.getMinutes()    ).slice(-2) + ' ' +
+            (d.getHours < 12 ? 'AM' : 'PM')
+    },
+    
     createClass: function(oProps)
     {
         return _createClass(oProps);
@@ -168,8 +184,8 @@ var _Callback = {
                     for (var i = 0; i < arguments.length; i++)
                         aArgumentsOverride.push(arguments[i]);
                 }
-
+                
                 return fnCallback.apply(oObject, aArgumentsOverride || arguments);
             };
-    }
+    }    
 };

@@ -102,7 +102,7 @@ var Toolbar = oHelpers.createClass(
             }
             
             // Blur when clicking directly on the toolbar (e.g. not on dropdown).
-            if (jTarget.is('#toolbar-top,#toolbar-left') && jActiveToolbarItem)
+            if (jActiveToolbarItem.length && !jTargetToolbarItem.length)
             {
                 this._blur();
                 return;
@@ -277,12 +277,11 @@ var Toolbar = oHelpers.createClass(
         switch(oAction.sType)
         {
             case 'addSnapshot':
-                var sUrl = document.location.origin + oAction.oData.sUrl;
-                var oDate = new Date(oAction.oData.oDate);
-                var sDate = oDate.toDateString() + ' ' + oDate.getHours() + ':' + oDate.getMinutes();
-                var jSnapshotLink = $('<a class="snapshot-link"></a>');
-                jSnapshotLink.attr('href', sUrl).text(sDate);
-                $('#snapshots').append(jSnapshotLink);
+                var sUrl = document.location.origin + '/v/' + oAction.oData.sID;
+                var sDate = oHelpers.formatDateTime(new Date(oAction.oData.oDate));
+                $('<a class="snapshot-link"></a>').attr('href', sUrl)
+                                                  .text(sDate)
+                                                  .appendTo('#snapshots');
                 break;
 
             default:
