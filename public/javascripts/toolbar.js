@@ -147,7 +147,7 @@ var Toolbar = oHelpers.createClass(
             {
                 this._download();
                 return;
-            }
+            }            
         }
         
         if (sEventType == 'click')

@@ -707,16 +707,7 @@ body.snapshot .edit-mode-message > .not-editing { display: none; }
 {
     #chat-identify-wrapper
     {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        right: 0;
         display: none;
-        background-color: #fafafa;
-        margin: 1em;
-
-
         #chat-identify-error-message
         {
             font-style: italic;
@@ -724,9 +715,10 @@ body.snapshot .edit-mode-message > .not-editing { display: none; }
         }
     }
 
-    &.identify #chat-identify-wrapper
+    &.identify 
     {
-        display: block;
+        #chat-identify-wrapper { display: block; }
+        #chat-main             { display: none;  }
     }
 
     #chat-history

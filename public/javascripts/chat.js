@@ -41,22 +41,24 @@ var Chat = oHelpers.createClass(
     {
         // Get data.
         var jTarget = $(oEvent.target);
+        var jActiveElem = $(document.activeElement);
         var sEventType = oEvent.type;
 
         if (sEventType == 'click')
         {
             if (jTarget.is('#chat-identify-ok-button'))
-            {
-                this._oSocket.send('changeUsername',
-                {
-                    'sUsername': $('#chat-identify').val()
-                });
-            }
+                this._changeUsername($('#chat-identify').val());
             return;
         }
         
         if (sEventType == 'keypress')
         {
+            if (jActiveElem.closest('#chat-identify-wrapper').length)
+            {
+                if (oEvent.which == 13)
+                    this._changeUsername($('#chat-identify').val());
+                return;                
+            }
             if (jTarget.is('#chat-box'))
             {
                 if (oEvent.which == 13)
@@ -115,9 +117,19 @@ var Chat = oHelpers.createClass(
                 break;
 
             case 'newUsernameAccepted':
+                
+                // Save username.
+                this._oWorkspace.getUserInfo()['sUsername'] = oAction.oData.sUsername;
+                
+                // Show chat box.
                 $('#chat').removeClass('identify');
                 $('#chat-box').prop('disabled', false);
-                this._oWorkspace.getUserInfo()['sUsername'] = oAction.oData.sUsername;
+                
+                // Focus chat.
+                var jActiveElem = $(document.activeElement);
+                if (jActiveElem.parents('.toolbar-item').is('#chat-menu'))
+                    $('#chat-box').focus();
+                
                 break;
             
             default:
