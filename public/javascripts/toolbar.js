@@ -11,7 +11,7 @@ var Toolbar = oHelpers.createClass(
     
     __type__: 'Toolbar',    
 
-    __init__: function(oWorkspace, oSocket)
+    __init__: function(oWorkspace, oSocket, oShortcutHandler)
     {
         // Save dependencies.
         this._oSocket = oSocket;
@@ -24,6 +24,18 @@ var Toolbar = oHelpers.createClass(
         this._oChat = new Chat(oWorkspace, oSocket);
 
         this._oSocket.bind('message', this, this._handleServerAction);
+
+        oShortcutHandler.registerShortcut('T', $('#title-shortcut-wrapper'), 'left')
+        oShortcutHandler.registerShortcut('L', $('#mode-shortcut-wrapper'), 'left')
+        oShortcutHandler.registerShortcut('D', $('#download-menu-shortcut-wrapper'), 'right')
+        oShortcutHandler.registerShortcut('S', $('#settings-menu-shortcut-wrapper'), 'right')
+
+        if (!IS_SNAPSHOT)
+        {
+            oShortcutHandler.registerShortcut('E', $('#edit-button'), 'left')
+            oShortcutHandler.registerShortcut('C', $('#chat-menu-shortcut-wrapper'), 'right')
+            oShortcutHandler.registerShortcut('K', $('#link-menu-shortcut-wrapper'), 'right')
+        }
     },
     
     setTitle: function(sTitle)

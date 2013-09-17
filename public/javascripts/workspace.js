@@ -22,8 +22,9 @@ var Workspace = oHelpers.createClass(
         this._oSocket = oSocket;
         this._oSocket.bind('message', this, this._handleServerAction);
         
+        var oShortcutHandler = new ShortcutHandler();
         // Init objects.
-        this._oToolbar    = new Toolbar(this, oSocket);
+        this._oToolbar    = new Toolbar(this, oSocket, oShortcutHandler);
         this._oEditor     = new Editor(this, oSocket);
         
         // Init DOM focus.
