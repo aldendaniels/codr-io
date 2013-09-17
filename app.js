@@ -163,7 +163,7 @@ oApp.configure(function()
     });
     
     /* Download file */
-    oApp.get(':ignore(/v)?/:DocumentID([a-z0-9]+)/download/?$', function(req, res)
+    oApp.get('/:DocumentID([a-z0-9]+)/download$', function(req, res)
     {
         // Parse the url and get the file name
         var sFilename = oUrl.parse(req.url, true).query.filename;
@@ -180,7 +180,6 @@ oApp.configure(function()
         // Send document text.
         var oDocument = null;
         var sDocumentID = req.params['DocumentID'];
-        console.log(sDocumentID);
         if (sDocumentID in g_oWorkspaces)
         {
             oDocument = g_oWorkspaces[sDocumentID].getDocument();

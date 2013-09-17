@@ -383,7 +383,7 @@ body.snapshot .edit-mode-message > .not-editing { display: none; }
         
         .toolbar-item
         {
-            height: @top-toolbar-height;
+            height: 100%;
             
             .toolbar-item-btn
             {
@@ -628,11 +628,6 @@ body.snapshot .edit-mode-message > .not-editing { display: none; }
                 cursor: default;
             }
             
-            &.disabled .toolbar-dropdown
-            {
-                display: none;
-            }
-
             .toolbar-dropdown
             {
                 position: absolute;
@@ -918,32 +913,3 @@ BODY:not(.is-editing)
         border-left-color: transparent !important;
     }
 }
-
-.shortcut {
-    background-color: #93bF68;
-    
-    background-image: -moz-linear-gradient(top, #9ED16A, #83AF58);
-    background-image: -ms-linear-gradient(top, #9ED16A, #83AF58);
-    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#9ED16A), to(#83AF58));
-    background-image: -webkit-linear-gradient(top, #9ED16A, #83AF58);
-    background-image: -o-linear-gradient(top, #9ED16A, #83AF58);
-    background-image: linear-gradient(top, #9ED16A, #83AF58);
-    
-    border: 1px solid #336F08;
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;
-    border-radius: 3px;
-    color: #336F08;
-    cursor: default;
-    font-family: "Trebuchet MS", Helvetica, Arial, sans-serif;
-    font-size: 18px;
-    font-weight: normal;
-    line-height: 16px;
-    padding: 4px;
-    text-align: center;
-    text-shadow: 2px 1px 2px #C3FFA8;
-    width: 0.7em;
-    z-index: 25;
-    position: absolute;
-}
-

@@ -11,12 +11,6 @@
       "src": "fontawesome"
     },
     {
-      "uid": "ecb97add13804c190456025e43ec003b",
-      "css": "keyboard",
-      "code": 59400,
-      "src": "fontawesome"
-    },
-    {
       "uid": "dcedf50ab1ede3283d7a6c70e2fe32f3",
       "css": "chat",
       "code": 59396,
@@ -25,7 +19,7 @@
     {
       "uid": "98687378abd1faf8f6af97c254eb6cd6",
       "css": "cog-alt",
-      "code": 59402,
+      "code": 59400,
       "src": "fontawesome"
     },
     {
