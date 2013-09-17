@@ -42,39 +42,43 @@
                     </a>
                     <div class="divider"></div>
                     
-                    <div id="title" class="toolbar-item">
-                        <div class="toolbar-item-btn">
-                            <div class="toolbar-item-caption">Title</div>
-                            <div class="toolbar-item-selection">Loading...</div>
-                        </div>
-                        <div class="toolbar-dropdown-top-border"></div>
-                        <div class="toolbar-dropdown">
-                            <div id="title-message" class="edit-mode-message">
-                                <span class="not-editing">Edit mode required to make changes</span>
-                                <span class="snapshot">Changes not allowed in read-only files</span>
+                    <div id="title-shortcut-wrapper">
+                        <div id="title" class="toolbar-item">
+                            <div class="toolbar-item-btn">
+                                <div class="toolbar-item-caption">Title</div>
+                                <div class="toolbar-item-selection">Loading...</div>
                             </div>
-                            <input class="toolbar-input" type="text" id="title-input" disabled=disabled></input>
-                            <div class="horizontal-divider"></div>
-                            <button id="title-save" disabled=disabled>Save</button>
-                            <div class="hidden-focusable">
-                                <a href="javascript:void(0)">#</a>
+                            <div class="toolbar-dropdown-top-border"></div>
+                            <div class="toolbar-dropdown">
+                                <div id="title-message" class="edit-mode-message">
+                                    <span class="not-editing">Edit mode required to make changes</span>
+                                    <span class="snapshot">Changes not allowed in read-only files</span>
+                                </div>
+                                <input class="toolbar-input" type="text" id="title-input" disabled=disabled></input>
+                                <div class="horizontal-divider"></div>
+                                <button id="title-save" disabled=disabled>Save</button>
+                                <div class="hidden-focusable">
+                                    <a href="javascript:void(0)">#</a>
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="divider"></div>
                     
-                    <div id="mode" class="toolbar-item">
-                        <div class="toolbar-item-btn">
-                            <div class="toolbar-item-caption">Language</div>
-                            <div class="toolbar-item-selection">Loading...</div>
-                        </div>
-                        <div class="toolbar-dropdown-top-border"></div>
-                        <div class="toolbar-dropdown">
-                            <div id="mode-message" class="edit-mode-message">
-                                <span class="not-editing">Edit mode required to make changes</span>
-                                <span class="snapshot">Changes not allowed in read-only files</span>
+                    <div id="mode-shortcut-wrapper">
+                        <div id="mode" class="toolbar-item">
+                            <div class="toolbar-item-btn">
+                                <div class="toolbar-item-caption">Language</div>
+                                <div class="toolbar-item-selection">Loading...</div>
                             </div>
-                            <div id="mode-menu"></div>
+                            <div class="toolbar-dropdown-top-border"></div>
+                            <div class="toolbar-dropdown">
+                                <div id="mode-message" class="edit-mode-message">
+                                    <span class="not-editing">Edit mode required to make changes</span>
+                                    <span class="snapshot">Changes not allowed in read-only files</span>
+                                </div>
+                                <div id="mode-menu"></div>
+                            </div>
                         </div>
                     </div>
                     <div class="divider"></div>
@@ -92,63 +96,69 @@
                 <div id="toolbar-left">
                     
                     <!-- Chat Menu -->
-                    <div id="chat-menu" class="toolbar-item">
-                        <div class="toolbar-item-btn">
-                            <i class="icon-chat left-icon"></i>
-                            <div id="chat-unread-count" style="display: none;"></div>
-                        </div>
-                        <div class="toolbar-dropdown-left-border"></div>
-                        <div class="toolbar-dropdown identify" id="chat">
-                            <div id="chat-identify-wrapper">
-                                Please Identify Yourself:
-                                <input class="toolbar-input" type="text" id="chat-identify" />
-                                <button id="chat-identify-ok-button">OK, Enter Chat</button>
-                                <div id="chat-identify-error-message"></div>
+                    <div id="chat-menu-shortcut-wrapper">
+                        <div id="chat-menu" class="toolbar-item">
+                            <div class="toolbar-item-btn">
+                                <i class="icon-chat left-icon"></i>
+                                <div id="chat-unread-count" style="display: none;"></div>
                             </div>
-                            <div id="chat-main">
-                                <div id="chat-history"></div>
-                                <div id="chat-typing">
-                                    <b>Typing: </b><span id="chat-typing-names"></span>
+                            <div class="toolbar-dropdown-left-border"></div>
+                            <div class="toolbar-dropdown identify" id="chat">
+                                <div id="chat-identify-wrapper">
+                                    Please Identify Yourself:
+                                    <input class="toolbar-input" type="text" id="chat-identify" />
+                                    <button id="chat-identify-ok-button">OK, Enter Chat</button>
+                                    <div id="chat-identify-error-message"></div>
                                 </div>
-                                <textarea type="text" id="chat-box" disabled="disabled"></textarea>
+                                <div id="chat-main">
+                                    <div id="chat-history"></div>
+                                    <div id="chat-typing">
+                                        <b>Typing: </b><span id="chat-typing-names"></span>
+                                    </div>
+                                    <textarea type="text" id="chat-box" disabled="disabled"></textarea>
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="divider"></div>
 
                     <!-- Link Menu -->
-                    <div id="link-menu" class="toolbar-item">
-                        <div class="toolbar-item-btn">
-                            <i class="icon-link left-icon"></i>
-                        </div>
-                        <div class="toolbar-dropdown-left-border"></div>
-                        <div class="toolbar-dropdown">
-                            <div class="link-section-title">Editable Link (Collaborative)</div>
-                            <input class="toolbar-input" id="collaborate-url" type="text" placeholder="Result"></input>
-                            <div class="horizontal-divider"></div>
-                            <div class="link-section-title">Readonly Link (Snapshot)</div>
-                            <div id="snapshots">
-                                <div id="placeholder">
-                                    Use snapshot URLs for forum posts
-                                </div>
+                    <div id="link-menu-shortcut-wrapper">
+                        <div id="link-menu" class="toolbar-item">
+                            <div class="toolbar-item-btn">
+                                <i class="icon-link left-icon"></i>
                             </div>
-                            <div class="horizontal-divider"></div>
-                            <button class="share-button" id="snapshot-button">Create new snapshot</button>
+                            <div class="toolbar-dropdown-left-border"></div>
+                            <div class="toolbar-dropdown">
+                                <div class="link-section-title">Editable Link (Collaborative)</div>
+                                <input class="toolbar-input" id="collaborate-url" type="text" placeholder="Result"></input>
+                                <div class="horizontal-divider"></div>
+                                <div class="link-section-title">Readonly Link (Snapshot)</div>
+                                <div id="snapshots">
+                                    <div id="placeholder">
+                                        Use snapshot URLs for forum posts
+                                    </div>
+                                </div>
+                                <div class="horizontal-divider"></div>
+                                <button class="share-button" id="snapshot-button">Create new snapshot</button>
+                            </div>
                         </div>
                     </div>
 
                     
                     <!-- Download Menu -->
                     <div class="divider"></div>
-                    <div id="download-menu" class="toolbar-item">
-                        <div class="toolbar-item-btn">
-                            <i class="icon-down-circled2 left-icon"></i>
-                        </div>
-                        <div class="toolbar-dropdown-left-border"></div>
-                        <div class="toolbar-dropdown">
-                            <input class="toolbar-input" type="text" id="download-as" placeholder="File name"></input>
-                            <div class="horizontal-divider"></div>
-                            <button id="download">Download</button>
+                    <div id="download-menu-shortcut-wrapper">
+                        <div id="download-menu" class="toolbar-item">
+                            <div class="toolbar-item-btn">
+                                <i class="icon-down-circled2 left-icon"></i>
+                            </div>
+                            <div class="toolbar-dropdown-left-border"></div>
+                            <div class="toolbar-dropdown">
+                                <input class="toolbar-input" type="text" id="download-as" placeholder="File name"></input>
+                                <div class="horizontal-divider"></div>
+                                <button id="download">Download</button>
+                            </div>
                         </div>
                     </div>
                                        
@@ -166,43 +176,46 @@
                     <div class="divider"></div>-->
                     <div id="toolbar-content-bottom">
                         <div class="divider"></div>
-                        <div class="toolbar-item">
-                            <div class="toolbar-item-btn">
-                                <i class="icon-cog-alt left-icon"></i>
-                            </div>
-                            <div class="toolbar-dropdown-left-border"></div>
-                            <div class="toolbar-dropdown">
-                                <table id="settings">
-                                    <tr>
-                                        <td class="setting-label">Tab Style:</td>
-                                        <td class="setting-choice">
-                                            <select>
-                                                <option>Hard</option>
-                                                <option>Soft</option>
-                                            </select>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="setting-label">Tab Width:</td>
-                                        <td class="setting-choice">
-                                            <select>
-                                                <option>2</option>
-                                                <option>3</option>
-                                                <option>4</option>
-                                                <option>6</option>
-                                                <option>8</option>
-                                            </select>
-                                        </td>
-                                    </tr>                                </table>
-                                    <tr>
-                                        <td class="setting-label">Theme</td>
-                                        <td class="setting-choice">
-                                            <select>
-                                                <option>Light</option>
-                                                <option>Dark</option>
-                                            </select>
-                                        </td>
-                                    </tr>
+                        <div id="settings-menu-shortcut-wrapper">
+                            <div class="toolbar-item">
+                                <div class="toolbar-item-btn">
+                                    <i class="icon-cog-alt left-icon"></i>
+                                </div>
+                                <div class="toolbar-dropdown-left-border"></div>
+                                <div class="toolbar-dropdown">
+                                    <table id="settings">
+                                        <tr>
+                                            <td class="setting-label">Tab Style:</td>
+                                            <td class="setting-choice">
+                                                <select>
+                                                    <option>Hard</option>
+                                                    <option>Soft</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="setting-label">Tab Width:</td>
+                                            <td class="setting-choice">
+                                                <select>
+                                                    <option>2</option>
+                                                    <option>3</option>
+                                                    <option>4</option>
+                                                    <option>6</option>
+                                                    <option>8</option>
+                                                </select>
+                                            </td>
+                                        </tr>                                </table>
+                                        <tr>
+                                            <td class="setting-label">Theme</td>
+                                            <td class="setting-choice">
+                                                <select>
+                                                    <option>Light</option>
+                                                    <option>Dark</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                     </table>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -251,6 +264,7 @@
         <script type="text/javascript" src="/javascripts/ace/ace.js"></script>
         <script type="text/javascript" src="/javascripts/editor.js"></script>
         <script type="text/javascript" src="/javascripts/helpers/jquery-selectors.js"></script>
+        <script type="text/javascript" src="/javascripts/shortcut.js"></script>
         <script type="text/javascript" src="/javascripts/chat.js"></script>
         <script type="text/javascript" src="/javascripts/toolbar.js"></script>
         <script type="text/javascript" src="/javascripts/workspace.js"></script>
