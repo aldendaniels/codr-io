@@ -22,7 +22,7 @@ var Workspace = oHelpers.createClass(
         this._oSocket = oSocket;
         this._oSocket.bind('message', this, this._handleServerAction);
         
-        var oShortcutHandler = new ShortcutHandler();
+        var oShortcutHandler = new  ShortcutHandler();
         // Init objects.
         this._oToolbar    = new Toolbar(this, oSocket, oShortcutHandler);
         this._oEditor     = new Editor(this, oSocket);
@@ -49,12 +49,14 @@ var Workspace = oHelpers.createClass(
         {
             // A new client won't have edit mode so disable mode options 
             $('.menu').toggleClass('disabled', true);
+            var sDocumentID = /^(\/v)?\/([a-z0-9]+)\/?$/.exec(document.location.pathname)[2];
             this._oSocket.send('openDocument',
             {
-                sDocumentID: window.location.pathname.substr(1)
+                sDocumentID: sDocumentID
             });            
 
             this._setCollaborateUrl()
+            $('#clone-doc-id').val(sDocumentID);
         }
         
         // Attach DOM events.
@@ -273,6 +275,7 @@ var Workspace = oHelpers.createClass(
             case 'setDocumentID': // Fired after creating a new document.
                 window.history.replaceState(null, '', '/' + oAction.oData.sDocumentID);
                 this._setCollaborateUrl()
+                $('#clone-doc-id').val(oAction.oData.sDocumentID);
                 break;
 
             case 'error':

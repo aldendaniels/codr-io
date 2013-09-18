@@ -39,7 +39,7 @@ var ShortcutHandler = oHelpers.createClass({
             if (jElem.is('button'))
                 jElem.click();
             else
-                jElem.find('input:not([disabled]), button:not([disabled]), a, select:not([disabled])')[0].focus();
+                jElem.find('input:not([disabled],[type="hidden"]), button:not([disabled]), a, select:not([disabled])')[0].focus();
 
             this._close();
 

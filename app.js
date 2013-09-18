@@ -80,6 +80,8 @@ oApp.configure(function()
         src: __dirname + '/public',
         dest: sCodrStaticOutputPath
     }));
+
+    oApp.use(oExpress.bodyParser());
     
     // Configure UglifyJS middleware in Production.
     if (g_oConfig.bUglify)
@@ -99,8 +101,6 @@ oApp.configure(function()
 
     /* Save static index.html */
     oApp.get('^/$',                     function(req, res) { res.sendfile('public/index.html'); });
-    oApp.get('^/[a-z0-9]+/?$',          function(req, res) { res.sendfile('public/index.html'); });
-    oApp.get('^/v/[a-z0-9]+/?$',        function(req, res) { res.sendfile('public/index.html'); });
 
     oApp.get('^/ajax/:DocumentID([a-z0-9]+)/?$', function(req, res) {
 
@@ -138,6 +138,43 @@ oApp.configure(function()
             });
         }
     });
+
+    oApp.post('/fork/?$', function(req, res)
+    {
+        function _fork(oDocument)
+        {
+            // Clone the document (A bit rustic...)
+            var oNewDocument = parseDocument(serializeDocument(oDocument));
+            oNewDocument.bIsSnapshot = false;
+            oNewDocument.aSnapshots = [];
+            oNewDocument.oDateCreated = new Date();
+
+            oDatabase.createDocument(serializeDocument(oNewDocument), this, function(sID)
+            {
+                res.redirect('/' + sID);
+            });
+
+        }
+
+        var sDocID = req.body.documentID;
+        if (sDocID in g_oWorkspaces)
+        {
+            _fork(g_oWorkspaces[sDocID].getDocument())
+        }
+        else
+        {
+            oDatabase.getDocument(sDocID, this, function(sDocumentJSON)
+            {
+                var oDocument = parseDocument(sDocumentJSON);
+                _fork(oDocument);
+            });
+        }
+            
+
+    });
+
+    oApp.get('^/[a-z0-9]+/?$',          function(req, res) { res.sendfile('public/index.html'); });
+    oApp.get('^/v/[a-z0-9]+/?$',        function(req, res) { res.sendfile('public/index.html'); });
     
     /* Preview files as HTML. */
     oApp.get('/:DocumentID([a-z0-9]+)/preview/?$', function(req, res)

@@ -97,7 +97,7 @@
                     
                     <!-- Chat Menu -->
                     <div id="chat-menu-shortcut-wrapper">
-                        <div id="chat-menu" class="toolbar-item">
+                        <div id="chat-menu" class="toolbar-item" title="Chat">
                             <div class="toolbar-item-btn">
                                 <i class="icon-chat left-icon"></i>
                                 <div id="chat-unread-count" style="display: none;"></div>
@@ -124,7 +124,7 @@
 
                     <!-- Link Menu -->
                     <div id="link-menu-shortcut-wrapper">
-                        <div id="link-menu" class="toolbar-item">
+                        <div id="link-menu" class="toolbar-item" title="Link">
                             <div class="toolbar-item-btn">
                                 <i class="icon-link left-icon"></i>
                             </div>
@@ -149,7 +149,7 @@
                     <!-- Download Menu -->
                     <div class="divider"></div>
                     <div id="download-menu-shortcut-wrapper">
-                        <div id="download-menu" class="toolbar-item">
+                        <div id="download-menu" class="toolbar-item" title="Download">
                             <div class="toolbar-item-btn">
                                 <i class="icon-down-circled2 left-icon"></i>
                             </div>
@@ -163,21 +163,25 @@
                     </div>
                                        
                     <div class="divider"></div>
-                    <!--
-                    <div class="toolbar-item">
-                        <div class="toolbar-item-btn">
-                            <i class="icon-split left-icon"></i>
-                        </div>
-                        <div class="toolbar-dropdown-left-border"></div>
-                        <div class="toolbar-dropdown">
-                            <button>Create clone:</button>
+                    <div id="fork-menu-shortcut-wrapper">
+                        <div class="toolbar-item" title="Fork">
+                            <div class="toolbar-item-btn">
+                                <i class="icon-split left-icon"></i>
+                            </div>
+                            <div class="toolbar-dropdown-left-border"></div>
+                            <div class="toolbar-dropdown">
+                                <form method="POST" action="/fork">
+                                    <input id="clone-doc-id" type="hidden" name="documentID" />
+                                    <button type="submit">Create clone:</button>
+                                </form>
+                            </div>
                         </div>
                     </div>
-                    <div class="divider"></div>-->
+                    <div class="divider"></div>
                     <div id="toolbar-content-bottom">
                         <div class="divider"></div>
                         <div id="settings-menu-shortcut-wrapper">
-                            <div class="toolbar-item">
+                            <div class="toolbar-item" title="Settings">
                                 <div class="toolbar-item-btn">
                                     <i class="icon-cog-alt left-icon"></i>
                                 </div>

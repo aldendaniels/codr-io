@@ -28,6 +28,7 @@ var Toolbar = oHelpers.createClass(
         oShortcutHandler.registerShortcut('T', $('#title-shortcut-wrapper'), 'left')
         oShortcutHandler.registerShortcut('L', $('#mode-shortcut-wrapper'), 'left')
         oShortcutHandler.registerShortcut('D', $('#download-menu-shortcut-wrapper'), 'right')
+        oShortcutHandler.registerShortcut('F', $('#fork-menu-shortcut-wrapper'),     'right')
         oShortcutHandler.registerShortcut('S', $('#settings-menu-shortcut-wrapper'), 'right')
 
         if (!IS_SNAPSHOT)
