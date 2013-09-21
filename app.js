@@ -148,6 +148,7 @@ oApp.configure(function()
             oNewDocument.bIsSnapshot = false;
             oNewDocument.aSnapshots = [];
             oNewDocument.oDateCreated = new Date();
+            oNewDocument.aChatHistory = [];
 
             oDatabase.createDocument(serializeDocument(oNewDocument), this, function(sID)
             {
@@ -774,6 +775,7 @@ var Workspace = oHelpers.createClass(
                 oNewDocument.bIsSnapshot = true;
                 oNewDocument.aSnapshots = [];
                 oNewDocument.oDateCreated = new Date();
+                oNewDocument.aChatHistory = [];
 
                 oDatabase.createDocument(serializeDocument(oNewDocument), this, function(sID)
                 {
