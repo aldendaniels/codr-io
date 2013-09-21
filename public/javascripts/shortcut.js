@@ -8,15 +8,17 @@ var ShortcutHandler = oHelpers.createClass({
         this._oShortcuts = {};
 
         $('body').on('keydown', oHelpers.createCallback(this, this._onKeyDown));
+        $('#shortcut-overlay').on('mousedown', oHelpers.createCallback(this, this._close))
     },
 
-    registerShortcut: function(sAccel, jElem, sPos)
+    registerShortcut: function(sAccel, jElem, sPos, iOptionalOffset)
     {
         oHelpers.assert(sAccel.length == 1, 'A shortcut must be one char long.');
         this._oShortcuts[sAccel.toUpperCase().charCodeAt(0)] = {
-            'jElem': jElem,
-            'sAccel': sAccel.toUpperCase(),
-            'sPos': sPos
+            jElem:   jElem,
+            sAccel:  sAccel.toUpperCase(),
+            sPos:    sPos,
+            iOffset: iOptionalOffset || 0
         };
     },
 
@@ -51,10 +53,11 @@ var ShortcutHandler = oHelpers.createClass({
     {
         for (var iShortcut in this._oShortcuts)
         {
+            var oShortcut = this._oShortcuts[iShortcut];
             var jShortcut = $('<div class="shortcut"></div>');
-            jShortcut.text(this._oShortcuts[iShortcut]['sAccel']);
+            jShortcut.text(oShortcut.sAccel);
 
-            var jElem = this._oShortcuts[iShortcut]['jElem'];
+            var jElem = oShortcut['jElem'];
             jElem.prepend(jShortcut);
 
             // Center vertically
@@ -62,24 +65,26 @@ var ShortcutHandler = oHelpers.createClass({
 
             // Position
             var iOverExtend = jShortcut.outerWidth() / 2;
-            if (this._oShortcuts[iShortcut]['sPos'] == 'left')
+            if (oShortcut['sPos'] == 'left')
             {
                 var iPaddingLeft = parseInt(jElem.css('padding-left'));
-                jShortcut.css('margin-left', -iPaddingLeft - iOverExtend + 2 + 'px');
+                jShortcut.css('margin-left', -iPaddingLeft - iOverExtend + oShortcut.iOffset + 2 + 'px');
             }
             else
             {
                 var iPaddingRight = parseInt(jElem.css('padding-right'));
                 var iWidth = jElem.width();
-                jShortcut.css('margin-left', iPaddingRight + iWidth - iOverExtend - 2 + 'px');
+                jShortcut.css('margin-left', iPaddingRight + iWidth - iOverExtend - oShortcut.iOffset - 2 + 'px');
             }
         }
+        $('#shortcut-overlay').show();
         this._bIsOpen = true;
     },
 
     _close: function()
     {
-        $('.shortcut').hide();
+        $('.shortcut').remove();
+        $('#shortcut-overlay').hide();
         this._bIsOpen = false;
     }
     

@@ -210,6 +210,18 @@ body.snapshot
 body.snapshot .edit-mode-message > .snapshot    { display: inline; }
 body.snapshot .edit-mode-message > .not-editing { display: none; }
 
+#shortcut-overlay
+{
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 100;
+    display: none;
+    
+}
+
 #workspace
 {
     position: absolute;
@@ -600,6 +612,7 @@ body.snapshot .edit-mode-message > .not-editing { display: none; }
         left: 0;
         border-right: 1px #ccc solid;
         width: @left-toolbar-width;
+        
         
         .divider
         {

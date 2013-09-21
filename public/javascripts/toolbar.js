@@ -25,8 +25,8 @@ var Toolbar = oHelpers.createClass(
 
         this._oSocket.bind('message', this, this._handleServerAction);
 
-        oShortcutHandler.registerShortcut('T', $('#title-shortcut-wrapper'), 'left')
-        oShortcutHandler.registerShortcut('L', $('#mode-shortcut-wrapper'), 'left')
+        oShortcutHandler.registerShortcut('T', $('#title-shortcut-wrapper'), 'right', 20)
+        oShortcutHandler.registerShortcut('L', $('#mode-shortcut-wrapper'), 'right', 20)
         oShortcutHandler.registerShortcut('D', $('#download-menu-shortcut-wrapper'), 'right')
         oShortcutHandler.registerShortcut('F', $('#fork-menu-shortcut-wrapper'),     'right')
         oShortcutHandler.registerShortcut('S', $('#settings-menu-shortcut-wrapper'), 'right')
