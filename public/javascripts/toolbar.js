@@ -43,6 +43,7 @@ var Toolbar = oHelpers.createClass(
     {
         $('#title .toolbar-item-selection').text(sTitle);
         $('#title-input').val(sTitle);
+        $('#download-as').val(sTitle);
         $('#title .toolbar-item-btn').attr('title', sTitle);
     },
     

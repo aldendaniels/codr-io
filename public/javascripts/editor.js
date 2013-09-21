@@ -235,8 +235,8 @@ var Editor = oHelpers.createClass(
     {
         var iRow = oSel ? oSel.start.row : 0;
         var iCol = oSel ? oSel.start.column : 0;
-        $('#line-number').text(iRow);
-        $('#col-number').text(iCol);
+        $('#line-number').text(iRow + 1);
+        $('#col-number').text(iCol + 1);
     },
 
     _attachAceEvents: function()

@@ -364,9 +364,10 @@ body.snapshot .edit-mode-message > .not-editing { display: none; }
             outline: none;
             padding-top: 5px;
             
-            &:focus
+            &:focus .icon-cloud
             {
-                color: darken(@codr-blue, 15%);
+                text-shadow: 0 0 5px darken(@codr-blue, 5%);
+                color: darken(@codr-blue, 5%);
             }
             
             .icon-cloud
