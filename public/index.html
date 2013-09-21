@@ -164,15 +164,21 @@
                                        
                     <div class="divider"></div>
                     <div id="fork-menu-shortcut-wrapper">
-                        <div class="toolbar-item" title="Fork">
+                        <div id="fork-menu" class="toolbar-item" title="Fork">
                             <div class="toolbar-item-btn">
                                 <i class="icon-split left-icon"></i>
                             </div>
                             <div class="toolbar-dropdown-left-border"></div>
                             <div class="toolbar-dropdown">
+                                <div id="fork-desc">
+                                    Forking a file creates an editable clone of the file.
+                                    Chat history will not be cloned, however.
+                                    The forked file will not link back to this one.
+                                </div>
+                                <div class="horizontal-divider"></div>
                                 <form method="POST" action="/fork">
                                     <input id="clone-doc-id" type="hidden" name="documentID" />
-                                    <button type="submit">Create clone:</button>
+                                    <button type="submit">Created Fork</button>
                                 </form>
                             </div>
                         </div>
