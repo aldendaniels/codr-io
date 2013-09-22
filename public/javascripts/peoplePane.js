@@ -80,7 +80,7 @@ var PeoplePane = oHelpers.createClass(
         if (sEventType == 'blur')
         {
             if (jTarget.is('#username'))
-                this._changeUsername(jTarget.val());
+                this._changeClientID(jTarget.val());
         }
     },
 
@@ -100,26 +100,26 @@ var PeoplePane = oHelpers.createClass(
         switch(oAction.sType)
         {
             case 'addUser': // This is also caught in editor.js
-                this._aCurUsers.push(oAction.oData.sUsername);
+                this._aCurUsers.push(oAction.oData.sClientID);
                 this._reRender();
                 break;
                 
             case 'removeUser': // This is also caught in editor.js
-                this._aCurUsers.splice(this._aCurUsers.indexOf(oAction.oData.sUsername), 1);
+                this._aCurUsers.splice(this._aCurUsers.indexOf(oAction.oData.sClientID), 1);
                 this._reRender();
                 break;
                 
             case 'newChatMessage':
-                this._addNewChatMessage(oAction.oData.sUsername, oAction.oData.sMessage);
+                this._addNewChatMessage(oAction.oData.sClientID, oAction.oData.sMessage);
                 break;
                 
             case 'startTyping':
-                this._aTypingUsers.push(oAction.oData.sUsername);
+                this._aTypingUsers.push(oAction.oData.sClientID);
                 this._reRender();
                 break;
                 
             case 'endTyping':
-                this._aTypingUsers.splice(this._aTypingUsers.indexOf(oAction.oData.sUsername), 1);
+                this._aTypingUsers.splice(this._aTypingUsers.indexOf(oAction.oData.sClientID), 1);
                 this._reRender();
                 break;
             
@@ -129,27 +129,27 @@ var PeoplePane = oHelpers.createClass(
         return true;
     },
 
-    _addNewChatMessage: function(sUsername, sMessage)
+    _addNewChatMessage: function(sClientID, sMessage)
     {
         if (!this._isPaneOpen())
             this._iUnseen++;
 
         this._aHistory.push(
         {
-            'sUsername': sUsername,
+            'sClientID': sClientID,
             'sMessage': sMessage
         });
         this._reRender();
     },
 
-    _changeUsername: function(sUsername)
+    _changeClientID: function(sClientID)
     {
-        this._oSocket.send('changeUsername',
+        this._oSocket.send('changeClientID',
         {
-            'sUsername': sUsername
+            'sClientID': sClientID
         });
 
-        this._oWorkspace.getUserInfo()['sUsername'] = sUsername;
+        this._oWorkspace.getUserInfo()['sClientID'] = sClientID;
     },
 
     _sendNewMessage: function(sMessage)
@@ -164,7 +164,7 @@ var PeoplePane = oHelpers.createClass(
         });
         this._aHistory.push(
         {
-            'sUsername': this._oWorkspace.getUserInfo()['sUsername'],
+            'sClientID': this._oWorkspace.getUserInfo()['sClientID'],
             'sMessage': sMessage
         });
 
@@ -187,7 +187,7 @@ var PeoplePane = oHelpers.createClass(
         {
             var jComment = $(document.createElement('div'));
             var oComment = this._aHistory[i];
-            jComment.text(oComment.sUsername + ': ' + oComment.sMessage).append('<br/><br/>');
+            jComment.text(oComment.sClientID + ': ' + oComment.sMessage).append('<br/><br/>');
             jWrapper.append(jComment);
         }
 

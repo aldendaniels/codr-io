@@ -47,7 +47,7 @@ var Chat = oHelpers.createClass(
         if (sEventType == 'click')
         {
             if (jTarget.is('#chat-identify-ok-button'))
-                this._changeUsername($('#chat-identify').val());
+                this._changeClientID($('#chat-identify').val());
             return;
         }
         
@@ -56,7 +56,7 @@ var Chat = oHelpers.createClass(
             if (jActiveElem.closest('#chat-identify-wrapper').length)
             {
                 if (oEvent.which == 13)
-                    this._changeUsername($('#chat-identify').val());
+                    this._changeClientID($('#chat-identify').val());
                 return;                
             }
             if (jTarget.is('#chat-box'))
@@ -90,7 +90,7 @@ var Chat = oHelpers.createClass(
         if (sEventType == 'blur')
         {
             if (jTarget.is('#username'))
-                this._changeUsername(jTarget.val());
+                this._changeClientID(jTarget.val());
         }
     },
 
@@ -99,27 +99,27 @@ var Chat = oHelpers.createClass(
         switch(oAction.sType)
         {
             case 'newChatMessage':
-                this._addNewChatMessage(oAction.oData.sUsername, oAction.oData.sMessage);
+                this._addNewChatMessage(oAction.oData.sClientID, oAction.oData.sMessage);
                 break;
                 
             case 'startTyping':
-                this._aTypingUsers.push(oAction.oData.sUsername);
+                this._aTypingUsers.push(oAction.oData.sClientID);
                 this._reRender();
                 break;
                 
             case 'endTyping':
-                this._aTypingUsers.splice(this._aTypingUsers.indexOf(oAction.oData.sUsername), 1);
+                this._aTypingUsers.splice(this._aTypingUsers.indexOf(oAction.oData.sClientID), 1);
                 this._reRender();
                 break;
 
-            case 'invalidUsernameChange':
+            case 'invalidClientIDChange':
                 $('#chat-identify-error-message').text(oAction.oData.sReason);
                 break;
 
-            case 'newUsernameAccepted':
+            case 'newClientIDAccepted':
                 
                 // Save username.
-                this._oWorkspace.getUserInfo()['sUsername'] = oAction.oData.sUsername;
+                this._oWorkspace.getUserInfo()['sClientID'] = oAction.oData.sClientID;
                 
                 // Show chat box.
                 $('#chat').removeClass('identify');
@@ -138,27 +138,27 @@ var Chat = oHelpers.createClass(
         return true;
     },
 
-    _addNewChatMessage: function(sUsername, sMessage)
+    _addNewChatMessage: function(sClientID, sMessage)
     {
         if (!this._bChatOpen)
             this._iUnseen++;
             
         this._aHistory.push(
         {
-            'sUsername': sUsername,
+            'sClientID': sClientID,
             'sMessage': sMessage
         });
         this._reRender();
     },
 
-    _changeUsername: function(sUsername)
+    _changeClientID: function(sClientID)
     {
-        this._oSocket.send('changeUsername',
+        this._oSocket.send('changeClientID',
         {
-            'sUsername': sUsername
+            'sClientID': sClientID
         });
 
-        this._oWorkspace.getUserInfo()['sUsername'] = sUsername;
+        this._oWorkspace.getUserInfo()['sClientID'] = sClientID;
     },
 
     _sendNewMessage: function(sMessage)
@@ -173,7 +173,7 @@ var Chat = oHelpers.createClass(
         });
         this._aHistory.push(
         {
-            'sUsername': this._oWorkspace.getUserInfo()['sUsername'],
+            'sClientID': this._oWorkspace.getUserInfo()['sClientID'],
             'sMessage': sMessage
         });
 
@@ -196,7 +196,7 @@ var Chat = oHelpers.createClass(
                    '<span class="chat-message-text"></span>' +
                 '</div>'
             );
-            jMessage.find('.chat-message-from').text(oMessage.sUsername + ': ');
+            jMessage.find('.chat-message-from').text(oMessage.sClientID + ': ');
             jMessage.find('.chat-message-text').text(oMessage.sMessage);
             jHistory.append(jMessage);
         }

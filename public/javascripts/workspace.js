@@ -37,7 +37,6 @@ var Workspace = oHelpers.createClass(
             this._oToolbar.setTitle(_sUNTITLED);
             this._oToolbar.setMode(oNewDocumentMode);
             this._oEditor.setMode(oNewDocumentMode);
-            this.setIsEditing(bIsNewDocument /*bIsEditing*/ );
             this._oSocket.send('createDocument',
             {
                 sMode:  oNewDocumentMode.getName(),
@@ -126,17 +125,6 @@ var Workspace = oHelpers.createClass(
         return this._oEditor.getSelection();  
     },
     
-    setIsEditing: function(bIsEditing)
-    {
-        $('BODY').toggleClass('is-editing', bIsEditing);
-        this._oToolbar.setIsEditing(bIsEditing);
-        this._oEditor.setIsEditing(bIsEditing);
-        // Set focus to editor when setting edit mode to true,
-        // if focus is not elswhere.
-        if (bIsEditing && !this._oFocusedObject)
-            this._oEditor.focus();
-    },
-
     _getContainingObj: function(jElem)
     {
         for (var i in this._aObjects)
@@ -261,17 +249,7 @@ var Workspace = oHelpers.createClass(
             case 'setMode':
                 this.setMode(oAction.oData.sMode);
                 break;
-                
-            case 'removeEditRights':
-                this.setIsEditing(false);
-                this._oSocket.send('releaseEditRights'); // Notify server of action receipt.
-                break;
-                
-            case 'setCurrentEditor': // This is also caught in editor.js
-                if (this.getUserInfo().sUsername == oAction.oData.sUsername)
-                    this.setIsEditing(true);
-                break;
-                
+                                
             case 'setDocumentID': // Fired after creating a new document.
                 window.history.replaceState(null, '', '/' + oAction.oData.sDocumentID);
                 this._setCollaborateUrl()

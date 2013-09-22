@@ -2,6 +2,7 @@
 // Elem IDs.
 var EDITOR_ID  = 'edit';
 var TOOLBAR_ID = 'toolbar';
+var COLORS     = ['green', 'pink', 'orange', 'purple', 'red', 'turquoise '];
 
 var Range = ace.require('ace/range').Range;
 
@@ -17,16 +18,24 @@ var Editor = oHelpers.createClass(
     _oAceEditorSession: null,
     _oAceDocument: null,
 
-    // Editor state.
-    _oMode: null,
-    _bIsEditing: false,
-    
     // Other.
+    _oMode: null,
+    _iNumUsers: 0,
+    _oLastSelectionRange: null,
+    _oRemoteUsers: null, /* {
+                          *    userID:
+                          *    {
+                          *        sHexColor: '',
+                          *        oLastSelAction: ...,
+                          *        aAceMarkersIDs: []
+                          *    }}
+                          */
+    
+    // Removte
+    _bApplyingRemoteDelta: false,
     _iRemoteCursorMarkerID1: null,
     _iRemoteCursorMarkerID2: null,
-    _oLastSelectionRange: null,
     _jEditorElem: null,
-    _iNumUsers: 0,
 
     __type__: 'Editor',    
 
@@ -34,7 +43,8 @@ var Editor = oHelpers.createClass(
     {
         this._oSocket = oSocket;
         this._oWorkspace = oWorkspace;
-
+        this._oRemoteUsers = {};
+        
         // Attach socket.
         this._oSocket.bind('message', this, this._handleServerAction);
         
@@ -44,9 +54,6 @@ var Editor = oHelpers.createClass(
         this._oAceEditor = ace.edit(EDITOR_ID);
         this._oAceEditSession = this._oAceEditor.getSession();
         this._oAceDocument = this._oAceEditSession.getDocument();
-        
-        // Set readonly by default.
-        this._oAceEditor.setReadOnly(true);
         
         // Set initial ace editor settings.
         this._oAceEditor.setFontSize(14);
@@ -62,6 +69,7 @@ var Editor = oHelpers.createClass(
         // Attach events.
         this._attachAceEvents();
 
+        // Update status bar.
         this._setPeopleViewing();
         this._setCursorPosSummary();
     },
@@ -91,11 +99,6 @@ var Editor = oHelpers.createClass(
     {
         return this._oAceEditor.isFocused();
     },
-    
-    isEditing: function()
-    {
-        return this._bIsEditing;
-    },
 
     resize: function()
     {
@@ -116,20 +119,6 @@ var Editor = oHelpers.createClass(
     onBlur: function()  {},
     onEvent: function() {},
 
-    setIsEditing: function(bIsEditing)
-    {
-        this._bIsEditing = bIsEditing;
-        this._oAceEditor.setReadOnly(!bIsEditing);
-
-        if (bIsEditing)
-        {
-            // Hide remove cursor & send set the cursor position.
-            this._removeRemoteSelection();
-            if (this._oSocket)
-                this._onAceSelectionChange();
-        }
-    },
-
     setText: function(sText)
     {
         this._oAceDocument.setValue(sText);
@@ -141,31 +130,39 @@ var Editor = oHelpers.createClass(
         switch(oAction.sType)
         {
             case 'setDocumentData': // Fired after opening an existing document.
+                this._bApplyingRemoteDelta = true;
                 this.setText(oAction.oData.sText);
+                this._bApplyingRemoteDelta = false;
                 break;
             
-            case 'setSelection':
-                this._onRemoteCursorMove(oAction.oData);
+            case 'setRemoteSelection':
+                this._removeRemoteSelection(oAction.oData.sClientID);
+                this._addRemoteSelection(oAction.oData.sClientID, oAction.oData.oSel);
                 break;
             
             case 'aceDelta':
+                this._bApplyingRemoteDelta = true;
                 this._oAceDocument.applyDeltas([oAction.oData]);
+                this._bApplyingRemoteDelta = false;
                 break;
-
-            case 'setCurrentEditor': // This is also caught in workspace.js
-                this._setCurrentEditor(oAction.oData.sUsername);
-                break;
-
+                
             case 'addUser':
-                this._iNumUsers++;
+                var iNumUsers = Object.keys(this._oRemoteUsers).length;
+                this._oRemoteUsers[oAction.oData.sClientID] =
+                {
+                    sColor: iNumUsers <= COLORS.length ? COLORS[iNumUsers] : 'black',
+                    oLastSelAction: null,
+                    aAceMarkersIDs: []
+                }
                 this._setPeopleViewing();
                 break;
-
+                
             case 'removeUser':
-                this._iNumUsers--;
+                this._removeRemoteSelection(oAction.oData.sClientID);
+                delete this._oRemoteUsers[oAction.oData.sClientID];
                 this._setPeopleViewing();
                 break;
-
+            
             default:
                 return false;
         }
@@ -175,60 +172,44 @@ var Editor = oHelpers.createClass(
 
     _setPeopleViewing: function()
     {
-        if (this._iNumUsers == 1)
-            $('#num-viewing').text(this._iNumUsers + ' other viewer');
-        else
-            $('#num-viewing').text(this._iNumUsers + ' other viewers');
+        var iNumViewers = Object.keys(this._oRemoteUsers).length;
+        var sNumViewers = iNumViewers + ' other viewer' + (iNumViewers == 1 ? '' : 's');
+        $('#num-viewing').text(sNumViewers);
     },
 
-    _setCurrentEditor: function(sUsername)
+    _addRemoteSelection: function(sClientID, oSel)
     {
-        // Update status bar.
-        var sText = '';
-        if (sUsername === null)
-            sText = 'No one is editing';
-        else if (sUsername == this._oWorkspace.getUserInfo()['sUsername'])
-            sText = 'You are editing';
-        else
-            sText = sUsername + ' is editing';
-        $('#editors-name').text(sText);
-
-        // Remove cursor.
-        if (sUsername === null)
-            this._removeRemoteSelection()
-    },
-
-    _onRemoteCursorMove: function(oSel)
-    {
-        this._removeRemoteSelection();
-        var oNewRange = new Range(oSel.start.row, oSel.start.column, oSel.end.row, oSel.end.column);
-        if (oSel.start.row == oSel.end.row && oSel.start.column == oSel.end.column)
+        // Create Range.
+        var bIsCollapsed  = oSel.start.row == oSel.end.row && oSel.start.column == oSel.end.column;
+        var oNewRange     = new Range();
+        oNewRange.start = this._oAceDocument.createAnchor(oSel.start.row, oSel.start.column);
+        oNewRange.end   = this._oAceDocument.createAnchor(oSel.end.row,   oSel.end.column);
+        
+        // Determine color.
+        var sColorClass = this._oRemoteUsers[sClientID].sColor;
+        console.log(this._oRemoteUsers);
+        
+        // Add marker.
+        var aAceMarkerIDs = this._oRemoteUsers[sClientID].aAceMarkersIDs;
+        if (bIsCollapsed)
         {
             oNewRange.end.column += 1; // Hack: Zero-width selections are not visible.
-            this._iRemoteCursorMarkerID1 = this._oAceEditSession.addMarker(oNewRange, 'remote-selection-collapsed', 'text', true);
-            this._iRemoteCursorMarkerID2 = this._oAceEditSession.addMarker(oNewRange, 'remote-selection-collapsed-hat', 'text', true);
+            aAceMarkerIDs.push(this._oAceEditSession.addMarker(oNewRange, 'remote-sel-collapsed '     + sColorClass,  'text'));
+            aAceMarkerIDs.push(this._oAceEditSession.addMarker(oNewRange, 'remote-sel-collapsed-hat ' + sColorClass, 'text'));
         }
         else
-        {
-            this._iRemoteCursorMarkerID1 = this._oAceEditSession.addMarker(oNewRange, 'remote-selection', 'text', true);   
-        }
-
-        this._setCursorPosSummary(oSel);
+            aAceMarkerIDs.push(this._oAceEditSession.addMarker(oNewRange, 'remote-sel ' + sColorClass, 'text'));   
     },
     
-    _removeRemoteSelection: function()
+    _removeRemoteSelection: function(sClientID)
     {
-        // Remove old selection.
-        if (this._iRemoteCursorMarkerID1)
+        var aAceMarkerIDs = this._oRemoteUsers[sClientID].aAceMarkersIDs;
+        for (var i in aAceMarkerIDs)
         {
-            this._oAceEditSession.removeMarker(this._iRemoteCursorMarkerID1);
-            this._iRemoteCursorMarkerID1 = null;
+            var iMarkerID = aAceMarkerIDs[i];
+            this._oAceEditSession.removeMarker(iMarkerID);
         }
-        if (this._iRemoteCursorMarkerID2)
-        {
-            this._oAceEditSession.removeMarker(this._iRemoteCursorMarkerID2);
-            this._iRemoteCursorMarkerID2 = null;
-        }
+        this._oRemoteUsers[sClientID].aAceMarkersIDs = [];
     },
 
     _setCursorPosSummary: function(oSel)
@@ -247,24 +228,23 @@ var Editor = oHelpers.createClass(
         this._oAceEditor.on('blur', function(oEvent){ oEvent.preventDefault(); });
     },
     
-    _onAceSelectionChange: function()
+    _onAceSelectionChange: function(oEvent)
     {
-        if (this._bIsEditing)
+        var oSelectionRange = this._oAceEditor.getSelectionRange();
+        var bIsDuplicateEvent = this._oLastSelectionRange && this._oLastSelectionRange.isEqual(oSelectionRange);
+        if (!bIsDuplicateEvent  && !this._bApplyingRemoteDelta)
         {
-            var oSelectionRange = this._oAceEditor.getSelectionRange();
-            if (!this._oLastSelectionRange || !this._oLastSelectionRange.isEqual(oSelectionRange))
-            {
-                this._oSocket.send('setSelection', oSelectionRange);
-                this._oLastSelectionRange = oSelectionRange;
-            }            
-
+            this._oSocket.send('setSelection', {oSel: oSelectionRange});
+            this._oLastSelectionRange = oSelectionRange;                
             this._setCursorPosSummary(oSelectionRange);
         }
     },
     
     _onAceDocumentChange: function(oAceDelta)
     {
-        if (this._bIsEditing)
+        if (!this._bApplyingRemoteDelta)
+        {
             this._oSocket.send('aceDelta', oAceDelta.data);
+        }
     }
 });

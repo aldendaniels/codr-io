@@ -25,17 +25,30 @@ var Toolbar = oHelpers.createClass(
 
         this._oSocket.bind('message', this, this._handleServerAction);
 
+        // Bind shorctut handlers.
         oShortcutHandler.registerShortcut('T', $('#title-shortcut-wrapper'), 'right', 20)
         oShortcutHandler.registerShortcut('L', $('#mode-shortcut-wrapper'), 'right', 20)
         oShortcutHandler.registerShortcut('D', $('#download-menu-shortcut-wrapper'), 'right')
         oShortcutHandler.registerShortcut('F', $('#fork-menu-shortcut-wrapper'),     'right')
         oShortcutHandler.registerShortcut('S', $('#settings-menu-shortcut-wrapper'), 'right')
-
         if (!IS_SNAPSHOT)
         {
-            oShortcutHandler.registerShortcut('E', $('#edit-button'), 'left')
             oShortcutHandler.registerShortcut('C', $('#chat-menu-shortcut-wrapper'), 'right')
             oShortcutHandler.registerShortcut('K', $('#link-menu-shortcut-wrapper'), 'right')
+        }
+        
+        // Make editable for non-snapshoht files.
+        if (IS_SNAPSHOT)
+        {    
+            // Toggle mode menu editability.
+            $('.menu').addclass('disabled');
+            
+            // Toggle title editability.
+            $('#title-input, #title-save').prop('disabled', true);
+            $('#title .hidden-focusable a').attr('tabIndex', -1);
+            
+            // Show the "edit mode required" message.
+            $('.edit-mode-message').show();
         }
     },
     
@@ -50,25 +63,6 @@ var Toolbar = oHelpers.createClass(
     setMode: function(oMode)
     {
         $('#mode .toolbar-item-selection').text(oMode.getDisplayName());
-    },
-
-    setIsEditing: function(bIsEditing)
-    {
-        // Toggle edit button style.
-        $('#edit-button').toggleClass('on', bIsEditing);
-
-        // Toggle mode menu editability.
-        $('.menu').toggleClass('disabled', !bIsEditing);
-        
-        // Toggle title editability.
-        $('#title-input, #title-save').prop('disabled', !bIsEditing);
-        $('#title .hidden-focusable a').attr('tabIndex', (bIsEditing ? -1 : 1));
-        if ($('.toolbar-item.open').is('#title'))
-            $('#title .hidden-focusable a').focus();
-
-        // Show the "edit mode required" message.
-        $('.edit-mode-message').toggle(!bIsEditing);
-
     },
     
     contains: function(jElem)
@@ -172,15 +166,7 @@ var Toolbar = oHelpers.createClass(
                 this._setTitleToLocal();
                 return;
             }
-            
-            // Toggle editing on button click.
-            var jEditButton = jTarget.closest('#edit-button');
-            if (jEditButton.length)
-            {
-                this._toggleEditMode(jEditButton.hasClass('on'));
-                return;
-            }
-            
+                        
             // Download document
             if (jTarget.closest('#download').length)
             {
@@ -193,7 +179,6 @@ var Toolbar = oHelpers.createClass(
             {
                 this._oSocket.send('snapshotDocument');
             }
-
         }
         
         /* Forward language events to menu. */
@@ -272,20 +257,6 @@ var Toolbar = oHelpers.createClass(
         window.location.href = sHref + 'download?filename=' + sFilename;
         this._blur();
     },
-    
-    _toggleEditMode: function(bIsCurrentlyEditing)
-    {
-        if (bIsCurrentlyEditing) // Release edit rights.
-        {
-            this._oSocket.send('releaseEditRights');
-            this._oWorkspace.setIsEditing(false);
-        }
-        else
-        {
-            // TODO: Make the button look like it's doing something.
-            this._oSocket.send('requestEditRights', this._oWorkspace.getEditorSelection());
-        }
-    },
 
     _handleServerAction: function(oAction)
     {
@@ -300,11 +271,10 @@ var Toolbar = oHelpers.createClass(
                 jSnapshot.find('span.url').text(sUrl);
                 jSnapshot.attr('href', sUrl).appendTo('#snapshots');
                 break;
-
+                
             default:
                 return false;
         }
-
         return true;
     }
 });

@@ -506,56 +506,7 @@ body.snapshot .edit-mode-message > .not-editing { display: none; }
                 position: relative;
                 border: 1px #ddd solid;
             }
-        }
-        
-        /***************** EDIT BUTTON *********************/
-        #edit-button
-        {
-            display: inline-block;
-            text-align: left;
-
-            margin-left: 7px;
-            margin-right: 5px;
-            margin-top: 6px;
-
-            width: 111px;
-            height: 37px;
-
-            padding-left: 7px;
-            padding-top: 5px;
-           
-            [class^="icon-check"]
-            {
-                font-size: 15pt;
-                line-height: 10px;
-                position: relative;
-                top: 2px;
-            }
-            
-            .text
-            {
-                margin-left: -3px;
-            }
-            
-            i.icon-check            { display: none;   }
-            i.icon-check-empty      { display: inline; }
-            &.on i.icon-check       { display: inline; left: 1px;}
-            &.on i.icon-check-empty { display: none;   }
-            
-            &:not(.on) 
-            {
-                @blue: lighten(desaturate(@codr-blue, 40%), 20%);
-                background-color: @blue;
-                border-color: darken(@blue, 10%);
-                color: desaturate(darken(@codr-blue, 30%), 40%);
-                
-                &:hover
-                {
-                    background-color: darken(@blue, 10%);
-                    border-color: darken(@blue, 20%);
-                }
-            }
-        }
+        }        
     }
     
     #edit
@@ -872,34 +823,41 @@ body.snapshot .edit-mode-message > .not-editing { display: none; }
 @selectionColor: saturate(darken(@codr-blue, 10%), 50%);
 @collapsedSelectionColor: darken(@codr-blue, 10%);
 
-.remote-selection, .remote-selection-collapsed, .remote-selection-collapsed-hat
+.remote-sel, .remote-sel-collapsed, .remote-sel-collapsed-hat
 {
     position: absolute;
     z-index: 5;    
 }
 
-.remote-selection
+.remote-sel
 {
-    background: @selectionColor;
     opacity: 0.2;
 }
 
-.remote-selection-collapsed
+.remote-sel-collapsed
 {
-    background: transparent;
-    border-left: 2px @collapsedSelectionColor solid;
+    background-color: transparent !important;
+    border-left: 2px solid;
     margin-top: -1px;
 }
 
-.remote-selection-collapsed-hat
+.remote-sel-collapsed-hat
 {
-    background-color: @collapsedSelectionColor;
     margin-top: -3px;
     margin-left: -2px;
     width: 6px !important;
     height: 6px !important;
     border-radius: 6px;
 }
+
+/* colors */
+.green     { background-color: green;    border-color: green;    }
+.pink      { background-color: deepPink; border-color: deepPink; }
+.orange    { background-color: orange;   border-color: orange;   }
+.purple    { background-color: purple;   border-color: purple;   }
+.red       { background-color: red;      border-color: red;      }
+.turquoise { background-color: turquise; border-color: turquise; }
+.black     { background-color: black;    border-color: black;    }
 
 .ace_scroller
 {
@@ -928,21 +886,6 @@ body.snapshot .edit-mode-message > .not-editing { display: none; }
 .ace-tm .ace_marker-layer .ace_selection
 {
     background: #ddd !important;
-}
-
-BODY:not(.is-editing)
-{
-        
-    .ace-tm .ace_gutter-active-line,
-    .ace-tm .ace_marker-layer .ace_active-line
-    {
-        background: transparent !important;
-    }
-    
-    .ace-tm .ace_cursor
-    {
-        border-left-color: transparent !important;
-    }
 }
 
 .shortcut {
