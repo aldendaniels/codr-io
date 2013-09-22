@@ -205,10 +205,8 @@ body.snapshot
     }
 }
 
-.edit-mode-message > .snapshot                  { display: none; }
-.edit-mode-message > .not-editing               { display: inline; }
-body.snapshot .edit-mode-message > .snapshot    { display: inline; }
-body.snapshot .edit-mode-message > .not-editing { display: none; }
+.edit-mode-message               { display: none; }
+body.snapshot .edit-mode-message { display: block; }
 
 #shortcut-overlay
 {
@@ -882,11 +880,11 @@ body.snapshot .edit-mode-message > .not-editing { display: none; }
 {
     background: rgba(0, 0, 0, 0.03) !important;
 }
-
+/*
 .ace-tm .ace_marker-layer .ace_selection
 {
     background: #ddd !important;
-}
+}*/
 
 .shortcut {
     background-color: #93bF68;

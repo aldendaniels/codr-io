@@ -51,12 +51,11 @@
                             <div class="toolbar-dropdown-top-border"></div>
                             <div class="toolbar-dropdown">
                                 <div id="title-message" class="edit-mode-message">
-                                    <span class="not-editing">Edit mode required to make changes</span>
-                                    <span class="snapshot">Changes not allowed in read-only files</span>
+                                    Changes not allowed in read-only files
                                 </div>
-                                <input class="toolbar-input" type="text" id="title-input" disabled=disabled></input>
+                                <input class="toolbar-input" type="text" id="title-input"></input>
                                 <div class="horizontal-divider"></div>
-                                <button id="title-save" disabled=disabled>Save</button>
+                                <button id="title-save">Save</button>
                                 <div class="hidden-focusable">
                                     <a href="javascript:void(0)">#</a>
                                 </div>
@@ -74,8 +73,7 @@
                             <div class="toolbar-dropdown-top-border"></div>
                             <div class="toolbar-dropdown">
                                 <div id="mode-message" class="edit-mode-message">
-                                    <span class="not-editing">Edit mode required to make changes</span>
-                                    <span class="snapshot">Changes not allowed in read-only files</span>
+                                    Changes not allowed in read-only files
                                 </div>
                                 <div id="mode-menu"></div>
                             </div>
@@ -108,7 +106,7 @@
                                     <div id="chat-typing">
                                         <b>Typing: </b><span id="chat-typing-names"></span>
                                     </div>
-                                    <textarea type="text" id="chat-box" disabled="disabled"></textarea>
+                                    <textarea type="text" id="chat-box"></textarea>
                                 </div>
                             </div>
                         </div>
@@ -228,8 +226,7 @@
                     <table>
                         <tr>
                             <td>
-                                <span id="num-viewing"></span> |
-                                <span id="editors-name"></span>
+                                <span id="num-viewing"></span>
                             </td>
                             <td id="summary-bar-right-section">
                                 ln: <span id="line-number">0</span> | 
@@ -249,6 +246,9 @@
             {
                 document.getElementById('chat-menu').className  += ' disabled';
                 document.getElementById('link-menu').className  += ' disabled';
+                document.getElementById('mode-menu').className  += ' disabled';
+                document.getElementById('title-input').disabled  = 'disabled';
+                document.getElementById('title-save').disabled   = 'disabled';
             }
         </script>
         

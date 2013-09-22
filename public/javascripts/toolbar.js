@@ -41,7 +41,7 @@ var Toolbar = oHelpers.createClass(
         if (IS_SNAPSHOT)
         {    
             // Toggle mode menu editability.
-            $('.menu').addclass('disabled');
+            $('.menu').addClass('disabled');
             
             // Toggle title editability.
             $('#title-input, #title-save').prop('disabled', true);

@@ -46,8 +46,6 @@ var Workspace = oHelpers.createClass(
         }
         else // Open existing document.
         {
-            // A new client won't have edit mode so disable mode options 
-            $('.menu').toggleClass('disabled', true);
             var sDocumentID = /^(\/v)?\/([a-z0-9]+)\/?$/.exec(document.location.pathname)[2];
             this._oSocket.send('openDocument',
             {
@@ -70,16 +68,9 @@ var Workspace = oHelpers.createClass(
             {
                 this._oLastFocusedObject.focus();
             }
-            else if (this._oEditor.isEditing())// Focus editor.
+            else // Focus editor.
             {
                 this._oEditor.focus();
-            }
-            else if (document.activeElement != document.body) // If is active elem.
-            {
-                // Blur focused object.
-                this._oFocusedObject.onBlur();
-                this._oFocusedObject = null;
-                $(document.activeElement).blur();
             }
         }
     },
