@@ -1,6 +1,6 @@
 try
 {
-    var AceRange = require('./../aceDocument/range').Range;
+    var AceRange = require('./../../../aceDocument/range').Range;
 }
 catch (err)
 {
@@ -145,7 +145,11 @@ function _applyTransOp(iLine, iCol, oTransOp, bIsEndPoint)
     return {row: oTransOp.iStartLine, column: oTransOp.iStartCol};
 }
 
-module.exports = {
-    transformAceDelta: transformAceDelta,
-    getTransOpFromAceDelta: getTransOpFromAceDelta
-};
+try
+{
+    module.exports = {
+        transformAceDelta: transformAceDelta,
+        getTransOpFromAceDelta: getTransOpFromAceDelta
+    };
+} catch (err) {}
+

@@ -12,7 +12,7 @@ var oUglifyJSMiddleware = require('uglify-js-middleware');
 var oHelpers            = require('./helpers');
 var oAceDocument        = require('./aceDocument').Document;
 var oDatabase           = require('./database');
-var oOT                 = require('./ot/OT');
+var oOT                 = require('./public/javascripts/ot/OT');
 
 // Error handling.
 // TODO: This is a horrible hack.

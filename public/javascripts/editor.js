@@ -39,6 +39,7 @@ var Editor = oHelpers.createClass(
 
     // Trans Op
     _iServerState: 0,
+    _aServerUnseenQueue: null,
 
     __type__: 'Editor',    
 
@@ -47,6 +48,7 @@ var Editor = oHelpers.createClass(
         this._oSocket = oSocket;
         this._oWorkspace = oWorkspace;
         this._oRemoteUsers = {};
+        this._aServerUnseenQueue = [];
         
         // Attach socket.
         this._oSocket.bind('message', this, this._handleServerAction);
@@ -148,12 +150,28 @@ var Editor = oHelpers.createClass(
             case 'aceDelta':
                 this._iServerState = oAction.oData.iServerState;
                 this._bApplyingRemoteDelta = true;
+
+                // Revert pending deltas.
+                this._oAceDocument.revertDeltas(this._aServerUnseenQueue);
+
+                // Transform pending deltas.
+                var oDeltaOp = getTransOpFromAceDelta(oAction.oData.oDelta);
+                for (var i = 0; i < this._aServerUnseenQueue.length; i++)
+                    transformAceDelta(oDeltaOp, this._aServerUnseenQueue[i]);
+
+                // Apply new delta
                 this._oAceDocument.applyDeltas([oAction.oData.oDelta]);
+
+                // Apply pending tranformed deltas.
+                if (this._aServerUnseenQueue.length > 0)
+                    this._oAceDocument.applyDeltas(this._aServerUnseenQueue);
+
                 this._bApplyingRemoteDelta = false;
                 break;
 
             case 'eventReciept':
                 this._iServerState = oAction.oData.iServerState;
+                this._aServerUnseenQueue = this._aServerUnseenQueue.splice(1);
                 break;
                 
             case 'addUser':
@@ -257,6 +275,8 @@ var Editor = oHelpers.createClass(
                 'oDelta': oAceDelta.data,
                 'iClientState': this._iServerState
             });
+
+            this._aServerUnseenQueue.push(oAceDelta.data);
         }
     }
 });
