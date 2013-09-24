@@ -123,6 +123,8 @@ var Chat = oHelpers.createClass(
                 
                 // Show chat box.
                 $('#chat').removeClass('identify');
+                $('#chat-identify').prop('disabled', true);
+                $('#chat-identify-ok-button').prop('disabled', true);
                 $('#chat-box').prop('disabled', false);
                 
                 // Focus chat.
