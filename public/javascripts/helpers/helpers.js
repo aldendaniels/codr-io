@@ -1,3 +1,16 @@
+var fg_iSendMsDelay = 0;
+var fg_iReceiveMsDelay = 0;
+
+function fakeSendDelay(iMs)
+{
+    fg_iSendMsDelay = iMs;
+}
+
+function fakeReceiveDelay(iMs)
+{
+    fg_iReceiveMsDelay = iMs;
+}
+
 function _createClass(oProps)
 {
     var Class = null;
@@ -84,7 +97,21 @@ var oHelpers = {
             if (this._oSocket === null)
                 return;
 
-            var sMessage = JSON.stringify({ sType: sEventType, oData: oEventData });
+            if (fg_iSendMsDelay > 0)
+            {
+                window.setTimeout(oHelpers.createCallback(this, function(){
+                    this._send(sEventType, oEventData);
+                }), fg_iSendMsDelay);
+            }
+            else
+            {
+                this._send(sEventType, oEventData);
+            }
+        },
+
+        _send: function(sEventType, oEventData)
+        {
+             var sMessage = JSON.stringify({ sType: sEventType, oData: oEventData });
             if (this._bIsOpen)
                 this._oSocket.send(sMessage);
             else
@@ -93,18 +120,26 @@ var oHelpers = {
         
         _dispatch: function(sEventName, oOptionalData)
         {
-            if (sEventName in this._oCallbacks)
+            var _doit = oHelpers.createCallback(this, function()
             {
-                var bHandled = false;
-
-                for (var i in this._oCallbacks[sEventName])
+                if (sEventName in this._oCallbacks)
                 {
-                    if (this._oCallbacks[sEventName][i](oOptionalData))
-                        bHandled = true;
-                }
+                    var bHandled = false;
 
-                oHelpers.assert(bHandled, 'The event had no listener: ' + sEventName)
-            }
+                    for (var i in this._oCallbacks[sEventName])
+                    {
+                        if (this._oCallbacks[sEventName][i](oOptionalData))
+                            bHandled = true;
+                    }
+
+                    oHelpers.assert(bHandled, 'The event had no listener: ' + sEventName)
+                }
+            });
+
+            if (fg_iReceiveMsDelay > 0)
+                window.setTimeout(_doit, fg_iReceiveMsDelay)
+            else
+                _doit();
         }  
     }),
     

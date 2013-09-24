@@ -1,25 +1,32 @@
-var AceRange = ace.require('ace/range').Range;
+try
+{
+    var AceRange = require('./../aceDocument/range').Range;
+}
+catch (err)
+{
+    var AceRange = ace.require('ace/range').Range;
+}
 
-function transformAceDelta(oTransOP, oAceDelta)
+function transformAceDelta(oTransOp, oAceDelta)
 {
     oAceDelta = _normalizeAceDelta(oAceDelta);
-    var oStart = _applyTransOP(oAceDelta.range.start.row, oAceDelta.range.start.column, oTransOP, false);
-    var oEnd =   _applyTransOP(oAceDelta.range.end.row,   oAceDelta.range.end.column,   oTransOP, true);
+    var oStart = _applyTransOp(oAceDelta.range.start.row, oAceDelta.range.start.column, oTransOp, false);
+    var oEnd =   _applyTransOp(oAceDelta.range.end.row,   oAceDelta.range.end.column,   oTransOp, true);
     oAceDelta.range = AceRange.fromPoints(oStart, oEnd);
     return oAceDelta;
 }
 
-function getTransOPFromAceDelta(oAceDelta)
+function getTransOpFromAceDelta(oAceDelta)
 {
     oAceDelta = _normalizeAceDelta(oAceDelta);
     if (oAceDelta.action == 'insertText')
     {
-        return _transOPInsert(oAceDelta.range.start.row, oAceDelta.range.start.column, 
+        return _transOpInsert(oAceDelta.range.start.row, oAceDelta.range.start.column, 
                               oAceDelta.range.end.row,   oAceDelta.range.end.column);
     }
     else if (oAceDelta.action == 'removeText')
     {
-        return _transOPDelete(oAceDelta.range.start.row, oAceDelta.range.start.column, 
+        return _transOpDelete(oAceDelta.range.start.row, oAceDelta.range.start.column, 
                              oAceDelta.range.end.row,   oAceDelta.range.end.column);
     }
 
@@ -28,7 +35,6 @@ function getTransOPFromAceDelta(oAceDelta)
 
 function _normalizeInsertTextDelta(oInsertTextDelta)
 {
-    console.log('');
     var asLines = oInsertTextDelta.text.split('\n');
     var iStartRow = oInsertTextDelta.range.start.row;
     var iStartCol = oInsertTextDelta.range.start.column;
@@ -49,7 +55,6 @@ function _normalizeInsertTextDelta(oInsertTextDelta)
         iEndRow = iStartRow;
         iEndCol = iStartCol;
     }
-    console.log(iStartRow, iStartCol, iEndRow, iEndCol, asLines);
 
     oInsertTextDelta.range = new AceRange(iStartRow, iStartCol,
                                           iEndRow, iEndCol);
@@ -95,7 +100,7 @@ function _normalizeAceDelta(oAceDelta)
     }
 }
 
-function _transOPDelete(iStartLine, iStartCol, iEndLine, iEndCol)
+function _transOpDelete(iStartLine, iStartCol, iEndLine, iEndCol)
 {
     return ({
         iStartLine: iStartLine, 
@@ -107,7 +112,7 @@ function _transOPDelete(iStartLine, iStartCol, iEndLine, iEndCol)
     });
 }
 
-function _transOPInsert(iStartLine, iStartCol, iEndLine, iEndCol)
+function _transOpInsert(iStartLine, iStartCol, iEndLine, iEndCol)
 {
     return ({
         iStartLine: iStartLine, 
@@ -119,24 +124,28 @@ function _transOPInsert(iStartLine, iStartCol, iEndLine, iEndCol)
     });
 }
 
-function _applyTransOP(iLine, iCol, oTransOP, bIsEndPoint)
+function _applyTransOp(iLine, iCol, oTransOp, bIsEndPoint)
 {
     // The trans op happens later, we don't need to change.
-    if ( (iLine < oTransOP.iStartLine) || ( iLine == oTransOP.iStartLine && iCol < oTransOP.iStartCol ) )
+    if ( (iLine < oTransOp.iStartLine) || ( iLine == oTransOp.iStartLine && iCol < oTransOp.iStartCol ) )
         return {row: iLine, column: iCol};
         
 
     // The trans op happened before us.
-    var bColIsAfter = bIsEndPoint ? iCol > oTransOP.iEndCol : iCol >= oTransOP.iEndCol;
-    if( (iLine > oTransOP.iEndLine) || ( iLine == oTransOP.iEndLine && bColIsAfter ) )
+    var bColIsAfter = bIsEndPoint ? iCol > oTransOp.iEndCol : iCol >= oTransOp.iEndCol;
+    if( (iLine > oTransOp.iEndLine) || ( iLine == oTransOp.iEndLine && bColIsAfter ) )
     {
         return {
-            row:    iLine + oTransOP.iLineShift, 
-            column: iCol + (iLine == oTransOP.iEndLine ? oTransOP.iColShift : 0)
+            row:    iLine + oTransOp.iLineShift, 
+            column: iCol + (iLine == oTransOp.iEndLine ? oTransOp.iColShift : 0)
         }
     }
     
     // We are part of the trans op range (trans op must be a delete btw). Move us to the delete start point.
-    return {row: oTransOP.iStartLine, column: oTransOP.iStartCol};
+    return {row: oTransOp.iStartLine, column: oTransOp.iStartCol};
 }
 
+module.exports = {
+    transformAceDelta: transformAceDelta,
+    getTransOpFromAceDelta: getTransOpFromAceDelta
+};

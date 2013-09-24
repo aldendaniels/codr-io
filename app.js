@@ -12,6 +12,7 @@ var oUglifyJSMiddleware = require('uglify-js-middleware');
 var oHelpers            = require('./helpers');
 var oAceDocument        = require('./aceDocument').Document;
 var oDatabase           = require('./database');
+var oOT                 = require('./ot/OT');
 
 // Error handling.
 // TODO: This is a horrible hack.
@@ -218,7 +219,6 @@ oApp.configure(function()
         // Send document text.
         var oDocument = null;
         var sDocumentID = req.params['DocumentID'];
-        console.log(sDocumentID);
         if (sDocumentID in g_oWorkspaces)
         {
             oDocument = g_oWorkspaces[sDocumentID].getDocument();
@@ -396,13 +396,15 @@ var Workspace = oHelpers.createClass(
     _iAutoSaveTimeoutID: null,
     _iAutoSaveTimeoutLength: 30, /* auto save every 30 seconds */
     
-    // Editing
     _aClients: null,
-    _oRequestEditingInfo: null,
 
     // PeoplePane
     _iGeneratedClientNames: 0,
     _aCurrentlyTyping: null,
+
+    // OT
+    _aTransOps: null,
+    _iServerState: 0,
     
     __init__: function(sDocumentID, oClient)
     {
@@ -410,6 +412,7 @@ var Workspace = oHelpers.createClass(
         this._sDocumentID = sDocumentID;
         this._aClients = [];
         this._aCurrentlyTyping = [];
+        this._aTransOps = [];
         
         // Add the intial client.
         this.addClient(oClient);
@@ -538,7 +541,8 @@ var Workspace = oHelpers.createClass(
             // Set document text.
             oClient.sendAction('setDocumentData',
             {
-                sText: this._oAceDocument.getValue()
+                sText: this._oAceDocument.getValue(),
+                iServerState: this._iServerState
             });
 
             // Set mode (language.)
@@ -635,8 +639,26 @@ var Workspace = oHelpers.createClass(
 				break;
             
             case 'aceDelta':
-                this._broadcastAction(oClient, oAction);
-                this._oAceDocument.applyDeltas([oAction.oData]);
+                var oNewDelta = this._transOp(oClient, oAction.oData.oDelta, oAction.oData.iClientState)
+                this._aTransOps.push({
+                    oClient: oClient,
+                    oTransOp: oOT.getTransOpFromAceDelta(oNewDelta)
+                });
+                this._iServerState++;
+
+                this._broadcastAction(oClient, {
+                    sType: 'aceDelta',
+                    oData: {
+                        oDelta: oNewDelta,
+                        iServerState: this._iServerState
+                    }
+                });
+
+                oClient.sendAction('eventReciept', {
+                    iServerState: this._iServerState
+                });
+
+                this._oAceDocument.applyDeltas([oNewDelta]);
                 this._setAutoSaveTimeout();
                 break;
             
@@ -748,6 +770,18 @@ var Workspace = oHelpers.createClass(
             default:
                 oHelpers.assert(false, 'Unrecognized event type: "' + oAction.sType + '"');
         }
+    },
+
+    _transOp: function(oClient, oDelta, iState)
+    {
+        var iCatchUp = this._iServerState - iState;
+
+        for (var i = this._aTransOps.length - iCatchUp; i < this._aTransOps.length; i++)
+        {
+            if (this._aTransOps[i].oClient != oClient)
+                oDelta = oOT.transformAceDelta(this._aTransOps[i].oTransOp, oDelta);
+        }
+        return oDelta;
     },
 
     _generateNewClientID: function()

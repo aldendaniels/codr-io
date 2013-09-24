@@ -603,7 +603,7 @@ function _test(sTestName, sStart, sEnd, oPrevDelta, oDelta)
     test(sTestName, function()
     {
         var oDocument = new AceDocument(sStart);
-        oDelta = transformAceDelta(getTransOPFromAceDelta(oPrevDelta), oDelta);
+        oDelta = transformAceDelta(getTransOpFromAceDelta(oPrevDelta), oDelta);
         oDocument.applyDeltas([oPrevDelta, oDelta]);
         equal(oDocument.getValue(), sEnd);        
     });

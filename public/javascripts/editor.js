@@ -37,6 +37,9 @@ var Editor = oHelpers.createClass(
     _iRemoteCursorMarkerID2: null,
     _jEditorElem: null,
 
+    // Trans Op
+    _iServerState: 0,
+
     __type__: 'Editor',    
 
     __init__: function(oWorkspace, oSocket)
@@ -131,6 +134,7 @@ var Editor = oHelpers.createClass(
         switch(oAction.sType)
         {
             case 'setDocumentData': // Fired after opening an existing document.
+                this._iServerState = oAction.oData.iServerState;
                 this._bApplyingRemoteDelta = true;
                 this.setText(oAction.oData.sText);
                 this._bApplyingRemoteDelta = false;
@@ -142,9 +146,14 @@ var Editor = oHelpers.createClass(
                 break;
             
             case 'aceDelta':
+                this._iServerState = oAction.oData.iServerState;
                 this._bApplyingRemoteDelta = true;
-                this._oAceDocument.applyDeltas([oAction.oData]);
+                this._oAceDocument.applyDeltas([oAction.oData.oDelta]);
                 this._bApplyingRemoteDelta = false;
+                break;
+
+            case 'eventReciept':
+                this._iServerState = oAction.oData.iServerState;
                 break;
                 
             case 'addUser':
@@ -188,7 +197,6 @@ var Editor = oHelpers.createClass(
         
         // Determine color.
         var sColorClass = this._oRemoteUsers[sClientID].sColor;
-        console.log(this._oRemoteUsers);
         
         // Add marker.
         var aAceMarkerIDs = this._oRemoteUsers[sClientID].aAceMarkersIDs;
@@ -245,7 +253,10 @@ var Editor = oHelpers.createClass(
     {
         if (!this._bApplyingRemoteDelta)
         {
-            this._oSocket.send('aceDelta', oAceDelta.data);
+            this._oSocket.send('aceDelta', {
+                'oDelta': oAceDelta.data,
+                'iClientState': this._iServerState
+            });
         }
     }
 });
