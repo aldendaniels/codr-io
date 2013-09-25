@@ -92,7 +92,8 @@ function _normalizeAceDelta(oAceDelta)
         case 'removeLines':
             return {
                 action: 'removeText',
-                range: new AceRange(oRange.start.row, 0, oRange.end.row, 0)
+                range: new AceRange(oRange.start.row, 0, oRange.end.row, 0),
+                text: oAceDelta.lines.join(oAceDelta.nl) + oAceDelta.nl
             };
             
         default:

@@ -157,7 +157,7 @@ var Editor = oHelpers.createClass(
                 // Transform pending deltas.
                 var oDeltaOp = getTransOpFromAceDelta(oAction.oData.oDelta);
                 for (var i = 0; i < this._aServerUnseenQueue.length; i++)
-                    transformAceDelta(oDeltaOp, this._aServerUnseenQueue[i]);
+                    this._aServerUnseenQueue[i] = transformAceDelta(oDeltaOp, this._aServerUnseenQueue[i]);
 
                 // Apply new delta
                 this._oAceDocument.applyDeltas([oAction.oData.oDelta]);
