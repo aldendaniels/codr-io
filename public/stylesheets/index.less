@@ -4,19 +4,16 @@
 @codr-blue: #319ac2;
 @share-pane-width: 200px;
 @left-toolbar-width: 65px;
-@bottom-bar-height: 25px;
 
 body
 {
     margin: 0;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
+    cursor: default;
     background-color: #fafafa;
     overflow: hidden;
     color: #333;
 }
+
 
 body, textarea, input, button
 {
@@ -183,25 +180,15 @@ body.snapshot
             text-align: center;
         }
     }
-    
-    #toolbar-content-right
-    {
-        display: none;
-    }
-    
-    #summary-bar
-    {
-        display: none;
-    }
-    
+        
     .toolbar-item-btn
     {
         border-top-color: #fafafa !important;
     }
     
-    #edit
+    #num-viewing-box
     {
-        bottom: 0 !important;
+        display: none;
     }
 }
 
@@ -231,19 +218,6 @@ body.snapshot .edit-mode-message { display: block; }
     
     @toolbarDropdownPadding: 10px;
     
-    &.people-pane-expanded
-    {
-        #people
-        {
-            display: block;    
-        }
-        
-        #edit
-        {
-            right: @share-pane-width + 1px !important;
-        }
-    }
-
     #toolbar-top,
     #toolbar-left
     {
@@ -253,6 +227,13 @@ body.snapshot .edit-mode-message { display: block; }
             bottom: 0;
             left: 0;
             right: 0;
+        }
+
+        .toolbar-item-caption
+        {
+            color: #888;
+            font-size: 14px;
+            font-family: sanchez;
         }
         
         .toolbar-item
@@ -402,14 +383,7 @@ body.snapshot .edit-mode-message { display: block; }
                 padding-right: 10px;
                 height: 46px;
                 padding-top: 4px;
-                
-                .toolbar-item-caption
-                {
-                    color: #888;
-                    font-size: 14px;
-                    font-family: sanchez;
-                }
-                
+                                
                 .toolbar-item-selection
                 {
                     font-family: verdana;
@@ -504,7 +478,27 @@ body.snapshot .edit-mode-message { display: block; }
                 position: relative;
                 border: 1px #ddd solid;
             }
-        }        
+        }
+        
+        #num-viewing-box
+        {
+            padding-top: 4px;
+            padding-left: 10px;
+            padding-right: 10px;
+             
+            #num-viewing
+            {
+                font-size: 13pt;
+                width: 150px;
+                color: #aaa;
+                
+                &.others-viewing
+                {
+                    color: @codr-blue;            
+                }
+            }
+        }
+
     }
     
     #edit
@@ -513,30 +507,7 @@ body.snapshot .edit-mode-message { display: block; }
         top: @top-toolbar-height + 1px;
         left: @left-toolbar-width + 1px;
         right: 0;
-        bottom: @bottom-bar-height + 1px;
-    }
-
-    #summary-bar
-    {
-        position: absolute;
         bottom: 0;
-        left: @left-toolbar-width + 1;
-        right: 0;
-        height: @bottom-bar-height;
-        padding-right: 25px;
-        padding-left: 5px;
-        background-color: white;
-        border-top: 1px solid #f0f0f0;
-        
-        table
-        {
-            width: 100%;
-        }
-
-        #summary-bar-right-section
-        {
-            text-align: right;
-        }
     }
     
     i.left-icon{
@@ -815,6 +786,7 @@ body.snapshot .edit-mode-message { display: block; }
         border-bottom-right-radius: 0 !important;
     }
 }
+
 
 /***************** ACE EDITOR STYLES *********************/
 

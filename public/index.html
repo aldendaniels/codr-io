@@ -82,6 +82,12 @@
                     <div class="divider"></div>
                     
                     <div id="toolbar-content-right">
+                        <div class="divider"></div>
+                        <div id="num-viewing-box">
+                            <div id="num-viewing-caption" class="toolbar-item-caption">Viewing</div>
+                            <div class="horizontal-divider"></div>
+                            <div id="num-viewing"></div>
+                        </div>
                     </div>
                 </div>
                 <div id="toolbar-left">
@@ -102,7 +108,7 @@
                                     <div id="chat-identify-error-message"></div>
                                 </div>
                                 <div id="chat-main">
-                                    <div id="chat-history"></div>
+                                    <div id="chat-history" class="selectable" tabindex="1"></div>
                                     <div id="chat-typing">
                                         <b>Typing: </b><span id="chat-typing-names"></span>
                                     </div>
@@ -222,20 +228,7 @@
                     </div>
                 </div>
                 <div id="edit"></div>
-                <div id="summary-bar">
-                    <table>
-                        <tr>
-                            <td>
-                                <span id="num-viewing"></span>
-                            </td>
-                            <td id="summary-bar-right-section">
-                                ln: <span id="line-number">0</span> | 
-                                col: <span id="col-number">0</span>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-            </dov>
+            </div>
         </div>
         
         <div id="shortcut-overlay">

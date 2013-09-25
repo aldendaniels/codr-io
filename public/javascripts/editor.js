@@ -64,6 +64,8 @@ var Editor = oHelpers.createClass(
         this._oAceEditor.setFontSize(14);
         this._oAceEditor.setShowPrintMargin(false);
         this._oAceEditor.setReadOnly(IS_SNAPSHOT);
+        // TODO: Uncomment when ace is updated:
+        // this._oAceEditor.setOption('vScrollbarAlwaysVisible', false); 
             
         // Attach Ace gotoline command to different shortcut
         this._oAceEditor.commands.bindKey('Ctrl-G|Command-G', 'gotoline');
@@ -77,7 +79,6 @@ var Editor = oHelpers.createClass(
 
         // Update status bar.
         this._setPeopleViewing();
-        this._setCursorPosSummary();
     },
     
     setMode: function(oMode)
@@ -201,8 +202,9 @@ var Editor = oHelpers.createClass(
     _setPeopleViewing: function()
     {
         var iNumViewers = Object.keys(this._oRemoteUsers).length;
-        var sNumViewers = iNumViewers + ' other viewer' + (iNumViewers == 1 ? '' : 's');
-        $('#num-viewing').text(sNumViewers);
+        var sText = iNumViewers + ' other' + (iNumViewers == 1 ? '' : 's');
+        $('#num-viewing').text(sText)
+                         .toggleClass('others-viewing', iNumViewers > 0);
     },
 
     _addRemoteSelection: function(sClientID, oSel)
@@ -239,14 +241,6 @@ var Editor = oHelpers.createClass(
         this._oRemoteUsers[sClientID].aAceMarkersIDs = [];
     },
 
-    _setCursorPosSummary: function(oSel)
-    {
-        var iRow = oSel ? oSel.start.row : 0;
-        var iCol = oSel ? oSel.start.column : 0;
-        $('#line-number').text(iRow + 1);
-        $('#col-number').text(iCol + 1);
-    },
-
     _attachAceEvents: function()
     {
         this._oAceEditor.on('change',          oHelpers.createCallback(this, this._onAceDocumentChange ));
@@ -263,7 +257,6 @@ var Editor = oHelpers.createClass(
         {
             this._oSocket.send('setSelection', {oSel: oSelectionRange});
             this._oLastSelectionRange = oSelectionRange;                
-            this._setCursorPosSummary(oSelectionRange);
         }
     },
     
