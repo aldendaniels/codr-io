@@ -76,7 +76,7 @@ module.exports = oHelpers.createClass(
     addClient: function(oClient)
     {
         // Assign the client an ID (username).
-        oClient.setClientID(this._generateNewClientID());
+        oClient.setClientID(this._generateNewClientID(oClient.getUsername()));
         
         // Add the client: Automatically allow editing if you're the only client.
         this._aClients.push(oClient);
@@ -144,7 +144,8 @@ module.exports = oHelpers.createClass(
         // Send ID (Username).
         oClient.sendAction('connect',
         {
-            'sClientID': oClient.getClientID()
+            'sClientID': oClient.getClientID(),
+            'bCanChangeID': oClient.getCanChangeClientID()
         });
         
         // Send documentID on document creation.
@@ -153,11 +154,6 @@ module.exports = oHelpers.createClass(
             oClient.sendAction('setDocumentID',
             {
                 sDocumentID: this._sDocumentID
-            });
-
-            oClient.sendAction('setCurrentEditor',
-            {
-                sClientID: oClient.getClientID()
             });
         }
         
@@ -316,6 +312,9 @@ module.exports = oHelpers.createClass(
                         sError = 'This username has already been taken.';
                 }
 
+                if (!oClient.getCanChangeClientID())
+                    sError = "You can not change your username if you have an account.";
+
                 // Handle errors
                 if (sError)
                 {
@@ -407,8 +406,23 @@ module.exports = oHelpers.createClass(
         return oDelta;
     },
 
-    _generateNewClientID: function()
+    _generateNewClientID: function(sOptionalPrefix)
     {
+        if (sOptionalPrefix)
+        {
+            var iNumFound = 0;
+            for (var i = 0; i < this._aClients.length; i++)
+            {
+                if (this._aClients[i].getClientID().indexOf(sOptionalPrefix) === 0);
+                    iNumFound++;
+            }
+            if (iNumFound > 0)
+                return sOptionalPrefix + ' (' + iNumFound + ')';
+            else
+                return sOptionalPrefix;
+
+        }
+
         this._iGeneratedClientNames++;
         return 'User ' + this._iGeneratedClientNames;
     },

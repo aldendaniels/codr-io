@@ -13,11 +13,14 @@ module.exports = oHelpers.createClass(
     _bClosed: false,
     _sClientID: '',
     _oLastSelAction: null,
+    _sUsername: '',
+    _bCanChangeClientID: true,
     
-    __init__: function(oSocket)
+    __init__: function(oSocket, sUsername)
     {
         this._aPreInitActionQueue = [];
         this._oSocket = oSocket;
+        this._sUsername = sUsername;
         oSocket.on('message', oHelpers.createCallback(this, this._onClientAction));
         oSocket.on('close', oHelpers.createCallback(this, function()
         {
@@ -30,6 +33,11 @@ module.exports = oHelpers.createClass(
     
     setClientID: function(sClientID)
     {
+        oHelpers.assert(this._bCanChangeClientID, "You can\'t set the client ID for a client with a user account.");
+
+        if (this._sUsername != "" && sClientID.indexOf(this._sUsername) === 0 && this._sClientID == "")
+            this._bCanChangeClientID = false;
+
         this._sClientID = sClientID;
     },
 
@@ -37,6 +45,16 @@ module.exports = oHelpers.createClass(
     {
         oHelpers.assert(this._sClientID, 'The username is not yet initialized.')
         return this._sClientID;
+    },
+
+    getUsername: function()
+    {
+        return this._sUsername;
+    },
+
+    getCanChangeClientID: function()
+    {
+        return this._bCanChangeClientID;
     },
     
     getLastSelAction: function()

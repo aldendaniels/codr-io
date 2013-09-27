@@ -24,7 +24,7 @@ var oFileDatabase =
             fs.readFile(oPath.join(g_oConfig.sDataPath, sID), function (sIgnoredErr, oFileData) //oFileData is a raw buffer
             {
                 oHelpers.createCallback(oScope, fnOnResponse)(String(oFileData));
-            })
+            });
         });
     },
 
@@ -36,6 +36,24 @@ var oFileDatabase =
     documentExists: function(sID, oScope, fnOnResponse)
     {
         fs.exists(oPath.join(g_oConfig.sDataPath, sID), oHelpers.createCallback(oScope, fnOnResponse))
+    },
+
+    saveUser: function(sUsername, sData, oScope, fnOnResponse)
+    {
+        fs.writeFile(oPath.join(g_oConfig.sUserDataPath, sUsername), sData, oHelpers.createCallback(oScope, fnOnResponse));
+    },
+
+    getUser: function(sUsername, oScope, fnOnResponse)
+    {
+        fs.readFile(oPath.join(g_oConfig.sUserDataPath, sUsername), function(sIgnoredErr, oFileData)
+        {
+            oHelpers.createCallback(oScope, fnOnResponse)(oFileData);
+        });
+    },
+
+    userExists: function(sUsername, oScope, fnOnResponse)
+    {
+        fs.exists(oPath.join(g_oConfig.sUserDataPath, sUsername), oHelpers.createCallback(oScope, fnOnResponse));
     }
 };
 

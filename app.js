@@ -9,6 +9,8 @@ var oWS                 = require('ws');
 var oHTTP               = require('http');
 var oLessMiddleware     = require('less-middleware');
 var oUglifyJSMiddleware = require('uglify-js-middleware');
+var oPasswordHash       = require('password-hash');
+var oConnect            = require('connect');
 
 // Import helpers.
 var oHelpers            = require('./helpers');
@@ -50,6 +52,9 @@ g_oConfig = (function()
                                     return sDataPath;
                                 }
                             }());
+    oConfig.sUserDataPath = oPath.join(oConfig.sDataPath, 'users');
+    if(!oFS.existsSync(oConfig.sUserDataPath))
+        oFS.mkdirSync(oConfig.sUserDataPath);
     return oConfig;
 }());
 
@@ -76,9 +81,14 @@ else
 
 // Create express app.
 var oApp = oExpress();
+var oCookieParser = new oExpress.cookieParser('testing');
+var oSessionStore = new oConnect.session.MemoryStore();
 oApp.configure(function()
 {
     oApp.set('port', g_oConfig.iPort);
+
+    oApp.use(oCookieParser);
+    oApp.use(oExpress.session({secret: 'testing', store: oSessionStore}));
     
     if (g_oConfig.bCompress)
     {
@@ -112,6 +122,72 @@ oApp.configure(function()
 
     /* Save static index.html */
     oApp.get('^/$',                     function(req, res) { res.sendfile('public/index.html'); });
+
+    oApp.get('^/login/?$', function(req, res)
+    {
+        if (req.session.sUser)
+        {
+            res.redirect('/');
+            return;
+        }
+
+        res.sendfile('public/login.html');
+    });
+    oApp.post('^/login/?$', function(req, res) {
+        oDatabase.userExists(req.body.username, this, function(bExists)
+        {
+            if (!bExists)
+            {
+                res.redirect('/login?error=invalid username');
+                return;
+            }
+
+            oDatabase.getUser(req.body.username, this, function(sUser)
+            {
+                var oUser = new User(sUser);
+                if (oUser.checkPassword(req.body.password))
+                {
+                    req.session.sUser = req.body.username;
+                    res.redirect('/');
+                }
+                else
+                    res.redirect('/login?error=invalid password');
+            });
+        });
+    });
+
+    oApp.get('^/logout/?$', function(req, res)
+    {
+        req.session.sUser = null;
+        res.redirect('/login');
+    });
+
+    oApp.get('^/signup/?$', function(req, res)
+    {
+        if (req.session.sUser)
+        {
+            res.redirect('/logout');
+            return;
+        }
+
+        res.sendfile('public/signup.html');
+    });
+    oApp.post('^/signup/?$', function(req, res)
+    {
+        oDatabase.userExists(req.body.username, this, function(bExists)
+        {
+            if (!bExists)
+            {
+                createNewUser(req.body.username, req.body.email, req.body.password, this, function()
+                {
+                    req.session.sUser = req.body.username;
+                    res.redirect('/');
+                });
+                return;
+            }
+            res.redirect('/signup?error = That user already exists.');
+        });
+    });
 
     oApp.get('^/ajax/:DocumentID([a-z0-9]+)/?$', function(req, res) {
 
@@ -238,5 +314,64 @@ oServer.listen(oApp.get('port'), function()
 var oWsServer = new oWS.Server({server: oServer});
 oWsServer.on('connection', function(oSocket)
 {
-    new Client(oSocket);
+    oCookieParser(oSocket.upgradeReq, null, function(err)
+    {
+        if ('connect.sid' in oSocket.upgradeReq.signedCookies)
+        {
+            oSessionStore.get(oSocket.upgradeReq.signedCookies['connect.sid'], function(err, oSession)
+            {
+                var sUser = oSession.sUser || '';
+                new Client(oSocket, sUser);
+            });
+        }
+        else
+            new Client(oSocket, '');
+    });
 });
+
+var User = oHelpers.createClass({
+    _sUsername: '',
+    _sEmail: '',
+    _aDocuments: null,
+    _sPasswordHash: '',
+    __init__: function(sData)
+    {
+        var oData = JSON.parse(sData);
+        this._sUsername = oData.sUsername;
+        this._sEmail = oData.sEmail;
+        this._aDocuments = oData.aDocuments;
+        this._sPasswordHash = oData.sPasswordHash;
+    },
+
+    checkPassword: function(sPassword)
+    {
+        return oPasswordHash.verify(sPassword, this._sPasswordHash);
+    },
+
+    save: function(oScope, fnOnResponse)
+    {
+         oDatabase.saveUser(this._sUsername, JSON.stringify({
+            sUsername: this._sUsername,
+            sEmail: this._sEmail,
+            aDocuments: this._aDocuments,
+            sPasswordHash: this._sPasswordHash
+        }), oScope, fnOnResponse);
+    }
+});
+
+function createNewUser(sUsername, sEmail, sPassword, oScope, fnOnResponse)
+{
+    var oData = {
+        sUsername: sUsername,
+        sEmail: sEmail,
+        aDocuments: [],
+        sPasswordHash: oPasswordHash.generate(sPassword, {algorithm: 'sha256'})
+    };
+
+    var oUser = new User(JSON.stringify(oData));
+    oUser.save(this, function(sError)
+    {
+        // Handle error.
+        oHelpers.createCallback(oScope, fnOnResponse)(oUser);
+    });
+}

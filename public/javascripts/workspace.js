@@ -231,6 +231,8 @@ var Workspace = oHelpers.createClass(
         {
             case 'connect':
                 this._oUserInfo = oAction.oData;
+                if (!oAction.oData.bCanChangeUsername)
+                    alert("hello " + oAction.oData.sClientID + ". You are logged in!");
                 break;
                 
             case 'setDocumentTitle':

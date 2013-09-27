@@ -117,9 +117,18 @@ var Chat = oHelpers.createClass(
                 break;
 
             case 'newClientIDAccepted':
-                
-                // Save username.
-                this._oWorkspace.getUserInfo()['sClientID'] = oAction.oData.sClientID;
+            case 'connect':
+
+                if (oAction.sType == 'connect')
+                {
+                    if (oAction.oData.bCanChangeID)
+                        return true;
+                }
+                else
+                {
+                    // Save username.
+                    this._oWorkspace.getUserInfo()['sClientID'] = oAction.oData.sClientID;
+                }
                 
                 // Show chat box.
                 $('#chat').removeClass('identify');
@@ -159,8 +168,6 @@ var Chat = oHelpers.createClass(
         {
             'sClientID': sClientID
         });
-
-        this._oWorkspace.getUserInfo()['sClientID'] = sClientID;
     },
 
     _sendNewMessage: function(sMessage)
