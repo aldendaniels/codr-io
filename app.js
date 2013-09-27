@@ -13,6 +13,8 @@ var oHelpers            = require('./helpers');
 var oAceDocument        = require('./aceDocument').Document;
 var oDatabase           = require('./database');
 var oOT                 = require('./public/javascripts/ot/OT');
+var oPasswordHash       = require('password-hash');
+var oConnect            = require('connect');
 
 // Error handling.
 // TODO: This is a horrible hack.
@@ -50,6 +52,9 @@ GLOBAL.g_oConfig = (function()
                                     return sDataPath;
                                 }
                             }());
+    oConfig.sUserDataPath = oPath.join(oConfig.sDataPath, 'users');
+    if(!oFS.existsSync(oConfig.sUserDataPath))
+        oFS.mkdirSync(oConfig.sUserDataPath);
     return oConfig;
 }());
 
@@ -66,9 +71,14 @@ else
 
 // Create express app.
 var oApp = oExpress();
+var oCookieParser = new oExpress.cookieParser('testing');
+var oSessionStore = new oConnect.session.MemoryStore();
 oApp.configure(function()
 {
     oApp.set('port', g_oConfig.iPort);
+
+    oApp.use(oCookieParser);
+    oApp.use(oExpress.session({secret: 'testing', store: oSessionStore}));
     
     if (g_oConfig.bCompress)
     {
@@ -102,6 +112,31 @@ oApp.configure(function()
 
     /* Save static index.html */
     oApp.get('^/$',                     function(req, res) { res.sendfile('public/index.html'); });
+
+    oApp.get('^/login/?$', function(req, res) { res.sendfile('public/login.html'); });
+    oApp.post('^/login/?$', function(req, res) {
+        oDatabase.userExists(req.body.username, this, function(bExists)
+        {
+            if (!bExists)
+            {
+                createNewUser(req.body.username, 'test@test.com', req.body.password, this, function(){});
+                res.redirect('/login?error=username');
+                return;
+            }
+
+            oDatabase.getUser(req.body.username, this, function(sUser)
+            {
+                var oUser = new User(sUser);
+                if (oUser.checkPassword(req.body.password))
+                {
+                    req.session.sUser = req.body.username;
+                    res.redirect('/');
+                }
+                else
+                    res.redirect('/login?error=password');
+            });
+        });
+    });
 
     oApp.get('^/ajax/:DocumentID([a-z0-9]+)/?$', function(req, res) {
 
@@ -246,7 +281,19 @@ oServer.listen(oApp.get('port'), function()
 var oWsServer = new oWS.Server({server: oServer});
 oWsServer.on('connection', function(oSocket)
 {
-    new Client(oSocket);
+    oCookieParser(oSocket.upgradeReq, null, function(err)
+    {
+        if ('connect.sid' in oSocket.upgradeReq.signedCookies)
+        {
+            oSessionStore.get(oSocket.upgradeReq.signedCookies['connect.sid'], function(err, oSession)
+            {
+                var sUser = oSession.sUser || '';
+                new Client(oSocket, sUser);
+            });
+        }
+        else
+            new Client(oSocket, '');
+    });
 });
 
 var g_oWorkspaces = {}; // DocumentID to Workspace instance.
@@ -261,11 +308,14 @@ var Client = oHelpers.createClass(
     _bClosed: false,
     _sClientID: '',
     _oLastSelAction: null,
+    _sUsername: '',
+    _bCanChangeClientID: true,
     
-    __init__: function(oSocket)
+    __init__: function(oSocket, sUsername)
     {
         this._aPreInitActionQueue = [];
         this._oSocket = oSocket;
+        this._sUsername = sUsername;
         oSocket.on('message', oHelpers.createCallback(this, this._onClientAction));
         oSocket.on('close', oHelpers.createCallback(this, function()
         {
@@ -278,6 +328,11 @@ var Client = oHelpers.createClass(
     
     setClientID: function(sClientID)
     {
+        oHelpers.assert(this._bCanChangeClientID, "You can\'t set the client ID for a client with a user account.");
+
+        if (this._sUsername != "" && sClientID.indexOf(this._sUsername) === 0 && this._sClientID == "")
+            this._bCanChangeClientID = false;
+
         this._sClientID = sClientID;
     },
 
@@ -285,6 +340,16 @@ var Client = oHelpers.createClass(
     {
         oHelpers.assert(this._sClientID, 'The username is not yet initialized.')
         return this._sClientID;
+    },
+
+    getUsername: function()
+    {
+        return this._sUsername;
+    },
+
+    getCanChangeClientID: function()
+    {
+        return this._bCanChangeClientID;
     },
     
     getLastSelAction: function()
@@ -450,7 +515,7 @@ var Workspace = oHelpers.createClass(
     addClient: function(oClient)
     {
         // Assign the client an ID (username).
-        oClient.setClientID(this._generateNewClientID());
+        oClient.setClientID(this._generateNewClientID(oClient.getUsername()));
         
         // Add the client: Automatically allow editing if you're the only client.
         this._aClients.push(oClient);
@@ -518,20 +583,16 @@ var Workspace = oHelpers.createClass(
         // Send ID (Username).
         oClient.sendAction('connect',
         {
-            'sClientID': oClient.getClientID()
+            'sClientID': oClient.getClientID(),
+            'bCanChangeID': oClient.getCanChangeClientID()
         });
-        
+
         // Send documentID on document creation.
         if (oClient.clientCreatedDocument())
         {
             oClient.sendAction('setDocumentID',
             {
                 sDocumentID: this._sDocumentID
-            });
-
-            oClient.sendAction('setCurrentEditor',
-            {
-                sClientID: oClient.getClientID()
             });
         }
         
@@ -690,6 +751,9 @@ var Workspace = oHelpers.createClass(
                         sError = 'This username has already been taken.';
                 }
 
+                if (!oClient.getCanChangeClientID())
+                    sError = "You can not change your username if you have an account.";
+
                 // Handle errors
                 if (sError)
                 {
@@ -784,8 +848,23 @@ var Workspace = oHelpers.createClass(
         return oDelta;
     },
 
-    _generateNewClientID: function()
+    _generateNewClientID: function(sOptionalPrefix)
     {
+        if (sOptionalPrefix)
+        {
+            var iNumFound = 0;
+            for (var i = 0; i < this._aClients.length; i++)
+            {
+                if (this._aClients[i].getClientID().indexOf(sOptionalPrefix) === 0);
+                    iNumFound++;
+            }
+            if (iNumFound > 0)
+                return sOptionalPrefix + ' (' + iNumFound + ')';
+            else
+                return sOptionalPrefix;
+
+        }
+
         this._iGeneratedClientNames++;
         return 'User ' + this._iGeneratedClientNames;
     },
@@ -872,4 +951,51 @@ function _normalizeDocument(oDocument)
 function serializeDocument(oDocument)
 {
     return JSON.stringify(_normalizeDocument(oDocument));
+}
+
+var User = oHelpers.createClass({
+    _sUsername: '',
+    _sEmail: '',
+    _aDocuments: null,
+    _sPasswordHash: '',
+    __init__: function(sData)
+    {
+        var oData = JSON.parse(sData);
+        this._sUsername = oData.sUsername;
+        this._sEmail = oData.sEmail;
+        this._aDocuments = oData.aDocuments;
+        this._sPasswordHash = oData.sPasswordHash;
+    },
+
+    checkPassword: function(sPassword)
+    {
+        return oPasswordHash.verify(sPassword, this._sPasswordHash);
+    },
+
+    save: function(oScope, fnOnResponse)
+    {
+         oDatabase.saveUser(this._sUsername, JSON.stringify({
+            sUsername: this._sUsername,
+            sEmail: this._sEmail,
+            aDocuments: this._aDocuments,
+            sPasswordHash: this._sPasswordHash
+        }), oScope, fnOnResponse);
+    }
+});
+
+function createNewUser(sUsername, sEmail, sPassword, oScope, fnOnResponse)
+{
+    var oData = {
+        sUsername: sUsername,
+        sEmail: sEmail,
+        aDocuments: [],
+        sPasswordHash: oPasswordHash.generate(sPassword, {algorithm: 'sha256'})
+    };
+
+    var oUser = new User(JSON.stringify(oData));
+    oUser.save(this, function(sError)
+    {
+        // Handle error.
+        oHelpers.createCallback(oScope, fnOnResponse)(oUser);
+    });
 }

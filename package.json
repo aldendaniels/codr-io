@@ -16,6 +16,8 @@
     "dependencies": {
         "ws": "0.4.x",
         "express": "3.1.x",
-        "less-middleware": "~0.1.10"
+        "password-hash": "1.2.x",
+        "less-middleware": "~0.1.10",
+        "connect": "2.9.0"
     }
 }
