@@ -113,14 +113,22 @@ oApp.configure(function()
     /* Save static index.html */
     oApp.get('^/$',                     function(req, res) { res.sendfile('public/index.html'); });
 
-    oApp.get('^/login/?$', function(req, res) { res.sendfile('public/login.html'); });
+    oApp.get('^/login/?$', function(req, res)
+    {
+        if (req.session.sUser)
+        {
+            res.redirect('/');
+            return;
+        }
+
+        res.sendfile('public/login.html');
+    });
     oApp.post('^/login/?$', function(req, res) {
         oDatabase.userExists(req.body.username, this, function(bExists)
         {
             if (!bExists)
             {
-                createNewUser(req.body.username, 'test@test.com', req.body.password, this, function(){});
-                res.redirect('/login?error=username');
+                res.redirect('/login?error=invalid username');
                 return;
             }
 
@@ -133,8 +141,41 @@ oApp.configure(function()
                     res.redirect('/');
                 }
                 else
-                    res.redirect('/login?error=password');
+                    res.redirect('/login?error=invalid password');
             });
+        });
+    });
+
+    oApp.get('^/logout/?$', function(req, res)
+    {
+        req.session.sUser = null;
+        res.redirect('/login');
+    });
+
+    oApp.get('^/signup/?$', function(req, res)
+    {
+        if (req.session.sUser)
+        {
+            res.redirect('/logout');
+            return;
+        }
+
+        res.sendfile('public/signup.html');
+    });
+    oApp.post('^/signup/?$', function(req, res)
+    {
+        oDatabase.userExists(req.body.username, this, function(bExists)
+        {
+            if (!bExists)
+            {
+                createNewUser(req.body.username, req.body.email, req.body.password, this, function()
+                {
+                    req.session.sUser = req.body.username;
+                    res.redirect('/');
+                });
+                return;
+            }
+            res.redirect('/signup?error = That user already exists.');
         });
     });
 
