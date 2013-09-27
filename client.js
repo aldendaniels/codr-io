@@ -1,4 +1,4 @@
-var oHelpers  = require('./helpers');
+var oHelpers  = require('./public/javascripts/helpers/helpers');
 var Workspace = require('./workspace');
 var Document  = require('./document');
 var oDatabase = require('./database');
@@ -81,7 +81,7 @@ module.exports = oHelpers.createClass(
     {
         if (typeof(param1) == 'string')
         {
-            this._oSocket.send(JSON.stringify(
+            this._oSocket.send(oHelpers.toJSON(
             {
                 sType: param1,
                 oData: param2
@@ -90,7 +90,7 @@ module.exports = oHelpers.createClass(
         else
         {
             oHelpers.assert(typeof(param1) == 'object', 'Invalid parameter type');
-            this._oSocket.send(JSON.stringify(param1));
+            this._oSocket.send(oHelpers.toJSON(param1));
         }
     },
 
@@ -102,7 +102,7 @@ module.exports = oHelpers.createClass(
 
     _onClientAction: function(sJSONAction)
     {
-        var oAction = JSON.parse(sJSONAction);
+        var oAction = oHelpers.fromJSON(sJSONAction);
         switch(oAction.sType)
         {
             case 'createDocument':

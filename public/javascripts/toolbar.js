@@ -265,7 +265,7 @@ var Toolbar = oHelpers.createClass(
             case 'addSnapshot':
                 $('#snapshots #placeholder').remove();
                 var sUrl = document.location.origin + '/v/' + oAction.oData.sID;
-                var sDate = oHelpers.formatDateTime(new Date(oAction.oData.oDateCreated));
+                var sDate = oHelpers.formatDateTime(oAction.oData.oDateCreated);
                 var jSnapshot = $('<a class="snapshot-link"><span class="date"></span><span class="url"></span></a>');
                 jSnapshot.find('span.date').text(sDate);
                 jSnapshot.find('span.url').text(sUrl);

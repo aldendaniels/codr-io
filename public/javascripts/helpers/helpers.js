@@ -1,226 +1,222 @@
-var fg_iSendMsDelay = 0;
-var fg_iReceiveMsDelay = 0;
+var oHelpers = null;
 
-function fakeSendDelay(iMs)
+(function()
 {
-    fg_iSendMsDelay = iMs;
-}
-
-function fakeReceiveDelay(iMs)
-{
-    fg_iReceiveMsDelay = iMs;
-}
-
-function _createClass(oProps)
-{
-    var Class = null;
-    // Create class with constructor.
-    if ('__init__' in oProps)
-        Class = oProps['__init__'];
-    else
-        Class = function(){};
+    var Callback = {
+        /*
+         * This function solves the problem of the value of "this" not persisting for callbacks.
+         * (This function correctly maintains all parameters that are passed to the callback function.)
+         *
+         * Example usage:
+         *
+         *   function downloadData(fnCallback)
+         *   {
+         *     var sData = "(download data here)";
+         *     fnCallback(sData);
+         *   }
+         *
+         *   var myHandler = {};
+         *   myHandler.onDownload = function(sData) { this._sData = sData; };
+         *   downloadData(Callback.create(myHandler, myHandler.onDownload));
+         *
+         * In some situations, the callback's parameters need to be specified when the callback is created.
+         * This is particularly cumbersome when creating callbacks in a loop, because it's not possible
+         * to use a simple closure.
+         *
+         * Thanks to http://laurens.vd.oever.nl/weblog/items2005/closures/ for ideas on solving
+         * Internet Explorer memory leaks.
+         */
+        _aClosureCache: [],
     
-    // Add methods.
-    for (var sName in oProps)
-        Class.prototype[sName] = oProps[sName];
-    
-    return Class;
-}
-    
-var oHelpers = {
-    
-    on: function(oElem, sEventName, oScope, fnCallback)
-    {
-        $(oElem).on(sEventName, oHelpers.createCallback(oScope, fnCallback));
-    },
-        
-    assert: function(bCondition, sMessage)
-    {
-        if (!bCondition)
-            throw sMessage;
-    },
-    
-    inArray: function(oItem, aArray)
-    {
-        for (var i in aArray)
+        create: function(/*oObject, fnCallback, aArgumentsOverride*/)
         {
-            if (aArray[i] == oItem)
-                return true;
-        }
-        return false
-    },
+            // "this" will return the global object
+            function getClosureCache() { return Callback._aClosureCache; }
     
-    WebSocket: _createClass(
-    {
-        _oSocket: null,
-        _oCallbacks: {}, // Map of event to handlers.
-        _aOutbox: [], // We queue sent messages until connection opens.
-        _bIsOpen: false,
-        
-        __init__: function(sUrl)
-        {
-            // We fake a socket for published documents.
-            if (sUrl === null)
-                return;
-
-            this._oSocket = new WebSocket(sUrl);
-            
-            this._oSocket.onmessage = oHelpers.createCallback(this, function(oEvent)
-            {
-                this._dispatch('message', JSON.parse(oEvent.data));
-            });
-            
-            this._oSocket.onopen = oHelpers.createCallback(this, function()
-            {
-                this._dispatch('open', null);
-                while (this._aOutbox.length)
+            // cache the parameters in the member variable
+            var iID = getClosureCache().push(arguments)-1;
+            return function()
                 {
-                    this._oSocket.send(this._aOutbox.pop());
-                }
-                this._bIsOpen = true;
-            });
-            
-            this._oSocket.onclose = oHelpers.createCallback(this, function()
-            {
-                this._dispatch('close', null);
-            });
-        },
-        
-        bind: function(sEventName, oScope, fnCallback)
-        {
-            this._oCallbacks[sEventName] = this._oCallbacks[sEventName] || [];
-            this._oCallbacks[sEventName].push(oHelpers.createCallback(oScope, fnCallback));
-        },
-        
-        send: function(sEventType, oEventData)
-        {
-            if (this._oSocket === null)
-                return;
-
-            if (fg_iSendMsDelay > 0)
-            {
-                window.setTimeout(oHelpers.createCallback(this, function(){
-                    this._send(sEventType, oEventData);
-                }), fg_iSendMsDelay);
-            }
-            else
-            {
-                this._send(sEventType, oEventData);
-            }
-        },
-
-        _send: function(sEventType, oEventData)
-        {
-             var sMessage = JSON.stringify({ sType: sEventType, oData: oEventData });
-            if (this._bIsOpen)
-                this._oSocket.send(sMessage);
-            else
-                this._aOutbox.push(sMessage);
-        },
-        
-        _dispatch: function(sEventName, oOptionalData)
-        {
-            var _doit = oHelpers.createCallback(this, function()
-            {
-                if (sEventName in this._oCallbacks)
-                {
-                    var bHandled = false;
-
-                    for (var i in this._oCallbacks[sEventName])
+                    var oArguments = getClosureCache()[iID];
+                    var oObject = oArguments[0];
+                    var fnCallback = oArguments[1];
+                    var aArgumentsOverride = oArguments[2];
+                    
+                    // If we have both normal arguments and an arguments override, pass in the normal arguments at the end
+                    if (aArgumentsOverride)
                     {
-                        if (this._oCallbacks[sEventName][i](oOptionalData))
-                            bHandled = true;
+                        // Copy arguments array, so that the array is not affected for the next call.
+                        aArgumentsOverride = aArgumentsOverride.concat([]);
+                        for (var i = 0; i < arguments.length; i++)
+                            aArgumentsOverride.push(arguments[i]);
                     }
-
-                    oHelpers.assert(bHandled, 'The event had no listener: ' + sEventName)
-                }
-            });
-
-            if (fg_iReceiveMsDelay > 0)
-                window.setTimeout(_doit, fg_iReceiveMsDelay)
+    
+                    return fnCallback.apply(oObject, aArgumentsOverride || arguments);
+                };
+        }
+    };
+    
+    
+    oHelpers =
+    {
+        createClass: function(oProps)
+        {
+            var Class = null;
+            // Create class with constructor.
+            if ('__init__' in oProps)
+                Class = oProps['__init__'];
             else
-                _doit();
-        }  
-    }),
-    
-    formatDateTime: function(d)
-    {
-        return '' +
-                       
-            // Date
-            ( '0' + (d.getMonth() + 1) ).slice(-2) + '/' +
-            ( '0' + d.getDate()        ).slice(-2) + '/' +
-            d.getFullYear() +
+                Class = function(){};
             
-            // Time
-            ' at ' +
-            ( '0' + d.getHours() % 12 ).slice(-2) + ':' +
-            ( '0' + d.getMinutes()    ).slice(-2) + ' ' +
-            (d.getHours < 12 ? 'AM' : 'PM')
-    },
+            // Add methods.
+            for (var sName in oProps)
+                Class.prototype[sName] = oProps[sName];
+            
+            return Class;
+        },
+        
+        createCallback: function(oObject, fnCallback, aOptionalArguments)
+        {
+            aOptionalArguments = aOptionalArguments || [];
+            return Callback.create(oObject, fnCallback, aOptionalArguments);
+        },
     
-    createClass: function(oProps)
-    {
-        return _createClass(oProps);
-    },
-    
-    createCallback: function(oObject, fnCallback, aOptionalArguments)
-    {
-        aOptionalArguments = aOptionalArguments || [];
-        return _Callback.create(oObject, fnCallback, aOptionalArguments);
-    }
-}
-
-var _Callback = {
-    /*
-     * This function solves the problem of the value of "this" not persisting for callbacks.
-     * (This function correctly maintains all parameters that are passed to the callback function.)
-     *
-     * Example usage:
-     *
-     *   function downloadData(fnCallback)
-     *   {
-     *     var sData = "(download data here)";
-     *     fnCallback(sData);
-     *   }
-     *
-     *   var myHandler = {};
-     *   myHandler.onDownload = function(sData) { this._sData = sData; };
-     *   downloadData(Callback.create(myHandler, myHandler.onDownload));
-     *
-     * In some situations, the callback's parameters need to be specified when the callback is created.
-     * This is particularly cumbersome when creating callbacks in a loop, because it's not possible
-     * to use a simple closure.
-     *
-     * Thanks to http://laurens.vd.oever.nl/weblog/items2005/closures/ for ideas on solving
-     * Internet Explorer memory leaks.
-     */
-    _aClosureCache: [],
-
-    create: function(/*oObject, fnCallback, aArgumentsOverride*/)
-    {
-        // "this" will return the global object
-        function getClosureCache() { return _Callback._aClosureCache; }
-
-        // cache the parameters in the member variable
-        var iID = getClosureCache().push(arguments)-1;
-        return function()
+        assert: function(bCondition, sMessage)
+        {
+            if (!bCondition)
+                throw sMessage;
+        },
+        
+        inArray: function(oItem, aArray)
+        {
+            for (var i in aArray)
             {
-                var oArguments = getClosureCache()[iID];
-                var oObject = oArguments[0];
-                var fnCallback = oArguments[1];
-                var aArgumentsOverride = oArguments[2];
-                
-                // If we have both normal arguments and an arguments override, pass in the normal arguments at the end
-                if (aArgumentsOverride)
+                if (aArray[i] == oItem)
+                    return true;
+            }
+            return false
+        },
+        
+        fromJSON: function(sJSON)  // Wrap JSON.parse for better date handling.
+        {
+            var oData = JSON.parse(sJSON);
+            if (oData)
+            {
+                return this.mutateObj(oData, this, function(val)
                 {
-                    // Copy arguments array, so that the array is not affected for the next call.
-                    aArgumentsOverride = aArgumentsOverride.concat([]);
-                    for (var i = 0; i < arguments.length; i++)
-                        aArgumentsOverride.push(arguments[i]);
-                }
+                    if (typeof(val) == 'string')
+                    {
+                        var iStartChars = 'JSON_DATE:'.length;
+                        if (val.slice(0, iStartChars) == 'JSON_DATE:')
+                            return new Date(val.slice(iStartChars));
+                    }
+                    return val;
+                });                
+            }
+            return oData;
+        },
+        
+        toJSON: function(oData) // Wrap JSON.stringify for better date handling.
+        {            
+            return JSON.stringify(this.mutateObj(oData, this, function(val)
+            {
+                if (val && val.constructor == Date)
+                    return 'JSON_DATE:' + val.toISOString();
+                return val;
+            }));
+        },
+        
+        // Creates a recursive clone of an object replacing each non-object
+        // member as dictated by fnCallback.
+        mutateObj: function(oObj, oScope, fnCallback)
+        {
+            function _objectMutate(oSrcObj, oTgtObj, oScope, fnCallback)
+            {
+                for (var sKey in oSrcObj)
+                {
+                    var C = (typeof oSrcObj[sKey] == 'undefined' ? '' : oSrcObj[sKey].constructor);
+                    if (C == Array || C == Object) // Recurse
+                    {
+                        oTgtObj[sKey] = new oSrcObj[sKey].constructor();
+                        _objectMutate(oSrcObj[sKey], oTgtObj[sKey], oScope, fnCallback);
+                    }
+                    else
+                        oTgtObj[sKey] = oHelpers.createCallback(oScope, fnCallback)(oSrcObj[sKey]);
+                }            
+            }
+            
+            var C = (typeof oObj == 'undefined' ? '' : oObj.constructor);
+            if (C == Array || C == Object)
+            {
+                var oClone = new oObj.constructor();
+                _objectMutate(oObj, oClone, oScope, fnCallback);
+                return oClone;
+            }
+            else
+                return oHelpers.createCallback(oScope, fnCallback)(oObj);
+        },
+        
+        extendObj: function(oObj1, oObj2)
+        {
+            for (sKey in oObj2)
+                oObj1[sKey] = oObj2[sKey];
+        },
+        
+        formatDateTime: function(d)
+        {
+            return '' +
+                           
+                // Date
+                ( '0' + (d.getMonth() + 1) ).slice(-2) + '/' +
+                ( '0' + d.getDate()        ).slice(-2) + '/' +
+                d.getFullYear() +
                 
-                return fnCallback.apply(oObject, aArgumentsOverride || arguments);
-            };
-    }    
-};
+                // Time
+                ' at ' +
+                ( '0' + d.getHours() % 12 ).slice(-2) + ':' +
+                ( '0' + d.getMinutes()    ).slice(-2) + ' ' +
+                (d.getHours < 12 ? 'AM' : 'PM')
+        }
+    };
+    
+    // NodeJS
+    if (typeof window == 'undefined')
+    {
+        var oFS   = require('fs');
+        var oPath = require('path');
+        
+        oHelpers.extendObj(oHelpers,
+        {
+            emptyDirSync: function(sPath)
+            {
+                if (oFS.existsSync(sPath))
+                {
+                    oFS.readdirSync(sPath).forEach(function(sFile, iFileIndex)
+                    {
+                        var sCurPath = oPath.join(sPath, sFile);
+                        if(oFS.statSync(sCurPath).isDirectory())
+                        {
+                            oHelpers.emptyDirSync(sCurPath); // Recurse.
+                            oFS.rmdirSync(sCurPath); // Delete dir.
+                        }
+                        else
+                            oFS.unlinkSync(sCurPath); // Delete file.
+                    });
+                }
+            }
+        });
+        
+        // Export.
+        module.exports = oHelpers;
+    }
+    else // Web
+    {
+        oHelpers.extendObj(oHelpers,
+        {
+            on: function(oElem, sEventName, oScope, fnCallback)
+            {
+                $(oElem).on(sEventName, oHelpers.createCallback(oScope, fnCallback));
+            }
+        });
+    }
+})();

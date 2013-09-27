@@ -13,11 +13,11 @@ var oPasswordHash       = require('password-hash');
 var oConnect            = require('connect');
 
 // Import helpers.
-var oHelpers            = require('./helpers');
-var Client              = require('./client');
-var Workspace           = require('./workspace');
-var Document            = require('./document');
-var oDatabase           = require('./database');
+var oHelpers     = require('./public/javascripts/helpers/helpers');
+var Client       = require('./client');
+var Workspace    = require('./workspace');
+var Document     = require('./document');
+var oDatabase    = require('./database');
 
 // GLOBALS
 GLOBAL.g_oConfig        = {};
@@ -200,7 +200,7 @@ oApp.configure(function()
             else
             {
                 var sError = 'The document has not been published. Please click <a href="/' + sDocumentID + '/">here</a> to see the original.';
-                res.send(JSON.stringify({'sError': sError}));
+                res.send(oHelpers.toJSON({'sError': sError}));
             }
         }
 
@@ -336,7 +336,7 @@ var User = oHelpers.createClass({
     _sPasswordHash: '',
     __init__: function(sData)
     {
-        var oData = JSON.parse(sData);
+        var oData = oHelpers.fromJSON(sData);
         this._sUsername = oData.sUsername;
         this._sEmail = oData.sEmail;
         this._aDocuments = oData.aDocuments;
@@ -350,7 +350,7 @@ var User = oHelpers.createClass({
 
     save: function(oScope, fnOnResponse)
     {
-         oDatabase.saveUser(this._sUsername, JSON.stringify({
+         oDatabase.saveUser(this._sUsername, oHelpers.toJSON({
             sUsername: this._sUsername,
             sEmail: this._sEmail,
             aDocuments: this._aDocuments,
@@ -368,7 +368,7 @@ function createNewUser(sUsername, sEmail, sPassword, oScope, fnOnResponse)
         sPasswordHash: oPasswordHash.generate(sPassword, {algorithm: 'sha256'})
     };
 
-    var oUser = new User(JSON.stringify(oData));
+    var oUser = new User(oHelpers.toJSON(oData));
     oUser.save(this, function(sError)
     {
         // Handle error.

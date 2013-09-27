@@ -1,4 +1,4 @@
-var oHelpers  = require('./helpers');
+var oHelpers = require('./public/javascripts/helpers/helpers');
 
 var Document = oHelpers.createClass(
 {
@@ -23,13 +23,9 @@ var Document = oHelpers.createClass(
         if (optionalJSONorObj)
         {
             if (typeof(optionalJSONorObj) == 'string')
-            {
-                oData = this._parseJSON(optionalJSONorObj);
-            }
+                oData = oHelpers.fromJSON(optionalJSONorObj);
             else if (typeof(optionalJSONorObj) == 'object')
-            {
                 oData = optionalJSONorObj;
-            }
             else
                 oHelpers.assert(false, 'Invalid document data type.');
             
@@ -56,21 +52,7 @@ var Document = oHelpers.createClass(
     
     toJSON: function()
     {        
-        return JSON.stringify(this._oData);
-    },
-    
-    _parseJSON: function(sJSON)
-    {
-        // Parse JSON.
-        var oData = JSON.parse(sJSON);
-        
-        // Manually parse dates, as JSON doesn't natively handle this.
-        return oHelpers.objectMutate(oData, this, function(sKey, val)
-        {
-            if (sKey == 'oDateCreated')
-                return new Date(val);
-            return val;
-        });
+        return oHelpers.toJSON(this._oData);
     },
     
     clone: function(bIsSnapshot)

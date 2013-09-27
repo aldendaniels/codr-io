@@ -198,10 +198,9 @@ var Workspace = oHelpers.createClass(
                              *******************************************************************************/ 
                             
                             var oEphemeralObjects   = [this._oToolbar   ];
-                            var oSubstantialObjects = [];
-                            
+                            var aSubstantialObjects = [];                            
                             if (oHelpers.inArray(oTargetObject, oEphemeralObjects) &&
-                                oHelpers.inArray(this._oFocusedObject, oSubstantialObjects))
+                                oHelpers.inArray(this._oFocusedObject, aSubstantialObjects))
                             {
                                 this._oLastFocusedObject = this._oFocusedObject;
                             }

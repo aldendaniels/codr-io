@@ -1,5 +1,5 @@
 var oAceDocument = require('./aceDocument').Document;
-var oHelpers     = require('./helpers');
+var oHelpers     = require('./public/javascripts/helpers/helpers');
 var oOT          = require('./public/javascripts/ot/OT');
 var Client       = require('./client');
 var Document     = require('./document');

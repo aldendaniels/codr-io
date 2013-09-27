@@ -1,6 +1,7 @@
 try
 {
     var AceRange = require('./../../../aceDocument/range').Range;
+    var oHelpers = require('./../helpers/helpers');
 }
 catch (err)
 {
@@ -97,7 +98,7 @@ function _normalizeAceDelta(oAceDelta)
             };
             
         default:
-            oHelpers.assert(false, 'Invalid AceDelta type.');
+            oHelpers.assert(false, 'Invalid AceDelta type: ' + oAceDelta.action);
     }
 }
 

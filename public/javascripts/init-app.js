@@ -27,7 +27,7 @@ var oInitApp =
         else
             var sURL = 'ws://' + window.document.location.host + '/';
 
-        var oSocket = new oHelpers.WebSocket(sURL);
+        var oSocket = new CodrWebSocket(sURL);
         this._oWorkspace = new Workspace(oSocket, bIsNewDocument, oNewDocumentMode);
     },
 

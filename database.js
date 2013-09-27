@@ -1,7 +1,7 @@
-var fs = require('fs');
-var oOS = require('os');
-var oPath = require('path');
-var oHelpers = require('./helpers');
+var fs       = require('fs');
+var oOS      = require('os');
+var oPath    = require('path');
+var oHelpers = require('./public/javascripts/helpers/helpers');
 
 var oFileDatabase =
 {   
