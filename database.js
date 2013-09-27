@@ -23,7 +23,7 @@ var oFileDatabase =
             oHelpers.assert(bExists, 'Document does not exist');  
             fs.readFile(oPath.join(g_oConfig.sDataPath, sID), function (sIgnoredErr, oFileData) //oFileData is a raw buffer
             {
-                oHelpers.createCallback(oScope, fnOnResponse)(oFileData);
+                oHelpers.createCallback(oScope, fnOnResponse)(String(oFileData));
             })
         });
     },

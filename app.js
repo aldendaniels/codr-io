@@ -1,28 +1,28 @@
 
-// Include helper libraries.
+// Include 3rd party node libraries.
 var oOS                 = require('os');
 var oPath               = require('path');
-var oFS                  = require('fs');
+var oFS                 = require('fs');
 var oUrl                = require('url');
 var oExpress            = require('express');
 var oWS                 = require('ws');
 var oHTTP               = require('http');
 var oLessMiddleware     = require('less-middleware');
 var oUglifyJSMiddleware = require('uglify-js-middleware');
-var oHelpers            = require('./helpers');
-var oAceDocument        = require('./aceDocument').Document;
-var oDatabase           = require('./database');
-var oOT                 = require('./public/javascripts/ot/OT');
 
-// Error handling.
-// TODO: This is a horrible hack.
-process.on('uncaughtException', function (err)
-{
-    console.error(err); // Keep node from exiting.
-});
+// Import helpers.
+var oHelpers            = require('./helpers');
+var Client              = require('./client');
+var Workspace           = require('./workspace');
+var Document            = require('./document');
+var oDatabase           = require('./database');
+
+// GLOBALS
+GLOBAL.g_oConfig        = {};
+GLOBAL.g_oWorkspaces    = {}; // DocumentID to Workspace instance.
 
 // Set/validation production environmental variables.
-GLOBAL.g_oConfig = (function()
+g_oConfig = (function()
 {
     // Get arguments.
     var oArgs = {};
@@ -52,6 +52,16 @@ GLOBAL.g_oConfig = (function()
                             }());
     return oConfig;
 }());
+
+// Error handling.
+// TODO: This is a horrible hack.
+if (g_oConfig.bIsProd)
+{
+    process.on('uncaughtException', function (err)
+    {
+        console.error(err); // Keep node from exiting.
+    });    
+}
 
 // Create empty codr_static directory.
 var sCodrStaticOutputPath = oPath.join(oOS.tmpDir(), 'codr_static');
@@ -108,22 +118,14 @@ oApp.configure(function()
         function send(oDocument)
         {
             res.set('Content-Type', 'text/json');
-
-            if (oDocument.bIsSnapshot)
-            {
-                res.send(JSON.stringify(
-                {
-                    'sText': oDocument.sText,
-                    'sMode': oDocument.sMode,
-                    'sTitle': oDocument.sTitle
-                }));
-            }
+            
+            if (oDocument.get('bIsSnapshot'))
+                res.send(oDocument.toJSON());
             else
             {
                 var sError = 'The document has not been published. Please click <a href="/' + sDocumentID + '/">here</a> to see the original.';
                 res.send(JSON.stringify({'sError': sError}));
             }
-
         }
 
         var sDocumentID = req.params['DocumentID'];
@@ -135,7 +137,7 @@ oApp.configure(function()
         {
             oDatabase.getDocument(sDocumentID, this, function(sDocumentJSON)
             {
-                send(parseDocument(sDocumentJSON));
+                send(new Document(sDocumentJSON));
             });
         }
     });
@@ -144,35 +146,26 @@ oApp.configure(function()
     {
         function _fork(oDocument)
         {
-            // Clone the document (A bit rustic...)
-            var oNewDocument = parseDocument(serializeDocument(oDocument));
-            oNewDocument.bIsSnapshot = false;
-            oNewDocument.aSnapshots = [];
-            oNewDocument.oDateCreated = new Date();
-            oNewDocument.aChatHistory = [];
-
-            oDatabase.createDocument(serializeDocument(oNewDocument), this, function(sID)
+            var sClone = oDocument.clone().toJSON();
+            oDatabase.createDocument(sClone, this, function(sID)
             {
                 res.redirect('/' + sID);
             });
-
         }
 
-        var sDocID = req.body.documentID;
-        if (sDocID in g_oWorkspaces)
+        var sDocumentID = req.body.documentID;
+        if (sDocumentID in g_oWorkspaces)
         {
-            _fork(g_oWorkspaces[sDocID].getDocument())
+            _fork(g_oWorkspaces[sDocumentID].getDocument())
         }
         else
         {
-            oDatabase.getDocument(sDocID, this, function(sDocumentJSON)
+            oDatabase.getDocument(sDocumentID, this, function(sDocumentJSON)
             {
-                var oDocument = parseDocument(sDocumentJSON);
+                var oDocument = new Document(sDocumentJSON);
                 _fork(oDocument);
             });
         }
-            
-
     });
 
     oApp.get('^/[a-z0-9]+/?$',          function(req, res) { res.sendfile('public/index.html'); });
@@ -190,13 +183,13 @@ oApp.configure(function()
         if (sDocumentID in g_oWorkspaces)
         {
             oDocument = g_oWorkspaces[sDocumentID].getDocument();
-            res.send(oDocument.sText);
+            res.send(oDocument.get('sText'));
         }
         else
         {
             oDatabase.getDocument(sDocumentID, this, function(sDocumentJSON)
             {
-                res.send(parseDocument(sDocument.JSON).sText);
+                res.send((new Document(sDocumentJSON)).get('sText'));
             });
         }
     });
@@ -222,14 +215,13 @@ oApp.configure(function()
         if (sDocumentID in g_oWorkspaces)
         {
             oDocument = g_oWorkspaces[sDocumentID].getDocument();
-            res.send(oDocument.sText);
+            res.send(oDocument.get('sText'));
         }
         else
         {
             oDatabase.getDocument(sDocumentID, this, function(sDocumentJSON)
             {
-                oDocument = parseDocument(sDocumentJSON);
-                res.send(oDocument.sText);
+                res.send((new Document(sDocumentJSON)).get('sText'));
             });
         }
     });
@@ -248,628 +240,3 @@ oWsServer.on('connection', function(oSocket)
 {
     new Client(oSocket);
 });
-
-var g_oWorkspaces = {}; // DocumentID to Workspace instance.
-
-var Client = oHelpers.createClass(
-{
-    _oSocket: null,
-    _oWorkspace: null,
-    _bCreatedDocument: false,
-    _aPreInitActionQueue: null,
-    _bInitialized: false,
-    _bClosed: false,
-    _sClientID: '',
-    _oLastSelAction: null,
-    
-    __init__: function(oSocket)
-    {
-        this._aPreInitActionQueue = [];
-        this._oSocket = oSocket;
-        oSocket.on('message', oHelpers.createCallback(this, this._onClientAction));
-        oSocket.on('close', oHelpers.createCallback(this, function()
-        {
-            if (this._oWorkspace)
-                this._oWorkspace.removeClient(this);
-            else
-                this._bClosed = true;
-        }));
-    },
-    
-    setClientID: function(sClientID)
-    {
-        this._sClientID = sClientID;
-    },
-
-    getClientID: function()
-    {
-        oHelpers.assert(this._sClientID, 'The username is not yet initialized.')
-        return this._sClientID;
-    },
-    
-    getLastSelAction: function()
-    {
-        return this._oLastSelAction;  
-    },
-    
-    clientCreatedDocument: function()
-    {
-        return this._bCreatedDocument;
-    },
-    
-    onDocumentLoad: function()
-    {    
-        // Send queued actions.
-        this._bInitialized = true;
-        while (this._aPreInitActionQueue.length)
-        {
-            this._onClientAction(this._aPreInitActionQueue.pop());
-        }
-    },
-    
-    sendAction: function(param1, param2) /* either sendAction(sType, oData) or sendAction(oAction)*/
-    {
-        if (typeof(param1) == 'string')
-        {
-            this._oSocket.send(JSON.stringify(
-            {
-                sType: param1,
-                oData: param2
-            }));     
-        }
-        else
-        {
-            oHelpers.assert(typeof(param1) == 'object', 'Invalid parameter type');
-            this._oSocket.send(JSON.stringify(param1));
-        }
-    },
-
-    abort: function(sMessage)
-    {
-        this.sendAction('error', {'sMessage': sMessage});
-        this._oSocket.close();
-    },
-
-    _onClientAction: function(sJSONAction)
-    {
-        var oAction = JSON.parse(sJSONAction);
-        switch(oAction.sType)
-        {
-            case 'createDocument':
-                this._bCreatedDocument = true;
-                oDatabase.createDocument(serializeDocument(oAction.oData), this, function(sDocumentID)
-                {
-                    this._addToWorkspace(sDocumentID);
-                });
-                break;
-            
-            case 'openDocument':
-                this._addToWorkspace(oAction.oData.sDocumentID);
-                break;
-            
-            case 'setSelection':
-                oAction.sType = 'setRemoteSelection';
-                oAction.oData.sClientID = this._sClientID;
-                this._oLastSelAction = oAction;
-            
-            default:
-                if (this._bInitialized )
-                    this._oWorkspace.onClientAction(this, oAction);
-                else
-                    this._aPreInitActionQueue.push(sJSONAction);
-        }
-    },
-    
-    _addToWorkspace: function(sDocumentID)
-    {
-        // Validate.
-        oHelpers.assert(!this._oWorkspace, 'Client already connected.');
-        if (this._bClosed)
-            return;
-                
-        // Get or add workspace.
-        if (sDocumentID in g_oWorkspaces)
-        {
-            this._oWorkspace = g_oWorkspaces[sDocumentID];
-            this._oWorkspace.addClient(this);
-        }
-        else
-        {
-            // TODO (AldenD 06-29-2013): On document creation we could tell the workspace
-            // not to go to the database and directly give it the mode.
-            this._oWorkspace = new Workspace(sDocumentID, this);
-        }
-    }
-});
-
-var Workspace = oHelpers.createClass(
-{
-    // Data
-    _oAceDocument: null,
-    _oDocument: null,
-    _sDocumentID: '',
-
-    // Loading state
-    _bDocumentLoaded: false,
-    
-    // Audo save
-    _iAutoSaveTimeoutID: null,
-    _iAutoSaveTimeoutLength: 30, /* auto save every 30 seconds */
-    
-    _aClients: null,
-
-    // PeoplePane
-    _iGeneratedClientNames: 0,
-    _aCurrentlyTyping: null,
-
-    // OT
-    _aTransOps: null,
-    _iServerState: 0,
-    
-    __init__: function(sDocumentID, oClient)
-    {
-        g_oWorkspaces[sDocumentID] = this;
-        this._sDocumentID = sDocumentID;
-        this._aClients = [];
-        this._aCurrentlyTyping = [];
-        this._aTransOps = [];
-        
-        // Add the intial client.
-        this.addClient(oClient);
-        
-        // Open document.
-        oDatabase.getDocument(sDocumentID, this, function(sDocumentJSON)
-        {
-            // Save pointer to document.
-            this._oDocument = parseDocument(sDocumentJSON);
-            this._oAceDocument = new oAceDocument(this._oDocument.sText);
-            this._oAceDocument.setNewLineMode('windows'); // TODO (Will 6/29/2013) test in other environments
-            this._bDocumentLoaded = true;
-
-            if (this._oDocument.bIsSnapshot)
-            {
-                var sErrorMessage = 'This document has been published and can not be edited.' +
-                                    'To see the published version click <a href="/v/' + sDocumentID + '">here</a>.';
-                for (var i = 0; i < this._aClients.length; i++)
-                    this._aClients[i].abort(sErrorMessage);
-
-                delete g_oWorkspaces[this._sDocumentID];
-
-                return;
-            }
-            
-            // Fire client "load" callbacks.
-            for (var i in this._aClients)
-            {
-                this._setClientInitialValue(this._aClients[i]);
-                this._aClients[i].onDocumentLoad();
-            }
-        });
-    },
-
-    addClient: function(oClient)
-    {
-        // Assign the client an ID (username).
-        oClient.setClientID(this._generateNewClientID());
-        
-        // Add the client: Automatically allow editing if you're the only client.
-        this._aClients.push(oClient);
-        
-        // Initialize client.
-        if (this._bDocumentLoaded)
-        {
-            this._setClientInitialValue(oClient);
-            oClient.onDocumentLoad();
-        }
-                
-        // Propagate to the other clients.
-        if (this._bDocumentLoaded)
-        {
-            this._broadcastAction(oClient, {
-                'sType': 'addUser',
-                'oData': {
-                    'sClientID': oClient.getClientID()
-                }
-            });            
-        }
-    },
-    
-    removeClient: function(oClient)
-    {
-        // Remove the client first thing, so we don't accidentally send him events.
-        var iIndex = this._aClients.indexOf(oClient);
-        this._aClients.splice(iIndex, 1);
-        
-        // Close the document (if no editors left).
-        if (this._aClients.length === 0)
-        {
-            this._save(oHelpers.createCallback(this, function()
-            {
-                if (this._aClients.length === 0)
-                    delete g_oWorkspaces[this._sDocumentID];
-            }));
-        }
-        
-        // Update other clients (if document loaded).
-        else if (this._bDocumentLoaded)
-        {
-            if (this._aCurrentlyTyping.indexOf(oClient) >= 0)
-            {
-                this._broadcastAction(oClient,
-                {
-                    'sType': 'endTyping',
-                    'oData': {'sClientID': oClient.getClientID()}
-                });
-                this._aCurrentlyTyping.splice(this._aCurrentlyTyping.indexOf(oClient), 1);
-            }
-            
-            this._broadcastAction(oClient,
-            {
-                'sType': 'removeUser',
-                'oData': {'sClientID': oClient.getClientID()}
-            });            
-        }
-    },
-
-    _setClientInitialValue: function(oClient)
-    {
-        this._assertDocumentLoaded();
-
-        // Send ID (Username).
-        oClient.sendAction('connect',
-        {
-            'sClientID': oClient.getClientID()
-        });
-        
-        // Send documentID on document creation.
-        if (oClient.clientCreatedDocument())
-        {
-            oClient.sendAction('setDocumentID',
-            {
-                sDocumentID: this._sDocumentID
-            });
-
-            oClient.sendAction('setCurrentEditor',
-            {
-                sClientID: oClient.getClientID()
-            });
-        }
-        
-        // Otherwise, Send current document state.
-        else
-        {
-            // Set document text.
-            oClient.sendAction('setDocumentData',
-            {
-                sText: this._oAceDocument.getValue(),
-                iServerState: this._iServerState
-            });
-
-            // Set mode (language.)
-            oClient.sendAction('setMode',
-            {
-                sMode: this._oDocument.sMode
-            });
-    
-            // Set title.
-            oClient.sendAction('setDocumentTitle', 
-            {
-                sTitle: this._oDocument.sTitle
-            });
-
-            // Set currently viewing.
-            for (var iClientIndex in this._aClients)
-            {
-                var oOtherClient = this._aClients[iClientIndex];
-                if (oOtherClient != oClient)
-                {
-                    oClient.sendAction('addUser',
-                    {
-                        'sClientID': oOtherClient.getClientID()
-                    });
-                }
-            }            
-            
-            // Set selection.
-            for (var i in this._aClients)
-            {
-                var oOtherClient = this._aClients[i];
-                if (oClient != oOtherClient)
-                {
-                    var oLastSelAction = oOtherClient.getLastSelAction();
-                    if (oLastSelAction)
-                        oClient.sendAction(oLastSelAction);
-                }
-            }
-                        
-            // Set currently typing users.
-            for (var i = 0; i < this._aCurrentlyTyping.length; i++)
-            {
-                oClient.sendAction('startTyping',
-                {
-                    'sClientID': this._aCurrentlyTyping[i].getClientID()
-                });
-            }
-            
-            // Set chat history.
-            for (var i = 0; i < this._oDocument.aChatHistory.length; i++)
-            {
-                oClient.sendAction('newChatMessage',
-                {
-                    'sClientID': this._oDocument.aChatHistory[i].sClientID,
-                    'sMessage':  this._oDocument.aChatHistory[i].sMessage
-                });
-            }
-        }
-
-        for (var i = 0; i < this._oDocument.aSnapshots.length; i++)
-        {
-            var oSnapshot = this._oDocument.aSnapshots[i];
-            oClient.sendAction('addSnapshot', oSnapshot);
-        }
-    },
-    
-    getDocument: function()
-    {
-        this._assertDocumentLoaded();
-        this._updateDocumentText();
-        return this._oDocument;
-    },
-  
-    onClientAction: function(oClient, oAction)
-    {
-        oHelpers.assert(!this._oDocument.bIsSnapshot, 'Clients can\'t send actions to a published document.');
-
-        this._assertDocumentLoaded();
-		
-		switch(oAction.sType)
-        {            
-            case 'setMode':
-                this._broadcastAction(oClient, oAction);
-                this._oDocument.sMode = oAction.oData.sMode;
-                break;
-                
-            case 'setRemoteSelection':
-                this._broadcastAction(oClient, oAction);
-                break;
-            
-            case 'setDocumentTitle':
-                this._broadcastAction(oClient, oAction);
-                this._oDocument.sTitle = oAction.oData.sTitle;
-				break;
-            
-            case 'aceDelta':
-                var oNewDelta = this._transOp(oClient, oAction.oData.oDelta, oAction.oData.iClientState)
-                this._aTransOps.push({
-                    oClient: oClient,
-                    oTransOp: oOT.getTransOpFromAceDelta(oNewDelta)
-                });
-                this._iServerState++;
-
-                this._broadcastAction(oClient, {
-                    sType: 'aceDelta',
-                    oData: {
-                        oDelta: oNewDelta,
-                        iServerState: this._iServerState
-                    }
-                });
-
-                oClient.sendAction('eventReciept', {
-                    iServerState: this._iServerState
-                });
-
-                this._oAceDocument.applyDeltas([oNewDelta]);
-                this._setAutoSaveTimeout();
-                break;
-            
-            // People Pane
-            case 'newChatMessage':
-                var oNewAction = {
-                    'sType': 'newChatMessage',
-                    'oData': {
-                        'sClientID': oClient.getClientID(),
-                        'sMessage': oAction.oData.sMessage
-                    }
-                };
-                this._broadcastAction(oClient, oNewAction);
-                this._oDocument.aChatHistory.push(oNewAction.oData);
-                this._setAutoSaveTimeout();
-                break;
-
-            case 'changeClientID':
-                var sNewClientID = oAction.oData.sClientID;
-
-                // Check for errors
-                var sError = '';
-                if (!sNewClientID)
-                    sError = 'ClientID may not be blank.';
-
-                for (var i = 0; i < this._aClients.length; i++)
-                {
-                    if (this._aClients[i] != oClient && this._aClients[i].getClientID() == sNewClientID)
-                        sError = 'This username has already been taken.';
-                }
-
-                // Handle errors
-                if (sError)
-                {
-                    oClient.sendAction('invalidClientIDChange',
-                    {
-                        'sReason': sError
-                    });
-                    break;
-                }
-
-                // Remove old user
-                // TODO: This is a bit of a hack.
-                this._broadcastAction(oClient, {
-                    'sType': 'removeUser',
-                    'oData': {'sClientID': oClient.getClientID()}
-                });
-
-                // Tell client his new name.
-                oClient.sendAction('newClientIDAccepted', 
-                {
-                    'sClientID': sNewClientID
-                });                
-                oClient.setClientID(sNewClientID);
-
-                // Add the new client to the list of viewing people.
-                this._broadcastAction(oClient,
-                {
-                    'sType': 'addUser',
-                    'oData': {'sClientID': oClient.getClientID()}
-                });
-                break;
-
-            case 'startTyping':
-                this._aCurrentlyTyping.push(oClient);
-                this._broadcastAction(oClient,
-                {
-                    'sType': 'startTyping',
-                    'oData': {'sClientID': oClient.getClientID()}
-                });
-                break;
-
-            case 'endTyping':
-                this._aCurrentlyTyping.splice(this._aCurrentlyTyping.indexOf(oClient), 1);
-                this._broadcastAction(oClient,
-                {
-                    'sType': 'endTyping',
-                    'oData': {'sClientID': oClient.getClientID()}
-                });
-                break;
-
-            case 'snapshotDocument':
-
-                this._assertDocumentLoaded();
-                this._updateDocumentText();
-
-                // Silly way to copy the document.... But it works.
-                var oNewDocument = parseDocument(serializeDocument(this._oDocument));
-                oNewDocument.bIsSnapshot = true;
-                oNewDocument.aSnapshots = [];
-                oNewDocument.oDateCreated = new Date();
-                oNewDocument.aChatHistory = [];
-
-                oDatabase.createDocument(serializeDocument(oNewDocument), this, function(sID)
-                {
-                    var oSnapshot = {
-                        sID: sID,
-                        oDateCreated: oNewDocument.oDateCreated
-                    };
-                    this._oDocument.aSnapshots.push(oSnapshot);
-                    this._broadcastAction(null,
-                    {
-                        sType: 'addSnapshot', 
-                        oData: oSnapshot
-                    });
-                });
-
-                break;
-            default:
-                oHelpers.assert(false, 'Unrecognized event type: "' + oAction.sType + '"');
-        }
-    },
-
-    _transOp: function(oClient, oDelta, iState)
-    {
-        var iCatchUp = this._iServerState - iState;
-
-        for (var i = this._aTransOps.length - iCatchUp; i < this._aTransOps.length; i++)
-        {
-            if (this._aTransOps[i].oClient != oClient)
-                oDelta = oOT.transformAceDelta(this._aTransOps[i].oTransOp, oDelta);
-        }
-        return oDelta;
-    },
-
-    _generateNewClientID: function()
-    {
-        this._iGeneratedClientNames++;
-        return 'User ' + this._iGeneratedClientNames;
-    },
-
-    _broadcastAction: function(oSendingClient /*May be null*/, oAction)
-    {
-        // Send actions to all other clients.
-        this._assertDocumentLoaded();
-        for (var i = 0; i < this._aClients.length; i++)
-        {
-            var oClient = this._aClients[i];
-            if(oClient != oSendingClient)
-                oClient.sendAction(oAction)
-        }
-    },
-    
-    _save: function()
-    {
-        if (this._oDocument.bIsSnapshot)
-            return;
-        
-        this._assertDocumentLoaded();
-        this._updateDocumentText();
-        this._clearAutoSaveTimeout();
-
-        oDatabase.saveDocument(this._sDocumentID, serializeDocument(this._oDocument), this, function(sError)
-        {
-            // Handle save errors.
-        });
-    },
-    
-    _setAutoSaveTimeout: function()
-    {
-        if (this._iAutoSaveTimeout === null)
-        {
-            var fnSave = oHelpers.createCallback(this, this._save);
-            this._iAutoSaveTimeoutID = setTimeout(fnSave, this._iAutoSaveTimeoutLength);
-        }        
-    },
-    
-    _clearAutoSaveTimeout: function()
-    {
-        clearTimeout(this._iAutoSaveTimeoutID);
-        this._iAutoSaveTimeoutID = null;        
-    },
-    
-    _updateDocumentText: function()
-    {
-        this._oDocument.sText = this._oAceDocument.getValue();
-    },
-    
-    _assertDocumentLoaded: function()
-    {
-        oHelpers.assert(this._bDocumentLoaded, 'Document not yet initialized.');
-    }
-});
-
-function parseDocument(sJSON)
-{
-    return _normalizeDocument(JSON.parse(sJSON));
-}
-
-function _normalizeDocument(oDocument)
-{
-    var oBlankDocument = {
-        bReadOnly: false,
-        aSnapshots: [],
-        sParentID: '',
-        sMode: '',
-        sText: '',
-        sTitle: 'Untitled',
-        aChatHistory: [],
-        bIsSnapshot: false,
-        oDateCreated: new Date()
-    };
-
-    for (var sKey in oDocument)
-        oBlankDocument[sKey] = oDocument[sKey];
-
-    oBlankDocument.oDateCreated = new Date(oBlankDocument.oDateCreated);
-    return oBlankDocument;
-}
-
-function serializeDocument(oDocument)
-{
-    return JSON.stringify(_normalizeDocument(oDocument));
-}

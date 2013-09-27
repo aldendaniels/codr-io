@@ -123,6 +123,29 @@ var oHelpers =
         return false
     },
     
+    // Creates a recursive clone of an object replacing each non-object
+    // member as dictated by fnCallback.
+    objectMutate: function(oObj, oScope, fnCallback)
+    {
+        function _objectMutate(oSrcObj, oTgtObj, oScope, fnCallback)
+        {
+            for (var sKey in oSrcObj)
+            {
+                if (typeof oSrcObj[sKey] === "object") // Recurse into object
+                {
+                    oTgtObj[sKey] = new oSrcObj[sKey].constructor();
+                    _objectMutate(oObj[sKey], oTgtObj[sKey], oScope, fnCallback);
+                }
+                else
+                    oClone[sKey] = oHelpers.createCallback(oScope, fnCallback)(sKey, oObj[sKey]);
+            }            
+        }
+        
+        var oClone = {};
+        _objectMutate(oObj, oClone, oScope, fnCallback);
+        return oClone;
+    },
+    
     emptyDirSync: function(sPath)
     {
         if (oFS.existsSync(sPath))
