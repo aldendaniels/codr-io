@@ -11,13 +11,13 @@ _test(
     'Y', 'Yay!',
     {
         action: 'insertText',
-        range: new AceRange(0, 1, -1, -1),
+        range: new AceRange(0, 1, 0, 2),
         text: 'a'
         
     },
     {
         action: 'insertText',
-        range: new AceRange(0, 1, -1, -1),
+        range: new AceRange(0, 1, 0, 3),
         text: 'y!'
     }
 );
@@ -27,7 +27,7 @@ _test(
     'YX', 'Yay!',
     {
         action: 'insertText',
-        range: new AceRange(0, 1, -1, -1),
+        range: new AceRange(0, 1, 0, 4),
         text: 'ay!'
         
     },
@@ -61,7 +61,7 @@ _test(
     },
     {
         action: 'insertText',
-        range: new AceRange(0, 1, -1, -1), // Insert 'Y'
+        range: new AceRange(0, 1, 0, 2), // Insert 'Y'
         text: 'Y'
     }
 );
@@ -111,7 +111,7 @@ _test(
     },
     {
         action: 'insertText',
-        range: new AceRange(0, 1, -1, -1), // Insert 'Y' between 1 and 2
+        range: new AceRange(0, 1, 0, 2), // Insert 'Y' between 1 and 2
         text: 'Y'
     }
 );
@@ -149,7 +149,7 @@ _test(
     '13Yay!', 'Yay!',
     {
         action: 'insertText',
-        range: new AceRange(0, 1, -1, -1), //Insert '2'
+        range: new AceRange(0, 1, 0, 2), //Insert '2'
         text: '2'
     },
     {
@@ -165,12 +165,12 @@ _test(
     'ay', 'Yay!',
     {
         action: 'insertText',
-        range: new AceRange(0, 2, -1, -1), //Insert '!'
+        range: new AceRange(0, 2, 0, 3), //Insert '!'
         text: '!'
     },
     {
         action: 'insertText',
-        range: new AceRange(0, 0, -1, -1), // Insert 'Y'
+        range: new AceRange(0, 0, 0, 1), // Insert 'Y'
         text: 'Y'
     }
 );
@@ -180,7 +180,7 @@ _test(
     'YayX', 'Yay!',
     {
         action: 'insertText',
-        range: new AceRange(0, 4, -1, -1), //Insert '!'
+        range: new AceRange(0, 4, 0, 5), //Insert '!'
         text: '!'
     },
     {
@@ -198,7 +198,7 @@ _test(
     },
     {
         action: 'insertText',
-        range: new AceRange(0, 3, -1, -1), //Insert '!'
+        range: new AceRange(0, 3, 0, 4), //Insert '!'
         text: '!'
     }
 );
@@ -226,13 +226,13 @@ _test(
     'Three\n', 'One\nTwo\nThree\n',
     {
         action: 'insertLines',
-        range: new AceRange(0, -1, -1, -1), // Insert One
+        range: new AceRange(0, 0, 1, 0), // Insert One
         lines: ['One'],
         nl: '\n'
     },
     {
         action: 'insertLines',
-        range: new AceRange(0, -1, -1, -1), // Insert Two
+        range: new AceRange(0, 0, 1, 0), // Insert Two
         lines: ['Two'],
         nl: '\n'
     }
@@ -243,13 +243,13 @@ _test(
     'One\nThree\n', 'One\nTwo\n',
     {
         action: 'insertLines',
-        range: new AceRange(1, -1, -1, -1), // Insert Two
+        range: new AceRange(1, 0, 2, 0), // Insert Two
         lines: ['Two'],
         nl: '\n'
     },
     {
         action: 'removeLines',
-        range: new AceRange(1, -1, 2, -1) // Delete Three
+        range: new AceRange(1, 0, 2, 0) // Delete Three
     }
 );
 
@@ -258,11 +258,11 @@ _test(
     'One\nTwo\nThree\n', 'Three\n',
     {
         action: 'removeLines',
-        range: new AceRange(0, -1, 1, -1) // Delete One
+        range: new AceRange(0, 0, 1, 0) // Delete One
     },
     {
         action: 'removeLines',
-        range: new AceRange(1, -1, 2, -1) // Delete Two
+        range: new AceRange(1, 0, 2, 0) // Delete Two
     }
 );
 
@@ -271,11 +271,11 @@ _test(
     'Delete\n', 'Insert\n',
     {
         action: 'removeLines',
-        range: new AceRange(0, -1, 1, -1) // Delete
+        range: new AceRange(0, 0, 1, 0) // Delete "Delete"
     },
     {
         action: 'insertLines',
-        range: new AceRange(1, -1, -1, -1), // Insert
+        range: new AceRange(1, 0, 2, 0), // Insert "Insert"
         lines: ['Insert'],
         nl: '\n'
     }
@@ -288,11 +288,11 @@ _test(
     '0\n1\n2\n3\n4\n', '0\n4\n',
     {
         action: 'removeLines',
-        range: new AceRange(1, -1, 3, -1)
+        range: new AceRange(1, 0, 3, 0) // Delete
     },
     {
         action: 'removeLines',
-        range: new AceRange(2, -1, 4, -1)
+        range: new AceRange(2, 0, 4, 0)
     }
 );
 
@@ -301,11 +301,11 @@ _test(
     '0\n1\n2\n3\n4\n', '0\n4\n',
     {
         action: 'removeLines',
-        range: new AceRange(2, -1, 4, -1)
+        range: new AceRange(2, 0, 4, 0)
     },
     {
         action: 'removeLines',
-        range: new AceRange(1, -1, 3, -1)
+        range: new AceRange(1, 0, 3, 0)
     }
 );
 
@@ -313,14 +313,14 @@ _test(
 ///////////////////// X wraps Y
 _test(
     'Multi line vanila - Delete overlaps insert',
-    '0\n2\n3\n', 'hi\n3\n',
+    '1\n2\n3\n', 'hi\n3\n',
     {
         action: 'removeLines',
-        range: new AceRange(0, -1, 2, -1)
+        range: new AceRange(0, 0, 2, 0)
     },
     {
         action: 'insertLines',
-        range: new AceRange(1, -1, -1, -1),
+        range: new AceRange(1, 0, 2, 0),
         lines: ['hi'],
         nl: '\n'
     }
@@ -331,11 +331,11 @@ _test(
     '0\n2\n3\n4\n5\n', '0\n5\n',
     {
         action: 'removeLines',
-        range: new AceRange(1, -1, 4, -1)
+        range: new AceRange(1, 0, 4, 0)
     },
     {
         action: 'removeLines',
-        range: new AceRange(2, -1, 3, -1)
+        range: new AceRange(2, 0, 3, 0)
     }
 );
 
@@ -346,11 +346,11 @@ _test(
     '0\n2\n3\n4\n5\n', '0\n5\n',
     {
         action: 'removeLines',
-        range: new AceRange(2, -1, 3, -1)
+        range: new AceRange(2, 0, 3, 0)
     },
     {
         action: 'removeLines',
-        range: new AceRange(1, -1, 4, -1)
+        range: new AceRange(1, 0, 4, 0)
     }
 );
 
@@ -359,13 +359,13 @@ _test(
     '0\n2\n3\n', '3\n',
     {
         action: 'insertLines',
-        range: new AceRange(1, -1, -1, -1),
+        range: new AceRange(1, 0, 2, 0),
         lines: ['hi'],
         nl: '\n'
     },
     {
         action: 'removeLines',
-        range: new AceRange(0, -1, 2, -1)
+        range: new AceRange(0, 0, 2, 0)
     }
 );
 
@@ -376,13 +376,13 @@ _test(
     '1\n', '0\n1\n2\n',
     {
         action: 'insertLines',
-        range: new AceRange(1, -1, -1, -1),
+        range: new AceRange(1, 0, 2, 0),
         lines: ['2'],
         nl: '\n'
     },
     {
         action: 'insertLines',
-        range: new AceRange(0, -1, -1, -1),
+        range: new AceRange(0, 0, 1, 0),
         lines: ['0'],
         nl: '\n'
     }
@@ -393,13 +393,13 @@ _test(
     '1\n2\n', '1\n3\n',
     {
         action: 'insertLines',
-        range: new AceRange(2, -1, -1, -1),
+        range: new AceRange(2, 0, 3, 0),
         lines: ['3'],
         nl: '\n'
     },
     {
         action: 'removeLines',
-        range: new AceRange(1, -1, 2, -1)
+        range: new AceRange(1, 0, 2, 0)
     }
 );
 
@@ -408,11 +408,11 @@ _test(
     '1\n2\n', '1\n3\n',
     {
         action: 'removeLines',
-        range: new AceRange(1, 0, 2, -1)
+        range: new AceRange(1, 0, 2, 0)
     },
     {
         action: 'insertLines',
-        range: new AceRange(2, -1, -1, -1),
+        range: new AceRange(2, 0, 3, 0),
         lines: ['3'],
         nl: '\n'
     }
@@ -423,11 +423,11 @@ _test(
     '1\n2\n3\n', '1\n',
     {
         action: 'removeLines',
-        range: new AceRange(2, -1, 3, -1)
+        range: new AceRange(2, 0, 3, 0)
     },
     {
         action: 'removeLines',
-        range: new AceRange(1, -1, 2, -1)
+        range: new AceRange(1, 0, 2, 0)
     }
 );
 
@@ -443,12 +443,12 @@ _test(
     'a2', 'ab\n123\nA',
     {
         action: 'insertText',
-        range: new AceRange(0, 1, -1, -1),
+        range: new AceRange(0, 1, 1, 1),
         text: 'b\n1'
     },
     {
         action: 'insertText',
-        range: new AceRange(0, 2, -1, -1),
+        range: new AceRange(0, 2, 1, 1),
         text: '3\nA'
     }
 );
@@ -458,7 +458,7 @@ _test(
     'a2A', 'ab\n1A',
     {
         action: 'insertText',
-        range: new AceRange(0, 1, -1, -1),
+        range: new AceRange(0, 1, 1, 1),
         text: 'b\n1'
     },
     {
@@ -489,7 +489,7 @@ _test(
     },
     {
         action: 'insertText',
-        range: new AceRange(1, 2, -1, -1),
+        range: new AceRange(1, 2, 1, 3),
         text: '3'
     }
 );
@@ -518,7 +518,7 @@ _test(
     },
     {
         action: 'insertText',
-        range: new AceRange(1, 1, -1, -1),
+        range: new AceRange(1, 1, 2, 2),
         text: '2\n3'
     }
 );
@@ -534,7 +534,7 @@ _test(
     },
     {
         action: 'insertText',
-        range: new AceRange(1, 0, -1, -1),
+        range: new AceRange(1, 0, 1, 1),
         text: '2'
     }
 );
@@ -572,7 +572,7 @@ _test(
     '1a\nb2\n', '12\n',
     {
         action: 'insertText',
-        range: new AceRange(0, 2, -1, -1),
+        range: new AceRange(0, 2, 0, 3),
         text: 'X'
     },
     {
@@ -589,7 +589,7 @@ _test(
     '1\n2a\n', '1\n23\n',
     {
         action: 'insertText',
-        range: new AceRange(1, 2, -1, -1),
+        range: new AceRange(1, 2, 1, 3),
         text: '3'
     },
     {
@@ -602,9 +602,20 @@ function _test(sTestName, sStart, sEnd, oPrevDelta, oDelta)
 {
     test(sTestName, function()
     {
-        var oDocument = new AceDocument(sStart);
-        oDelta = transformAceDelta(getTransOpFromAceDelta(oPrevDelta), oDelta);
-        oDocument.applyDeltas([oPrevDelta, oDelta]);
-        equal(oDocument.getValue(), sEnd);        
+        // Normalize delta.
+        var oDocument  = new AceDocument(sStart);
+        var oAceDeltaNormalizer = new AceDeltaNormalizer(oDocument);
+        oPrevDelta = oAceDeltaNormalizer.normalizeAceDelta(oPrevDelta);
+        oDelta     = oAceDeltaNormalizer.normalizeAceDelta(oDelta);
+        
+        // Transform delta.
+        oDelta.oRange = oOT.transformRange(oPrevDelta, oDelta.oRange);
+        
+        // Apply delta.
+        oAceDeltaNormalizer.applyNormalizedDelta(oPrevDelta);
+        oAceDeltaNormalizer.applyNormalizedDelta(oDelta);
+        
+        // Test result.
+        equal(oDocument.getValue(), sEnd)
     });
 }

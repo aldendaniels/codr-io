@@ -162,6 +162,11 @@ var oHelpers = null;
                 oObj1[sKey] = oObj2[sKey];
         },
         
+        deepCloneObj: function(oObj)
+        {
+            return this._fromJSON(this._toJSON(oObj));
+        },
+        
         formatDateTime: function(d)
         {
             return '' +
