@@ -1,6 +1,5 @@
-var oAceDocument = require('./aceDocument').Document;
 var oHelpers     = require('./public/javascripts/helpers/helpers');
-var oOT          = require('./public/javascripts/ot/OT');
+var oOT          = require('./public/javascripts/OT');
 var Client       = require('./client');
 var Document     = require('./document');
 var oDatabase    = require('./database');
@@ -8,7 +7,6 @@ var oDatabase    = require('./database');
 module.exports = oHelpers.createClass(
 {
     // Data
-    _oAceDocument: null,
     _oDocument: null,
     _sDocumentID: '',
 
@@ -26,7 +24,7 @@ module.exports = oHelpers.createClass(
     _aCurrentlyTyping: null,
 
     // OT
-    _aTransOps: null,
+    _aPastDeltas: null, // Uses for OT transformation.
     _iServerState: 0,
     
     __init__: function(sDocumentID, oClient)
@@ -38,7 +36,7 @@ module.exports = oHelpers.createClass(
         this._sDocumentID = sDocumentID;
         this._aClients = [];
         this._aCurrentlyTyping = [];
-        this._aTransOps = [];
+        this._aPastDeltas = [];
         
         // Add the intial client.
         this.addClient(oClient);
@@ -48,8 +46,6 @@ module.exports = oHelpers.createClass(
         {
             // Save pointer to document.
             this._oDocument = new Document(sDocumentJSON);
-            this._oAceDocument = new oAceDocument(this._oDocument.get('sText'));
-            this._oAceDocument.setNewLineMode('windows'); // TODO (Will 6/29/2013) test in other environments
             this._bDocumentLoaded = true;
 
             if (this._oDocument.get('bIsSnapshot'))
@@ -163,7 +159,7 @@ module.exports = oHelpers.createClass(
             // Set document text.
             oClient.sendAction('setDocumentData',
             {
-                sText: this._oAceDocument.getValue(),
+                aLines: this._oDocument.get('aLines'),
                 iServerState: this._iServerState
             });
 
@@ -234,7 +230,6 @@ module.exports = oHelpers.createClass(
     getDocument: function()
     {
         this._assertDocumentLoaded();
-        this._updateDocumentText();
         return this._oDocument;
     },
   
@@ -260,27 +255,42 @@ module.exports = oHelpers.createClass(
                 this._oDocument.set('sTitle', oAction.oData.sTitle);
 				break;
             
-            case 'aceDelta':
-                var oNewDelta = this._transOp(oClient, oAction.oData.oDelta, oAction.oData.iClientState)
-                this._aTransOps.push({
+            case 'docChange':
+                
+                // Transform delta range.
+                var oDelta = oAction.oData.oDelta;
+                var iCatchUp = this._iServerState - oAction.oData.iState;
+                for (var i = this._aPastDeltas.length - iCatchUp; i < this._aPastDeltas.length; i++)
+                {
+                    if (this._aPastDeltas[i].oClient != oClient)
+                        oDelta.oRange = oOT.transformRange(this._aPastDeltas[i].oDelta, oDelta.oRange);
+                }
+                
+                // Save to transOps.
+                this._aPastDeltas.push(
+                {
                     oClient: oClient,
-                    oTransOp: oOT.getTransOpFromAceDelta(oNewDelta)
+                    oDelta: oDelta
                 });
                 this._iServerState++;
 
+                // Brodcast.
                 this._broadcastAction(oClient, {
-                    sType: 'aceDelta',
+                    sType: 'docChange',
                     oData: {
-                        oDelta: oNewDelta,
+                        oDelta: oDelta,
                         iServerState: this._iServerState
                     }
                 });
 
-                oClient.sendAction('eventReciept', {
+                // Notify send of receipt.
+                oClient.sendAction('eventReciept',
+                {
                     iServerState: this._iServerState
                 });
-
-                this._oAceDocument.applyDeltas([oNewDelta]);
+                
+                // Apply locally.
+                this._oDocument.applyDelta(oDelta);
                 this._setAutoSaveTimeout();
                 break;
             
@@ -368,7 +378,6 @@ module.exports = oHelpers.createClass(
             case 'snapshotDocument':
                 
                 this._assertDocumentLoaded();
-                this._updateDocumentText();
                 
                 // Copy document.
                 var oNewDocument = this._oDocument.clone(true);
@@ -392,18 +401,6 @@ module.exports = oHelpers.createClass(
             default:
                 oHelpers.assert(false, 'Unrecognized event type: "' + oAction.sType + '"');
         }
-    },
-
-    _transOp: function(oClient, oDelta, iState)
-    {
-        var iCatchUp = this._iServerState - iState;
-
-        for (var i = this._aTransOps.length - iCatchUp; i < this._aTransOps.length; i++)
-        {
-            if (this._aTransOps[i].oClient != oClient)
-                oDelta = oOT.transformAceDelta(this._aTransOps[i].oTransOp, oDelta);
-        }
-        return oDelta;
     },
 
     _generateNewClientID: function(sOptionalPrefix)
@@ -445,7 +442,6 @@ module.exports = oHelpers.createClass(
             return;
         
         this._assertDocumentLoaded();
-        this._updateDocumentText();
         this._clearAutoSaveTimeout();
 
         oDatabase.saveDocument(this._sDocumentID, this._oDocument.toJSON(), this, function(sError)
@@ -468,11 +464,6 @@ module.exports = oHelpers.createClass(
     {
         clearTimeout(this._iAutoSaveTimeoutID);
         this._iAutoSaveTimeoutID = null;        
-    },
-    
-    _updateDocumentText: function()
-    {
-        this._oDocument.set('sText', this._oAceDocument.getValue());
     },
     
     _assertDocumentLoaded: function()

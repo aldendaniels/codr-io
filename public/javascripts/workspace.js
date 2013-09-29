@@ -25,7 +25,7 @@ var Workspace = oHelpers.createClass(
         var oShortcutHandler = new  ShortcutHandler();
         // Init objects.
         this._oToolbar    = new Toolbar(this, oSocket, oShortcutHandler);
-        this._oEditor     = new Editor(this, oSocket);
+        this._oEditor     = new Editor(oSocket);
         
         // Init DOM focus.
         this._aObjects = [this._oToolbar, this._oEditor];
@@ -100,20 +100,15 @@ var Workspace = oHelpers.createClass(
         this._oToolbar.setTitle(sTitle);
     },
 
-    setEditorText: function(sText)
+    setEditorContent: function(aLines)
     {
-        this._oEditor.setText(sText);
+        this._oEditor.setContent(aLines);
     },
     ///////// END NOTE
 
     getUserInfo: function()
     {
         return this._oUserInfo;
-    },
-    
-    getEditorSelection: function()
-    {
-        return this._oEditor.getSelection();  
     },
     
     _getContainingObj: function(jElem)
@@ -124,7 +119,7 @@ var Workspace = oHelpers.createClass(
             if (oObject.contains(jElem))
                 return oObject;
         }
-        oHelpers.assert(jElem.is('BODY'), 'Containing object not found this elemement:', jElem);
+        oHelpers.assert(jElem.is('BODY'), 'Containing object not found this element:', jElem);
         return null;
     },
 

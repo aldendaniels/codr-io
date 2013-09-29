@@ -44,7 +44,7 @@ var oInitApp =
                 return;
             }
 
-            this._oWorkspace.setEditorText(oResponse.sText);
+            this._oWorkspace.setEditorContent(oResponse.aLines);
             this._oWorkspace.setMode(oResponse.sMode);
             this._oWorkspace.setTitle(oResponse.sTitle);
         }));

@@ -1,7 +1,7 @@
 
 // Run server and client-side.
 if (typeof window == 'undefined')
-    var oHelpers = require('helpers/helpers');
+    var oHelpers = require('./helpers/helpers');
 
 var oOT = {
     
@@ -11,11 +11,10 @@ var oOT = {
         oHelpers.assert(oDelta.sAction == 'insert' || oDelta.sAction == 'delete', 'Invalid delta action: ' + oDelta.sAction);
         
         // Transform delta.
-        var oTemp = {
+        return {
             oStart: this._transformPoint(oDelta, oRange.oStart , false),
             oEnd:   this._transformPoint(oDelta, oRange.oEnd   , true)
         }
-        return oTemp
     },
 
     _transformPoint: function(oDelta, oPoint, bIsEndPoint)
