@@ -15,13 +15,13 @@ var oConnect            = require('connect');
 // Import helpers.
 var oHelpers     = require('./public/javascripts/helpers/helpers');
 var Client       = require('./client');
-var Workspace    = require('./workspace');
+var EditSession  = require('./edit-session');
 var Document     = require('./document');
 var oDatabase    = require('./database');
 
 // GLOBALS
 GLOBAL.g_oConfig        = {};
-GLOBAL.g_oWorkspaces    = {}; // DocumentID to Workspace instance.
+GLOBAL.g_oEditSessions  = {}; // DocumentID to EditSession instance.
 
 // Set/validation production environmental variables.
 g_oConfig = (function()

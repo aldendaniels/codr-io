@@ -30,7 +30,7 @@ module.exports = oHelpers.createClass(
     __init__: function(sDocumentID, oClient)
     {
         // Save to global map.
-        g_oWorkspaces[sDocumentID] = this;
+        g_oEditSessions[sDocumentID] = this;
         
         // Initialize members.
         this._sDocumentID = sDocumentID;
@@ -55,7 +55,7 @@ module.exports = oHelpers.createClass(
                 for (var i = 0; i < this._aClients.length; i++)
                     this._aClients[i].abort(sErrorMessage);
 
-                delete g_oWorkspaces[this._sDocumentID];
+                delete g_oEditSessions[this._sDocumentID];
 
                 return;
             }
@@ -108,7 +108,7 @@ module.exports = oHelpers.createClass(
             this._save(oHelpers.createCallback(this, function()
             {
                 if (this._aClients.length === 0)
-                    delete g_oWorkspaces[this._sDocumentID];
+                    delete g_oEditSessions[this._sDocumentID];
             }));
         }
         

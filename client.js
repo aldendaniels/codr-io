@@ -1,12 +1,12 @@
-var oHelpers  = require('./public/javascripts/helpers/helpers');
-var Workspace = require('./workspace');
-var Document  = require('./document');
-var oDatabase = require('./database');
+var oHelpers    = require('./public/javascripts/helpers/helpers');
+var EditSession = require('./edit-session');
+var Document    = require('./document');
+var oDatabase   = require('./database');
 
 module.exports = oHelpers.createClass(
 {
     _oSocket: null,
-    _oWorkspace: null,
+    _oEditSession: null,
     _bCreatedDocument: false,
     _aPreInitActionQueue: null,
     _bInitialized: false,
@@ -24,8 +24,8 @@ module.exports = oHelpers.createClass(
         oSocket.on('message', oHelpers.createCallback(this, this._onClientAction));
         oSocket.on('close', oHelpers.createCallback(this, function()
         {
-            if (this._oWorkspace)
-                this._oWorkspace.removeClient(this);
+            if (this._oEditSession)
+                this._oEditSession.removeClient(this);
             else
                 this._bClosed = true;
         }));
@@ -110,12 +110,12 @@ module.exports = oHelpers.createClass(
                 var oNewDocument = new Document(oAction.oData);
                 oDatabase.createDocument(oNewDocument.toJSON(), this, function(sDocumentID)
                 {
-                    this._addToWorkspace(sDocumentID);
+                    this._addToEditSession(sDocumentID);
                 });
                 break;
             
             case 'openDocument':
-                this._addToWorkspace(oAction.oData.sDocumentID);
+                this._addToEditSession(oAction.oData.sDocumentID);
                 break;
             
             case 'setSelection':
@@ -125,30 +125,30 @@ module.exports = oHelpers.createClass(
             
             default:
                 if (this._bInitialized )
-                    this._oWorkspace.onClientAction(this, oAction);
+                    this._oEditSession.onClientAction(this, oAction);
                 else
                     this._aPreInitActionQueue.push(sJSONAction);
         }
     },
     
-    _addToWorkspace: function(sDocumentID)
+    _addToEditSession: function(sDocumentID)
     {
         // Validate.
-        oHelpers.assert(!this._oWorkspace, 'Client already connected.');
+        oHelpers.assert(!this._oEditSession, 'Client already connected.');
         if (this._bClosed)
             return;
                 
         // Get or add workspace.
-        if (sDocumentID in g_oWorkspaces)
+        if (sDocumentID in g_oEditSessions)
         {
-            this._oWorkspace = g_oWorkspaces[sDocumentID];
-            this._oWorkspace.addClient(this);
+            this._oEditSession = g_oEditSessions[sDocumentID];
+            this._oEditSession.addClient(this);
         }
         else
         {
             // TODO (AldenD 06-29-2013): On document creation we could tell the workspace
             // not to go to the database and directly give it the mode.
-            this._oWorkspace = new Workspace(sDocumentID, this);
+            this._oEditSession = new EditSession(sDocumentID, this);
         }
     }
 });
