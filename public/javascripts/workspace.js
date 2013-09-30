@@ -146,9 +146,6 @@ var Workspace = oHelpers.createClass(
                     }
                     
                     // Disable native browser handling for saving/searching.
-                    // Note: We do this for searching even though ACE does natively
-                    //       because we also want to disable native searching when
-                    //       the ACE editor does not have focus.
                     // TODO: Think through keyboard controls for a mac.
                     if (oEvent.ctrlKey && oHelpers.inArray(oEvent.which, [83, 70, 71]))
                     {
