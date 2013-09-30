@@ -57,6 +57,7 @@ var Workspace = oHelpers.createClass(
         }
         
         // Attach DOM events.
+        this._oEditor.focus();
         this._attachDOMEvents();
     },
     

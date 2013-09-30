@@ -54,7 +54,7 @@ var Document = oHelpers.createClass(
     },
             
     toJSON: function()
-    {        
+    {
         return oHelpers.toJSON(this._oData);
     },
     

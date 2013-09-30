@@ -50,14 +50,14 @@ var EditControl = oHelpers.createClass(
         
     applyDelta: function(oNormDelta)
     {
-        var oAceDelta = this._normalizeAceDelta(oNormDelta);
-        this._oAceDocument.applyDelta([oAceDelta])
+        var oAceDelta = this._denormalizeDelta(oNormDelta);
+        this._oAceDocument.applyDeltas([oAceDelta]);
     },
     
     applyDeltas: function(aDeltas)
     {
         for (var i in aDeltas)
-            this.applydelta(aDeltas[i]);
+            this.applyDelta(aDeltas[i]);
     },
     
     revertDelta: function(oNormDelta)
@@ -68,7 +68,7 @@ var EditControl = oHelpers.createClass(
     
     revertDeltas: function(aNormDeltas)
     {
-        for (var i = aDeltas.length - 1; i >= 0; i--)
+        for (var i = aNormDeltas.length - 1; i >= 0; i--)
             this.revertDelta(aDeltas[i]);
     },
     
@@ -79,8 +79,7 @@ var EditControl = oHelpers.createClass(
     
     setContent: function(aLines)
     {
-        this._oAceDocument.setValue('');
-        this._oAceDocument.insertLines(0, aLines);
+        this._oAceDocument.setValue(aLines.join(this._sNewLineChar));
         this._oAceEditor.moveCursorTo(0, 0);
     },
     
@@ -90,22 +89,22 @@ var EditControl = oHelpers.createClass(
         if (sID in this._oAceMarkerIDMap)
             this.removeSelectionMarker(sID);
         
-        // Create Range.
-        var bIsCollapsed  = oSel.start.row == oSel.end.row && oSel.start.column == oSel.end.column;
-        var oNewRange     = new Range();
-        oNewRange.start = this._oAceDocument.createAnchor(oSel.start.row, oSel.start.column);
-        oNewRange.end   = this._oAceDocument.createAnchor(oSel.end.row,   oSel.end.column);
+        // Create Ace Range.
+        var bIsCollapsed   = oRange.oStart.iRow == oRange.oEnd.iRow && oRange.oStart.iCol == oRange.oEnd.iCol;
+        var oNewAceRange   = new AceRange();
+        oNewAceRange.start = this._oAceDocument.createAnchor(oRange.oStart.iRow, oRange.oStart.iCol);
+        oNewAceRange.end   = this._oAceDocument.createAnchor(oRange.oEnd.iRow  , oRange.oEnd.iCol  );
         
         // Add marker.
-        var aAceMarkerIDs;
+        var aAceMarkerIDs = [];
         if (bIsCollapsed)
         {
-            oNewRange.end.column += 1; // Hack: Zero-width selections are not visible.
-            aAceMarkerIDs.push(this._oAceEditSession.addMarker(oNewRange, 'remote-sel-collapsed '     + sClassName,  'text'));
-            aAceMarkerIDs.push(this._oAceEditSession.addMarker(oNewRange, 'remote-sel-collapsed-hat ' + sClassName, 'text'));
+            oNewAceRange.end.column += 1; // Hack: Zero-width selections are not visible.
+            aAceMarkerIDs.push(this._oAceEditSession.addMarker(oNewAceRange, 'remote-sel-collapsed '     + sClassName,  'text'));
+            aAceMarkerIDs.push(this._oAceEditSession.addMarker(oNewAceRange, 'remote-sel-collapsed-hat ' + sClassName, 'text'));
         }
         else
-            aAceMarkerIDs.push(this._oAceEditSession.addMarker(oNewRange, 'remote-sel ' + sClassName, 'text'));
+            aAceMarkerIDs.push(this._oAceEditSession.addMarker(oNewAceRange, 'remote-sel ' + sClassName, 'text'));
         
         // Save ACE IDs in map.
         this._oAceMarkerIDMap[sID] = aAceMarkerIDs;
@@ -114,10 +113,10 @@ var EditControl = oHelpers.createClass(
     removeSelectionMarker: function(sID)
     {
         oHelpers.assert(sID in this._oAceMarkerIDMap, 'ID not found in map: ' + sID);
-        var aAceMarkerIDs = aAceMarkerIDs[sID];
+        var aAceMarkerIDs = this._oAceMarkerIDMap[sID];
         for (var i in aAceMarkerIDs)
             this._oAceEditSession.removeMarker(aAceMarkerIDs[i]);
-        delete this._oRemoteUsers[sClientID];
+        delete this._oAceMarkerIDMap[sID];
     },
     
     resize: function()
@@ -175,7 +174,8 @@ var EditControl = oHelpers.createClass(
             case 'removeText':
                 return {
                     sAction: 'delete',
-                    oRange: oNormRange
+                    oRange: oNormRange,
+                    aLines: oAceDelta.text.split(this._sNewLineChar)
                 };
                 
             case 'insertLines':
@@ -188,7 +188,8 @@ var EditControl = oHelpers.createClass(
             case 'removeLines':
                 return {
                     sAction: 'delete',
-                    oRange: oNormRange
+                    oRange: oNormRange,
+                    aLines: oAceDelta.lines.concat([''])
                 };
                 
             default:
@@ -206,13 +207,13 @@ var EditControl = oHelpers.createClass(
                 return {
                     action: 'insertText',
                     range: oAceRange,
-                    sText: oNormDelta.aLines.join(this._sNewLineChar)
+                    text: oNormDelta.aLines.join(this._sNewLineChar)
                 }
             case 'delete':
                 return {
-                    action: 'deleteText',
+                    action: 'removeText',
                     range: oAceRange,
-                    sText: oNormDelta.aLines.join(this._sNewLineChar)
+                    text: oNormDelta.aLines.join(this._sNewLineChar)
                 }
             default:
                 oHelpers.assert(false, 'Invalid delta type.');
