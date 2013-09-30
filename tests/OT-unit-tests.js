@@ -1,5 +1,3 @@
-var AceDocument = new ace.require('ace/document').Document;
-var AceRange = new ace.require('ace/range').Range;
 
 ///////////////////////////////////////////////////////////////////////////////
 //                                 Single Line                               //
@@ -8,61 +6,61 @@ var AceRange = new ace.require('ace/range').Range;
 ///////////////////// X before Y
 _test(
     'Single Line - Insert before Insert',
-    'Y', 'Yay!',
+    ['Y'], ['Yay!'],
     {
-        action: 'insertText',
-        range: new AceRange(0, 1, 0, 2),
-        text: 'a'
+        sAction: 'insert',
+        oRange: r(0, 1, 0, 2),
+        aLines: ['a']
         
     },
     {
-        action: 'insertText',
-        range: new AceRange(0, 1, 0, 3),
-        text: 'y!'
+        sAction: 'insert',
+        oRange: r(0, 1, 0, 3),
+        aLines: ['y!']
     }
 );
 
 _test(
     'Single Line - Insert before Delete',
-    'YX', 'Yay!',
+    ['YX'], ['Yay!'],
     {
-        action: 'insertText',
-        range: new AceRange(0, 1, 0, 4),
-        text: 'ay!'
+        sAction: 'insert',
+        oRange: r(0, 1, 0, 4),
+        aLines: ['ay!']
         
     },
     {
-        action: 'removeText',
-        range: new AceRange(0, 1, 0, 2)
+        sAction: 'delete',
+        oRange: r(0, 1, 0, 2)
     }
 );
 
 _test(
     'Single Line - Delete before Delete',
-    '12Yay!', 'Yay!',
+    ['12Yay!'], ['Yay!'],
     {
-        action: 'removeText',
-        range: new AceRange(0, 0, 0, 1) //Remove '1'
+        sAction: 'delete',
+        oRange: r(0, 0, 0, 1) //Remove '1'
         
     },
     {
-        action: 'removeText',
-        range: new AceRange(0, 1, 0, 2) // Remove '2'
+        sAction: 'delete',
+        oRange: r(0, 1, 0, 2) // Remove '2'
     }
 );
 
 _test(
     'Single Line - Delete before Insert',
-    '1ay!', 'Yay!',
+    ['1ay!'], ['Yay!'],
     {
-        action: 'removeText',
-        range: new AceRange(0, 0, 0, 1) //Remove '1'
+        sAction: 'delete',
+        oRange: r(0, 0, 0, 1) //Remove '1'
         
     },
     {
-        action: 'insertText',
-        range: new AceRange(0, 1, 0, 2), // Insert 'Y'
-        text: 'Y'
+        sAction: 'insert',
+        oRange: r(0, 1, 0, 2), // Insert 'Y'
+        aLines: ['Y']
     }
 );
 
@@ -72,29 +70,32 @@ _test(
 
 _test(
     'Single Line - Delete end overlaps Delete start',
-    '123Yay!', 'Yay!',
+    ['123Yay!'], ['Yay!'],
     {
-        action: 'removeText',
-        range: new AceRange(0, 0, 0, 2) //Remove '12'
-        
+        sAction: 'delete',
+        oRange: r(0, 0, 0, 2),
+        aLines: ['12']   
     },
     {
-        action: 'removeText',
-        range: new AceRange(0, 1, 0, 3) // Remove '23'
+        sAction: 'delete',
+        oRange: r(0, 1, 0, 3),
+        aLines: ['23']
     }
 );
 
 _test(
     'Single Line - Delete start overlaps Delete end',
-    '123Yay!', 'Yay!',
+    ['123Yay!'], ['Yay!'],
     {
-        action: 'removeText',
-        range: new AceRange(0, 1, 0, 3) //Remove '23'
+        sAction: 'delete',
+        oRange: r(0, 1, 0, 3),
+        aLines: ['23']
         
     },
     {
-        action: 'removeText',
-        range: new AceRange(0, 0, 0, 2) // Remove '12'
+        sAction: 'delete',
+        oRange: r(0, 0, 0, 2),
+        aLines: ['12']
     }
 );
 
@@ -103,29 +104,31 @@ _test(
 
 _test(
     'Single Line - Delete overlaps Insert',
-    '12ay!', 'Yay!',
+    ['12ay!'], ['Yay!'],
     {
-        action: 'removeText',
-        range: new AceRange(0, 0, 0, 2) //Remove '12'
-        
+        sAction: 'delete',
+        oRange: r(0, 0, 0, 2),
+        aLines: ['12']
     },
     {
-        action: 'insertText',
-        range: new AceRange(0, 1, 0, 2), // Insert 'Y' between 1 and 2
-        text: 'Y'
+        sAction: 'insert',
+        oRange: r(0, 1, 0, 2), // Insert 'Y' between 1 and 2
+        aLines: ['Y']
     }
 );
 
 _test(
     'Single Line - Delete overlaps Delete',
-    '123Yay!', 'Yay!',
+    ['123Yay!'], ['Yay!'],
     {
-        action: 'removeText',
-        range: new AceRange(0, 0, 0, 3) //Remove '123'
+        sAction: 'delete',
+        oRange: r(0, 0, 0, 3),
+        aLines: ['123']
     },
     {
-        action: 'removeText',
-        range: new AceRange(0, 1, 0, 2) // Remove '2'
+        sAction: 'delete',
+        oRange: r(0, 1, 0, 2),
+        aLines:  ['2']
     }
 );
 
@@ -133,28 +136,31 @@ _test(
 // This means that y is a deletion.
 _test(
     'Single Line - Delete contained by Delete',
-    '123Yay!', 'Yay!',
+    ['123Yay!'], ['Yay!'],
     {
-        action: 'removeText',
-        range: new AceRange(0, 1, 0, 2) //Remove '2'
+        sAction: 'delete',
+        oRange: r(0, 1, 0, 2),
+        aLines: ['2']
     },
     {
-        action: 'removeText',
-        range: new AceRange(0, 0, 0, 3) // Remove '123'
+        sAction: 'delete',
+        oRange: r(0, 0, 0, 3),
+        aLines: ['123']
     }
 );
 
 _test(
     'Single Line - Insert contained by Delete',
-    '13Yay!', 'Yay!',
+    ['13Yay!'], ['Yay!'],
     {
-        action: 'insertText',
-        range: new AceRange(0, 1, 0, 2), //Insert '2'
-        text: '2'
+        sAction: 'insert',
+        oRange: r(0, 1, 0, 2), //Insert '2'
+        aLines: ['2']
     },
     {
-        action: 'removeText',
-        range: new AceRange(0, 0, 0, 2) // Remove '13'
+        sAction: 'delete',
+        oRange: r(0, 0, 0, 2),
+        aLines: ['13']
     }
 );
 
@@ -162,57 +168,61 @@ _test(
 // No OT!
 _test(
     'Single Line - Insert is after Insert',
-    'ay', 'Yay!',
+    ['ay'], ['Yay!'],
     {
-        action: 'insertText',
-        range: new AceRange(0, 2, 0, 3), //Insert '!'
-        text: '!'
+        sAction: 'insert',
+        oRange: r(0, 2, 0, 3), //Insert '!'
+        aLines: ['!']
     },
     {
-        action: 'insertText',
-        range: new AceRange(0, 0, 0, 1), // Insert 'Y'
-        text: 'Y'
+        sAction: 'insert',
+        oRange: r(0, 0, 0, 1), // Insert 'Y'
+        aLines: ['Y']
     }
 );
 
 _test(
     'Single Line - Insert is after Delete',
-    'YayX', 'Yay!',
+    ['YayX'], ['Yay!'],
     {
-        action: 'insertText',
-        range: new AceRange(0, 4, 0, 5), //Insert '!'
-        text: '!'
+        sAction: 'insert',
+        oRange: r(0, 4, 0, 5),
+        aLines: ['!']
     },
     {
-        action: 'removeText',
-        range: new AceRange(0, 3, 0, 4) // Remove 'X'
+        sAction: 'delete',
+        oRange: r(0, 3, 0, 4),
+        aLines: ['X']
     }
 );
 
 _test(
     'Single Line - Delete is after Insert',
-    'YayX', 'Yay!',
+    ['YayX'], ['Yay!'],
     {
-        action: 'removeText',
-        range: new AceRange(0, 3, 0, 4) // Remove 'X'
+        sAction: 'delete',
+        oRange: r(0, 3, 0, 4),
+        aLinex: ['X']
     },
     {
-        action: 'insertText',
-        range: new AceRange(0, 3, 0, 4), //Insert '!'
-        text: '!'
+        sAction: 'insert',
+        oRange: r(0, 3, 0, 4),
+        aLines: ['!']
     }
 );
 
 _test(
     'Single Line - Delete is after Delete',
-    'Yay!XY', 'Yay!',
+    ['Yay!XY'], ['Yay!'],
     {
-        action: 'removeText',
-        range: new AceRange(0, 5, 0, 6) // Remove 'Y'
+        sAction: 'delete',
+        oRange: r(0, 5, 0, 6),
+        aLines: ['Y']
     },
     {
-        action: 'removeText',
-        range: new AceRange(0, 4, 0, 5) // Remove 'X'
+        sAction: 'delete',
+        oRange: r(0, 4, 0, 5),
+        aLines: ['X']
     }
 );
 
@@ -223,61 +233,61 @@ _test(
 ///////////////////// X before Y
 _test(
     'Multi line vanila - Insert before Insert',
-    'Three\n', 'One\nTwo\nThree\n',
+    ['Three', ''], ['One', 'Two', 'Three', ''],
     {
-        action: 'insertLines',
-        range: new AceRange(0, 0, 1, 0), // Insert One
-        lines: ['One'],
-        nl: '\n'
+        sAction: 'insert',
+        oRange: r(0, 0, 1, 0),
+        aLines: ['One', '']
     },
     {
-        action: 'insertLines',
-        range: new AceRange(0, 0, 1, 0), // Insert Two
-        lines: ['Two'],
-        nl: '\n'
+        sAction: 'insert',
+        oRange: r(0, 0, 1, 0),
+        aLines: ['Two', '']
     }
 );
 
 _test(
     'Multi line vanila - Insert before Delete',
-    'One\nThree\n', 'One\nTwo\n',
+    ['One', 'Three', ''], ['One', 'Two', ''],
     {
-        action: 'insertLines',
-        range: new AceRange(1, 0, 2, 0), // Insert Two
-        lines: ['Two'],
-        nl: '\n'
+        sAction: 'insert',
+        oRange: r(1, 0, 2, 0),
+        aLines: ['Two', '']
     },
     {
-        action: 'removeLines',
-        range: new AceRange(1, 0, 2, 0) // Delete Three
+        sAction: 'delete',
+        oRange: r(1, 0, 2, 0),
+        aLines: ['Three', '']
     }
 );
 
 _test(
     'Multi line vanila - Delete before Delete',
-    'One\nTwo\nThree\n', 'Three\n',
+    ['One', 'Two', 'Three', ''], ['Three', ''],
     {
-        action: 'removeLines',
-        range: new AceRange(0, 0, 1, 0) // Delete One
+        sAction: 'delete',
+        oRange: r(0, 0, 1, 0),
+        aLines: ['One', '']
     },
     {
-        action: 'removeLines',
-        range: new AceRange(1, 0, 2, 0) // Delete Two
+        sAction: 'delete',
+        oRange: r(1, 0, 2, 0),
+        aLines: ['Two', '']
     }
 );
 
 _test(
     'Multi line vanila - Delete before Insert',
-    'Delete\n', 'Insert\n',
+    ['Delete', ''], ['Insert', ''],
     {
-        action: 'removeLines',
-        range: new AceRange(0, 0, 1, 0) // Delete "Delete"
+        sAction: 'delete',
+        oRange: r(0, 0, 1, 0),
+        aLines: ['Delete', '']
     },
     {
-        action: 'insertLines',
-        range: new AceRange(1, 0, 2, 0), // Insert "Insert"
-        lines: ['Insert'],
-        nl: '\n'
+        sAction: 'insert',
+        oRange: r(1, 0, 2, 0),
+        aLines: ['Insert', '']
     }
 );
 
@@ -285,27 +295,31 @@ _test(
 ///////////////////// X and Y ends overlap
 _test(
     'Multi line vanila - Delete end overlaps Delete start',
-    '0\n1\n2\n3\n4\n', '0\n4\n',
+    ['0', '1', '2', '3', '4', ''], ['0', '4', ''],
     {
-        action: 'removeLines',
-        range: new AceRange(1, 0, 3, 0) // Delete
+        sAction: 'delete',
+        oRange: r(1, 0, 3, 0),
+        aLines: ['1', '2', '']
     },
     {
-        action: 'removeLines',
-        range: new AceRange(2, 0, 4, 0)
+        sAction: 'delete',
+        oRange: r(2, 0, 4, 0),
+        aLines: ['2', '3', '']
     }
 );
 
 _test(
     'Multi line vanila - Delete start overlaps Delete end',
-    '0\n1\n2\n3\n4\n', '0\n4\n',
+    ['0', '1', '2', '3', '4', ''], ['0', '4', ''],
     {
-        action: 'removeLines',
-        range: new AceRange(2, 0, 4, 0)
+        sAction: 'delete',
+        oRange: r(2, 0, 4, 0),
+        aLines: ['2', '3', '']
     },
     {
-        action: 'removeLines',
-        range: new AceRange(1, 0, 3, 0)
+        sAction: 'delete',
+        oRange: r(1, 0, 3, 0),
+        aLines: ['1', '2', '']
     }
 );
 
@@ -313,29 +327,31 @@ _test(
 ///////////////////// X wraps Y
 _test(
     'Multi line vanila - Delete overlaps insert',
-    '1\n2\n3\n', 'hi\n3\n',
+    ['0', '1', '2', ''], ['hi', '2', ''],
     {
-        action: 'removeLines',
-        range: new AceRange(0, 0, 2, 0)
+        sAction: 'delete',
+        oRange: r(0, 0, 2, 0),
+        aLines: ['1', '2', '']
     },
     {
-        action: 'insertLines',
-        range: new AceRange(1, 0, 2, 0),
-        lines: ['hi'],
-        nl: '\n'
+        sAction: 'insert',
+        oRange: r(1, 0, 2, 0),
+        aLines: ['hi', ''],
     }
 );
 
 _test(
     'Multi line vanila - Delete overlaps Delete',
-    '0\n2\n3\n4\n5\n', '0\n5\n',
+    ['0', '1', '2', '3', '4', ''], ['0', '4', ''],
     {
-        action: 'removeLines',
-        range: new AceRange(1, 0, 4, 0)
+        sAction: 'delete',
+        oRange: r(1, 0, 4, 0),
+        aLines: ['1', '2', '3', '']
     },
     {
-        action: 'removeLines',
-        range: new AceRange(2, 0, 3, 0)
+        sAction: 'delete',
+        oRange: r(2, 0, 3, 0),
+        aLines: ['2', '']
     }
 );
 
@@ -343,29 +359,31 @@ _test(
 ///////////////////// X contained by Y
 _test(
     'Multi line vanila - Delete contained by Delete',
-    '0\n2\n3\n4\n5\n', '0\n5\n',
+    ['0', '1', '2', '3', '4', ''], ['0', '4', ''],
     {
-        action: 'removeLines',
-        range: new AceRange(2, 0, 3, 0)
+        sAction: 'delete',
+        oRange: r(2, 0, 3, 0),
+        aLines: ['2', '']
     },
     {
-        action: 'removeLines',
-        range: new AceRange(1, 0, 4, 0)
+        sAction: 'delete',
+        oRange: r(1, 0, 4, 0),
+        aLines: ['1', '2', '3', '']
     }
 );
 
 _test(
     'Multi line vanila - Insert contained by Delete',
-    '0\n2\n3\n', '3\n',
+    ['0', '1', '2', ''], ['2', ''],
     {
-        action: 'insertLines',
-        range: new AceRange(1, 0, 2, 0),
-        lines: ['hi'],
-        nl: '\n'
+        sAction: 'insert',
+        oRange: r(1, 0, 2, 0),
+        aLines: ['hi', ''],
     },
     {
-        action: 'removeLines',
-        range: new AceRange(0, 0, 2, 0)
+        sAction: 'delete',
+        oRange: r(0, 0, 2, 0),
+        aLines: ['0', '1', '']
     }
 );
 
@@ -373,61 +391,61 @@ _test(
 ///////////////////// X after Y
 _test(
     'Multi line vanila - Insert is after Insert',
-    '1\n', '0\n1\n2\n',
+    ['1', ''], ['0', '1', '2', ''],
     {
-        action: 'insertLines',
-        range: new AceRange(1, 0, 2, 0),
-        lines: ['2'],
-        nl: '\n'
+        sAction: 'insert',
+        oRange: r(1, 0, 2, 0),
+        aLines: ['2', '']
     },
     {
-        action: 'insertLines',
-        range: new AceRange(0, 0, 1, 0),
-        lines: ['0'],
-        nl: '\n'
+        sAction: 'insert',
+        oRange: r(0, 0, 1, 0),
+        aLines: ['0', '']
     }
 );
 
 _test(
     'Multi line vanila - Insert is after Delete',
-    '1\n2\n', '1\n3\n',
+    ['0', '1', ''], ['0', '2', ''],
     {
-        action: 'insertLines',
-        range: new AceRange(2, 0, 3, 0),
-        lines: ['3'],
-        nl: '\n'
+        sAction: 'insert',
+        oRange: r(2, 0, 3, 0),
+        aLines: ['2', '']
     },
     {
-        action: 'removeLines',
-        range: new AceRange(1, 0, 2, 0)
+        sAction: 'delete',
+        oRange: r(1, 0, 2, 0),
+        aLines: ['1', '']
     }
 );
 
 _test(
     'Multi line vanila - Delete is after Insert',
-    '1\n2\n', '1\n3\n',
+    ['0', '1', ''], ['0', '2', ''],
     {
-        action: 'removeLines',
-        range: new AceRange(1, 0, 2, 0)
+        sAction: 'delete',
+        oRange: r(1, 0, 2, 0),
+        aLines: ['1', '']
     },
     {
-        action: 'insertLines',
-        range: new AceRange(2, 0, 3, 0),
-        lines: ['3'],
-        nl: '\n'
+        sAction: 'insert',
+        oRange: r(2, 0, 3, 0),
+        aLines: ['2', '']
     }
 );
 
 _test(
     'Multi line vanila - Delete is after Delete',
-    '1\n2\n3\n', '1\n',
+    ['0', '1', '2', ''], ['0', ''],
     {
-        action: 'removeLines',
-        range: new AceRange(2, 0, 3, 0)
+        sAction: 'delete',
+        oRange: r(2, 0, 3, 0),
+        aLines: ['2', '']
     },
     {
-        action: 'removeLines',
-        range: new AceRange(1, 0, 2, 0)
+        sAction: 'delete',
+        oRange: r(1, 0, 2, 0),
+        aLines: ['1', '']
     }
 );
 
@@ -440,57 +458,61 @@ _test(
 ///////////////////// X before Y
 _test(
     'Multi line - Insert before Insert',
-    'a2', 'ab\n123\nA',
+    ['a2'], ['ab', '123', 'A'],
     {
-        action: 'insertText',
-        range: new AceRange(0, 1, 1, 1),
-        text: 'b\n1'
+        sAction: 'insert',
+        oRange: r(0, 1, 1, 1),
+        aLines: ['b', '1']
     },
     {
-        action: 'insertText',
-        range: new AceRange(0, 2, 1, 1),
-        text: '3\nA'
+        sAction: 'insert',
+        oRange: r(0, 2, 1, 1),
+        aLines: ['3', 'A']
     }
 );
 
 _test(
     'Multi line - Insert before Delete',
-    'a2A', 'ab\n1A',
+    ['a2A'], ['ab', '1A'],
     {
-        action: 'insertText',
-        range: new AceRange(0, 1, 1, 1),
-        text: 'b\n1'
+        sAction: 'insert',
+        oRange: r(0, 1, 1, 1),
+        aLines: ['b', '1']
     },
     {
-        action: 'removeText',
-        range: new AceRange(0, 1, 0, 2)
+        sAction: 'delete',
+        oRange: r(0, 1, 0, 2),
+        aLines: ['2']
     }
 );
 
 _test(
     'Multi line - Delete before Delete',
-    '1a\nb2c\nd3\n', '123\n',
+    ['0a', 'b1c', 'd2', ''], ['012', ''],
     {
-        action: 'removeText',
-        range: new AceRange(0, 1, 1, 1)
+        sAction: 'delete',
+        oRange: r(0, 1, 1, 1),
+        aLines: ['a', 'b']
     },
     {
-        action: 'removeText',
-        range: new AceRange(1, 2, 2, 1)
+        sAction: 'delete',
+        oRange: r(1, 2, 2, 1),
+        aLines: ['c', 'd']
     }
 );
 
 _test(
     'Multi line - Delete before Insert',
-    '1a\nb2\n', '123\n',
+    ['0a', 'b1', ''], ['012', ''],
     {
-        action: 'removeText',
-        range: new AceRange(0, 1, 1, 1)
+        sAction: 'delete',
+        oRange: r(0, 1, 1, 1),
+        aLines: ['a', 'b']
     },
     {
-        action: 'insertText',
-        range: new AceRange(1, 2, 1, 3),
-        text: '3'
+        sAction: 'insert',
+        oRange: r(1, 2, 1, 3),
+        aLines: ['2']
     }
 );
 
@@ -498,28 +520,31 @@ _test(
 
 _test(
     'Multi line - Delete end overlaps Delete start',
-    '1a\nb2\nd2\n', '12\n',
+    ['0a', 'b1', 'd1', ''], ['01', ''],
     {
-        action: 'removeText',
-        range: new AceRange(0, 1, 1, 2)
+        sAction: 'delete',
+        oRange: r(0, 1, 1, 2),
+        aLines: ['a', 'b1']
     },
     {
-        action: 'removeText',
-        range: new AceRange(1, 0, 2, 1)
+        sAction: 'delete',
+        oRange: r(1, 0, 2, 1),
+        aLines: ['b1', 'd']
     }
 );
 
 _test(
     'Multi line - Delete end overlaps Insert start',
-    '1a\nb\n', '12\n3\n',
+    ['0a', 'b', ''], ['01', '2', ''],
     {
-        action: 'removeText',
-        range: new AceRange(0, 1, 1, 1)
+        sAction: 'delete',
+        oRange: r(0, 1, 1, 1),
+        aLines: ['a', 'b']
     },
     {
-        action: 'insertText',
-        range: new AceRange(1, 1, 2, 2),
-        text: '2\n3'
+        sAction: 'insert',
+        oRange: r(1, 1, 2, 2),
+        aLines: ['1', '2']
     }
 );
 
@@ -527,28 +552,31 @@ _test(
 
 _test(
     'Multi line - Delete wraps Insert',
-    '1a\nb3\n', '123\n',
+    ['0a', 'b2', ''], ['012', ''],
     {
-        action: 'removeText',
-        range: new AceRange(0, 1, 1, 1)
+        sAction: 'delete',
+        oRange: r(0, 1, 1, 1),
+        aLines: ['a', 'b']
     },
     {
-        action: 'insertText',
-        range: new AceRange(1, 0, 1, 1),
-        text: '2'
+        sAction: 'insert',
+        oRange: r(1, 0, 1, 1),
+        aLines: ['1']
     }
 );
 
 _test(
     'Multi line - Delete wraps delete',
-    '1ab\nc2\n', '12\n',
+    ['0ab', 'c1', ''], ['01', ''],
     {
-        action: 'removeText',
-        range: new AceRange(0, 1, 1, 1)
+        sAction: 'delete',
+        oRange: r(0, 1, 1, 1),
+        aLines: ['ab', 'c']
     },
     {
-        action: 'removeText',
-        range: new AceRange(0, 2, 0, 3)
+        sAction: 'delete',
+        oRange: r(0, 2, 0, 3),
+        aLines: ['b']
     }
 );
 
@@ -556,28 +584,31 @@ _test(
 
 _test(
     'Multi line - Delete contained by delete',
-    '1ab\nc2\n', '12\n',
+    ['0ab', 'c1', ''], ['01', ''],
     {
-        action: 'removeText',
-        range: new AceRange(0, 2, 0, 3)
+        sAction: 'delete',
+        oRange: r(0, 2, 0, 3),
+        aLines: ['b']
     },
     {
-        action: 'removeText',
-        range: new AceRange(0, 1, 1, 1)
+        sAction: 'delete',
+        oRange: r(0, 1, 1, 1),
+        aLines: ['ab', 'c']
     }
 );
 
 _test(
     'Multi line - Insert contained by Delete',
-    '1a\nb2\n', '12\n',
+    ['0a', 'b1', ''], ['01', ''],
     {
-        action: 'insertText',
-        range: new AceRange(0, 2, 0, 3),
-        text: 'X'
+        sAction: 'insert',
+        oRange: r(0, 2, 0, 3),
+        aLines: ['X']
     },
     {
-        action: 'removeText',
-        range: new AceRange(0, 1, 1, 1)
+        sAction: 'delete',
+        oRange: r(0, 1, 1, 1),
+        aLines: ['a', 'b']
     }
 );
 
@@ -586,36 +617,40 @@ _test(
 
 _test(
     'Multi line - Insert after Delete',
-    '1\n2a\n', '1\n23\n',
+    ['0', '1a', ''], ['0', '12', ''],
     {
-        action: 'insertText',
-        range: new AceRange(1, 2, 1, 3),
-        text: '3'
+        sAction: 'insert',
+        oRange: r(1, 2, 1, 3),
+        aLines: ['2']
     },
     {
-        action: 'removeText',
-        range: new AceRange(1, 1, 1, 2)
+        sAction: 'delete',
+        oRange: r(1, 1, 1, 2),
+        aLines: ['a']
     }
 );
 
-function _test(sTestName, sStart, sEnd, oPrevDelta, oDelta)
+function r(iStartRow, iStartCol, iEndRow, iEndCol)
+{
+    return {
+        oStart: {iRow: iStartRow, iCol: iStartCol},
+        oEnd:   {iRow: iEndRow  , iCol: iEndCol  }
+    };
+}
+
+function _test(sTestName, aStartLines, aEndLines, oPrevDelta, oDelta)
 {
     test(sTestName, function()
     {
-        // Normalize delta.
-        var oDocument  = new AceDocument(sStart);
-        var oAceDeltaNormalizer = new AceDeltaNormalizer(oDocument);
-        oPrevDelta = oAceDeltaNormalizer.normalizeAceDelta(oPrevDelta);
-        oDelta     = oAceDeltaNormalizer.normalizeAceDelta(oDelta);
-        
         // Transform delta.
         oDelta.oRange = oOT.transformRange(oPrevDelta, oDelta.oRange);
         
         // Apply delta.
-        oAceDeltaNormalizer.applyNormalizedDelta(oPrevDelta);
-        oAceDeltaNormalizer.applyNormalizedDelta(oDelta);
+        var oDocument = new Document({aLines: aStartLines});
+        oDocument.applyDelta(oPrevDelta);
+        oDocument.applyDelta(oDelta);
         
         // Test result.
-        equal(oDocument.getValue(), sEnd)
+        deepEqual(oDocument.get('aLines'), aEndLines);
     });
 }
