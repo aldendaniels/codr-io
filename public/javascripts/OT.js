@@ -9,11 +9,13 @@ var oOT = {
     {
         // Verify delta action.
         oHelpers.assert(oDelta.sAction == 'insert' || oDelta.sAction == 'delete', 'Invalid delta action: ' + oDelta.sAction);
-        
+
         // Transform delta.
+        // Note: for collapsed selections, we treat both points as the start point.
+        var bIsCollapsed = oRange.oStart.iRow == oRange.oEnd.iRow && oRange.oStart.iCol == oRange.oEnd.iCol;
         return {
             oStart: this._transformPoint(oDelta, oRange.oStart , false),
-            oEnd:   this._transformPoint(oDelta, oRange.oEnd   , true)
+            oEnd:   this._transformPoint(oDelta, oRange.oEnd   , (bIsCollapsed ? false : true))
         }
     },
 

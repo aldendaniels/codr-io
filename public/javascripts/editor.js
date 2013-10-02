@@ -9,10 +9,7 @@ var Editor = oHelpers.createClass(
     _oEditControl: null,
 
     // Remote users.
-    _oRemoteUsers: null, // { userID: { sColor: '', oLastSelAction: null }, ...}    
-    _iNumUsers: 0,
-    _oLastSelectionRange: null,
-    _bApplyingRemoteDelta: false,
+    _oRemoteClients: null, // { userID: { sColor: '', oLastSelRange: null }, ...}    
 
     // OT Transform state.
     _iServerState: 0,
@@ -23,7 +20,7 @@ var Editor = oHelpers.createClass(
     __init__: function(oSocket)
     {
         this._oSocket = oSocket;
-        this._oRemoteUsers = {};
+        this._oRemoteClients = {};
         this._aServerUnseenQueue = [];
         
         // Attach socket.
@@ -73,36 +70,45 @@ var Editor = oHelpers.createClass(
         {
             case 'setDocumentData': // Fired after opening an existing document.
                 this._iServerState = oAction.oData.iServerState;
-                this._bApplyingRemoteDelta = true;
                 this.setContent(oAction.oData.aLines);
-                this._bApplyingRemoteDelta = false;
                 break;
             
             case 'setRemoteSelection':
                 var sClientID = oAction.oData.sClientID;
-                var sColorClass = this._oRemoteUsers[sClientID].sColor;
+                var sColorClass = this._oRemoteClients[sClientID].sColor;
+                this._oRemoteClients[sClientID].oLastSelRange = oAction.oData.oRange;
                 this._oEditControl.setSelectionMarker(oAction.oData.oRange, sClientID, sColorClass);
                 break;
             
             case 'docChange':
+                
+                // Store server state.
                 this._iServerState = oAction.oData.iServerState;
-                this._bApplyingRemoteDelta = true;
                 
                 // Revert pending deltas.
                 this._oEditControl.revertDeltas(this._aServerUnseenQueue);
                 
                 // Transform pending deltas.
+                var oDelta = oAction.oData.oDelta;
                 for (var i = 0; i < this._aServerUnseenQueue.length; i++)
-                    this._aServerUnseenQueue[i].oRange = transformRange(oAction.oDelta, this._aServerUnseenQueue[i].oRange);
+                    this._aServerUnseenQueue[i].oRange = oOT.transformRange(oDelta, this._aServerUnseenQueue[i].oRange);
                 
-                // Apply new delta
-                this._oEditControl.applyDeltas([oAction.oData.oDelta]);
+                // Apply new delta.
+                this._oEditControl.applyDelta(oDelta);
                 
                 // Apply pending tranformed deltas.
-                if (this._aServerUnseenQueue.length > 0)
-                    this._oEditControl.applyDeltas(this._aServerUnseenQueue);
+                this._oEditControl.applyDeltas(this._aServerUnseenQueue);
                 
-                this._bApplyingRemoteDelta = false;
+                // Update remote selections.
+                for (var sClientID in this._oRemoteClients)
+                {
+                    var oClient = this._oRemoteClients[sClientID];
+                    if (oClient.oLastSelRange)
+                    {
+                        oClient.oLastSelRange = oOT.transformRange(oDelta, oClient.oLastSelRange);
+                        this._oEditControl.setSelectionMarker(oClient.oLastSelRange, sClientID, oClient.sColor);
+                    }
+                }
                 break;
                 
             case 'eventReciept':
@@ -110,20 +116,20 @@ var Editor = oHelpers.createClass(
                 this._aServerUnseenQueue = this._aServerUnseenQueue.splice(1);
                 break;
                 
-            case 'addUser':
-                var iNumUsers = Object.keys(this._oRemoteUsers).length;
-                this._oRemoteUsers[oAction.oData.sClientID] =
+            case 'addClient':
+                var iNumClients = Object.keys(this._oRemoteClients).length;
+                this._oRemoteClients[oAction.oData.sClientID] =
                 {
-                    sColor: iNumUsers <= COLORS.length ? COLORS[iNumUsers] : 'black',
-                    oLastSelAction: null,
+                    sColor: iNumClients <= COLORS.length ? COLORS[iNumClients] : 'black',
+                    oLastSelRange: null,
                     aAceMarkersIDs: []
                 }
                 this._setPeopleViewing();
                 break;
                 
-            case 'removeUser':
+            case 'removeClient':
                 this._oEditControl.removeSelectionMarker(oAction.oData.sClientID);
-                delete this._oRemoteUsers[oAction.oData.sClientID];
+                delete this._oRemoteClients[oAction.oData.sClientID];
                 this._setPeopleViewing();
                 break;
             
@@ -136,7 +142,7 @@ var Editor = oHelpers.createClass(
 
     _setPeopleViewing: function()
     {
-        var iNumViewers = Object.keys(this._oRemoteUsers).length;
+        var iNumViewers = Object.keys(this._oRemoteClients).length;
         var sText = iNumViewers + ' other' + (iNumViewers == 1 ? '' : 's');
         $('#num-viewing').text(sText)
                          .toggleClass('others-viewing', iNumViewers > 0);
@@ -144,26 +150,19 @@ var Editor = oHelpers.createClass(
     
     _onSelectionChange: function(oRange)
     {
-        if (!this._bApplyingRemoteDelta)
+        this._oSocket.send('setSelection',
         {
-            this._oSocket.send('setSelection',
-            {
-                oRange: oRange /*, TOOD:
-                sFocusEnd: 'start' or 'end'*/
-            });
-            this._oLastSelectionRange = oRange;                
-        }
+            oRange: oRange /*, TOOD:
+            sFocusEnd: 'start' or 'end'*/
+        });
     },
     
     _onDocumentChange: function(oDelta)
     {
-        if (!this._bApplyingRemoteDelta)
-        {
-            this._oSocket.send('docChange', {
-                'oDelta': oDelta,
-                'iClientState': this._iServerState
-            });
-            this._aServerUnseenQueue.push(oDelta);
-        }
+        this._oSocket.send('docChange', {
+            'oDelta': oDelta,
+            'iClientState': this._iServerState
+        });
+        this._aServerUnseenQueue.push(oDelta);
     }
 });

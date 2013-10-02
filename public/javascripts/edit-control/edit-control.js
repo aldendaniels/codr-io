@@ -9,6 +9,11 @@ var EditControl = oHelpers.createClass(
     _oAceDocument: null,
     _sNewLineChar: '',
     
+    /* Keep from sending too many selection change events. */
+    _bApplyingDelta: false,
+    _bDocumentJustChanged: false,
+    _iSendSelEventTimeout: null,
+    
     // State
     _oLastAceSelectionRange: null,
     _oAceMarkerIDMap: null,
@@ -44,14 +49,18 @@ var EditControl = oHelpers.createClass(
             oEvent.preventDefault();
         });
         
+        this._oLastAceSelectionRange = new AceRange(0, 0, 0, 0);
+        
         // Init marker ID map (maps specified marker ID to ace Marker ID).
         this._oAceMarkerIDMap = {};
     },
         
     applyDelta: function(oNormDelta)
     {
+        this._bApplyingDelta = true;
         var oAceDelta = this._denormalizeDelta(oNormDelta);
         this._oAceDocument.applyDeltas([oAceDelta]);
+        this._bApplyingDelta = false;
     },
     
     applyDeltas: function(aDeltas)
@@ -69,7 +78,7 @@ var EditControl = oHelpers.createClass(
     revertDeltas: function(aNormDeltas)
     {
         for (var i = aNormDeltas.length - 1; i >= 0; i--)
-            this.revertDelta(aDeltas[i]);
+            this.revertDelta(aNormDeltas[i]);
     },
     
     setMode: function(oMode)
@@ -79,8 +88,10 @@ var EditControl = oHelpers.createClass(
     
     setContent: function(aLines)
     {
+        this._bApplyingDelta = true;
         this._oAceDocument.setValue(aLines.join(this._sNewLineChar));
         this._oAceEditor.moveCursorTo(0, 0);
+        this._bApplyingDelta = false;
     },
     
     setSelectionMarker: function(oRange, sID, sClassName)
@@ -91,9 +102,7 @@ var EditControl = oHelpers.createClass(
         
         // Create Ace Range.
         var bIsCollapsed   = oRange.oStart.iRow == oRange.oEnd.iRow && oRange.oStart.iCol == oRange.oEnd.iCol;
-        var oNewAceRange   = new AceRange();
-        oNewAceRange.start = this._oAceDocument.createAnchor(oRange.oStart.iRow, oRange.oStart.iCol);
-        oNewAceRange.end   = this._oAceDocument.createAnchor(oRange.oEnd.iRow  , oRange.oEnd.iCol  );
+        var oNewAceRange   = this._denormalizeRange(oRange);
         
         // Add marker.
         var aAceMarkerIDs = [];
@@ -137,21 +146,45 @@ var EditControl = oHelpers.createClass(
             case 'docChange':
                 this._oAceEditor.on('change', oHelpers.createCallback(this, function(oEvent)
                 {
-                    var oDelta = this._normalizeAceDelta(oEvent.data);
-                    fnCallback(oDelta);
+                    // Selection events are sent before and after document changes.
+                    // We don't want to send any selection event in this case.
+                    this._bDocumentJustChanged = true;
+                    clearTimeout(this._iSendSelEventTimeout);
+                    
+                    // Notify callback.
+                    if (!this._bApplyingDelta)
+                        fnCallback(this._normalizeAceDelta(oEvent.data));
                 }));
                 break;
             
             case 'selChange':
-                var fnOnSelChange = oHelpers.createCallback(this, function()
+                this._oAceEditor.on('changeSelection', oHelpers.createCallback(this, function(oEvent)
                 {
+                    // Ignore duplicate event.
                     var oAceSelectionRange = this._oAceEditor.getSelectionRange();
-                    var bIsDuplicateEvent = this._oLastAceSelectionRange && this._oLastAceSelectionRange.isEqual(oSelectionRange);
-                    if (!bIsDuplicateEvent)
-                        fnCallback(this._normalizeAceRange(oAceSelectionRange));
-                });
-                this._oAceEditor.on('changeCursor',    fnOnSelChange);
-                this._oAceEditor.on('changeSelection', fnOnSelChange);
+                    var bIsDuplicateEvent = this._oLastAceSelectionRange.isEqual(oAceSelectionRange);
+                    this._oLastAceSelectionRange = oAceSelectionRange;
+                    if (bIsDuplicateEvent)
+                        return;
+                    
+                    // Ignore event after delta.
+                    if (this._bDocumentJustChanged)
+                    {
+                        this._bDocumentJustChanged = false;
+                        return;
+                    }
+                    
+                    // Don't send selection event immediatly preceding this one.
+                    // This is because ace gives us two selection events in a row
+                    // for most selection changes . . . a bogus one followed by a
+                    // good noe.
+                    if (this._iSendSelEventTimeout)
+                        clearTimeout(this._iSendSelEventTimeout);
+                    
+                    // Send event.
+                    var oNormRange = this._normalizeAceRange(oAceSelectionRange);
+                    this._iSendSelEventTimeout = window.setTimeout(function(){ fnCallback(oNormRange); }, 1);
+                }));
                 break;
             
             default:

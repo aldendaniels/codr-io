@@ -88,7 +88,7 @@ module.exports = oHelpers.createClass(
         if (this._bDocumentLoaded)
         {
             this._broadcastAction(oClient, {
-                'sType': 'addUser',
+                'sType': 'addClient',
                 'oData': {
                     'sClientID': oClient.getClientID()
                 }
@@ -127,7 +127,7 @@ module.exports = oHelpers.createClass(
             
             this._broadcastAction(oClient,
             {
-                'sType': 'removeUser',
+                'sType': 'removeClient',
                 'oData': {'sClientID': oClient.getClientID()}
             });            
         }
@@ -181,7 +181,7 @@ module.exports = oHelpers.createClass(
                 var oOtherClient = this._aClients[iClientIndex];
                 if (oOtherClient != oClient)
                 {
-                    oClient.sendAction('addUser',
+                    oClient.sendAction('addClient',
                     {
                         'sClientID': oOtherClient.getClientID()
                     });
@@ -263,7 +263,15 @@ module.exports = oHelpers.createClass(
                 for (var i = this._aPastDeltas.length - iCatchUp; i < this._aPastDeltas.length; i++)
                 {
                     if (this._aPastDeltas[i].oClient != oClient)
-                        oDelta.oRange = oOT.transformRange(this._aPastDeltas[i].oDelta, oDelta.oRange);
+                        oDelta.oRange = oOT.transformRange(this._aPastDeltas[i].oDelta, oDelta.oRange);                    
+                }
+                
+                // Transform client selections.
+                for (var i in this._aClients)
+                {
+                    var oLastSelAction = this._aClients[i].getLastSelAction();
+                    if (oLastSelAction)
+                        oLastSelAction.oData.oRange = oOT.transformRange(oDelta, oLastSelAction.oData.oRange);
                 }
                 
                 // Save to transOps.
@@ -338,7 +346,7 @@ module.exports = oHelpers.createClass(
                 // Remove old user
                 // TODO: This is a bit of a hack.
                 this._broadcastAction(oClient, {
-                    'sType': 'removeUser',
+                    'sType': 'removeClient',
                     'oData': {'sClientID': oClient.getClientID()}
                 });
 
@@ -352,7 +360,7 @@ module.exports = oHelpers.createClass(
                 // Add the new client to the list of viewing people.
                 this._broadcastAction(oClient,
                 {
-                    'sType': 'addUser',
+                    'sType': 'addClient',
                     'oData': {'sClientID': oClient.getClientID()}
                 });
                 break;
