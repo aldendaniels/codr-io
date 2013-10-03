@@ -19,6 +19,20 @@
                 document.body.className += " snapshot"
         </script>
         
+        <div id="home-login" class="login">
+            <form method="POST" action="/login">
+                Username: <input type="text" name="username" />
+                Password: <input type="password" name="password" />
+                <button type="submit" class="small">Go</button>
+            </form>
+            <span>
+            or <a href="/signup/">Signup</a>
+            </span>
+        </div>
+        <div id="home-user-greeting" class="user-greeting">
+            Hello <span id="home-greeting-username"></span>. (<a href="/logout">Logout</a>)
+        </div>
+
         <div id="home">
             <div id="home-content">
                 <h3 class="logo">codr<span class="io">.io</span></h3>
@@ -82,6 +96,12 @@
                     <div class="divider"></div>
                     
                     <div id="toolbar-content-right">
+                        <div id="account">
+                            <a class="login" id="workspace-login">Log in</a>
+                            <div class="user-greeting">
+                                Hello <span id="workspace-greeting-username"></span> (<a id="workspace-logout">Logout</a>)
+                            </div>
+                        </div>
                         <div class="divider"></div>
                         <div id="num-viewing-box">
                             <div id="num-viewing-caption" class="toolbar-item-caption">Viewing</div>
@@ -253,6 +273,7 @@
         <script type="text/javascript" src="/javascripts/edit-control/mode-list.js"></script>
         <script type="text/javascript" src="/javascripts/helpers/websocket.js"></script>
         <script type="text/javascript" src="/javascripts/init-app.js"></script>
+        <script type="text/javascript" src="/javascripts/sessionProxy.js"></script>
         <script type="text/javascript">
             if (IS_NEW_DOCUMENT)
             {

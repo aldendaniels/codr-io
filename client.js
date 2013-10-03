@@ -14,7 +14,7 @@ module.exports = oHelpers.createClass(
     _sClientID: '',
     _oLastSelAction: null,
     _sUsername: '',
-    _bCanChangeClientID: true,
+    _bLoggedIn: false,
     
     __init__: function(oSocket, sUsername)
     {
@@ -33,10 +33,10 @@ module.exports = oHelpers.createClass(
     
     setClientID: function(sClientID)
     {
-        oHelpers.assert(this._bCanChangeClientID, "You can\'t set the client ID for a client with a user account.");
+        oHelpers.assert(!this._bLoggedIn, "You can\'t set the client ID for a client with a user account.");
 
         if (this._sUsername != "" && sClientID.indexOf(this._sUsername) === 0 && this._sClientID == "")
-            this._bCanChangeClientID = false;
+            this._bLoggedIn = true;
 
         this._sClientID = sClientID;
     },
@@ -52,9 +52,9 @@ module.exports = oHelpers.createClass(
         return this._sUsername;
     },
 
-    getCanChangeClientID: function()
+    getLoggedIn: function()
     {
-        return this._bCanChangeClientID;
+        return this._bLoggedIn;
     },
     
     getLastSelAction: function()

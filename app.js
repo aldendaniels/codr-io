@@ -33,7 +33,7 @@ g_oConfig = (function()
         var aParts = process.argv[i].split('=');
         oArgs[aParts[0].trim()] = aParts[1].trim();
     }
-    
+
     // Populate Config object.
     var oConfig = {};
     oConfig.bIsProd   =  (oArgs.is_prod == '1');
@@ -65,7 +65,7 @@ if (g_oConfig.bIsProd)
     process.on('uncaughtException', function (err)
     {
         console.error(err); // Keep node from exiting.
-    });    
+    });
 }
 
 // Create empty codr_static directory.
@@ -89,7 +89,7 @@ oApp.configure(function()
 
     oApp.use(oCookieParser);
     oApp.use(oExpress.session({secret: 'testing', store: oSessionStore}));
-    
+
     if (g_oConfig.bCompress)
     {
         oApp.use(oExpress.compress());
@@ -103,7 +103,7 @@ oApp.configure(function()
     }));
 
     oApp.use(oExpress.bodyParser());
-    
+
     // Configure UglifyJS middleware in Production.
     if (g_oConfig.bUglify)
     {
@@ -116,7 +116,7 @@ oApp.configure(function()
             squeeze: true
         }));
     }
-    
+
     oApp.use(oExpress.static(sCodrStaticOutputPath));
     oApp.use(oExpress.static(oPath.join(__dirname, 'public')));
 
@@ -133,12 +133,19 @@ oApp.configure(function()
 
         res.sendfile('public/login.html');
     });
+
     oApp.post('^/login/?$', function(req, res) {
         oDatabase.userExists(req.body.username, this, function(bExists)
         {
+            var sErrorUrl = '/login?error=true'
+
+            var sNext = oUrl.parse(req.url, true).query.next;
+            if (sNext)
+                sErrorUrl += ('&next=' + sNext)
+
             if (!bExists)
             {
-                res.redirect('/login?error=invalid username');
+                res.redirect(sErrorUrl);
                 return;
             }
 
@@ -148,10 +155,10 @@ oApp.configure(function()
                 if (oUser.checkPassword(req.body.password))
                 {
                     req.session.sUser = req.body.username;
-                    res.redirect('/');
+                    res.redirect(sNext);
                 }
                 else
-                    res.redirect('/login?error=invalid password');
+                    res.redirect(sErrorUrl);
             });
         });
     });
@@ -159,7 +166,7 @@ oApp.configure(function()
     oApp.get('^/logout/?$', function(req, res)
     {
         req.session.sUser = null;
-        res.redirect('/login');
+        res.redirect(oUrl.parse(req.url, true).query.next || '/login');
     });
 
     oApp.get('^/signup/?$', function(req, res)
@@ -194,7 +201,7 @@ oApp.configure(function()
         function send(oDocument)
         {
             res.set('Content-Type', 'text/json');
-            
+
             if (oDocument.get('bIsSnapshot'))
                 res.send(oDocument.toJSON());
             else
@@ -218,7 +225,7 @@ oApp.configure(function()
         }
     });
 
-    oApp.post('/fork/?$', function(req, res)
+    oApp.post('^/fork/?$', function(req, res)
     {
         function _fork(oDocument)
         {
@@ -244,15 +251,32 @@ oApp.configure(function()
         }
     });
 
+
+    oApp.get('^/userInfo/?$', function(req, res)
+    {
+        if (!req.session.sUser)
+        {
+            res.send(JSON.stringify({bLoggedIn: false}));
+            return;
+        }
+
+        var oInfo = {
+            bLoggedIn: true,
+            sUsername: req.session.sUser,
+        };
+
+        res.send(JSON.stringify(oInfo));
+    });
+
     oApp.get('^/[a-z0-9]+/?$',          function(req, res) { res.sendfile('public/index.html'); });
     oApp.get('^/v/[a-z0-9]+/?$',        function(req, res) { res.sendfile('public/index.html'); });
-    
+
     /* Preview files as HTML. */
     oApp.get('/:DocumentID([a-z0-9]+)/preview/?$', function(req, res)
-    {   
+    {
         // Set response headers for HTML preview.
         res.set('Content-Type', 'text/html');
-        
+
         // Send document text.
         var oDocument = null;
         var sDocumentID = req.params['DocumentID'];
@@ -269,7 +293,7 @@ oApp.configure(function()
             });
         }
     });
-    
+
     /* Download file */
     oApp.get(':ignore(/v)?/:DocumentID([a-z0-9]+)/download/?$', function(req, res)
     {
@@ -277,14 +301,14 @@ oApp.configure(function()
         var sFilename = oUrl.parse(req.url, true).query.filename;
         // Sanitize file name
         sFilename = sFilename.replace(/[^a-z0-9_\.\-]/gi, '');
-        
+
         // Set response headers for file download.
         // Default to plain text in case there is no file name.
         res.set('Content-Type', 'text/plain');
-        
+
         // Content-Type is automatically determined if there is a file name.
         res.attachment(sFilename);
-        
+
         // Send document text.
         var oDocument = null;
         var sDocumentID = req.params['DocumentID'];

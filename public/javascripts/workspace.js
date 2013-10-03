@@ -1,4 +1,3 @@
-
 var _sUNTITLED = 'Untitled';
 
 var Workspace = oHelpers.createClass(
@@ -52,7 +51,7 @@ var Workspace = oHelpers.createClass(
                 sDocumentID: sDocumentID
             });            
 
-            this._setCollaborateUrl()
+            this._setUrls()
             $('#clone-doc-id').val(sDocumentID);
         }
         
@@ -223,8 +222,6 @@ var Workspace = oHelpers.createClass(
         {
             case 'connect':
                 this._oUserInfo = oAction.oData;
-                if (!oAction.oData.bCanChangeUsername)
-                    alert("hello " + oAction.oData.sClientID + ". You are logged in!");
                 break;
                 
             case 'setDocumentTitle':
@@ -237,7 +234,7 @@ var Workspace = oHelpers.createClass(
                                 
             case 'setDocumentID': // Fired after creating a new document.
                 window.history.replaceState(null, '', '/' + oAction.oData.sDocumentID);
-                this._setCollaborateUrl()
+                this._setUrls()
                 $('#clone-doc-id').val(oAction.oData.sDocumentID);
                 break;
 
@@ -251,8 +248,10 @@ var Workspace = oHelpers.createClass(
         return true;
     },
 
-    _setCollaborateUrl: function()
+    _setUrls: function()
     {
         $('#collaborate-url').val(document.location.href.slice(7));
+        $('#workspace-logout').attr('href', '/logout?next=' + document.location.pathname);
+        $('#workspace-login').attr('href', '/login?next=' + document.location.pathname);
     }
 });

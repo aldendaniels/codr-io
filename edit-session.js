@@ -141,7 +141,7 @@ module.exports = oHelpers.createClass(
         oClient.sendAction('connect',
         {
             'sClientID': oClient.getClientID(),
-            'bCanChangeID': oClient.getCanChangeClientID()
+            'bLoggedIn': oClient.getLoggedIn()
         });
         
         // Send documentID on document creation.

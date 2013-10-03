@@ -69,7 +69,7 @@ var oInitApp =
         // Pass events through to the menu.
         oHelpers.on(window, 'click.home keyup.home keydown.home', this, function(oEvent)
         {
-            if ($(oEvent.target).parents('#home #modes'))
+            if ($(oEvent.target).parents('#home #modes').length > 0)
                 oMenu.onEvent(oEvent);
         });        
     },

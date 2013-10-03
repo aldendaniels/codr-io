@@ -8,6 +8,7 @@ var Chat = oHelpers.createClass(
     _bTyping: false,
     _iTypingTimeout: null,
     _iUnseen: 0,
+    _bChatVisible: false,
     
     __type__: 'PeoplePane',    
 
@@ -94,6 +95,24 @@ var Chat = oHelpers.createClass(
         }
     },
 
+    _showChatBox: function()
+    {
+        if (this._bChatVisible)
+            return;
+
+        $('#chat').removeClass('identify');
+        $('#chat-identify').prop('disabled', true);
+        $('#chat-identify-ok-button').prop('disabled', true);
+        $('#chat-box').prop('disabled', false);
+        
+        // Focus chat.
+        var jActiveElem = $(document.activeElement);
+        if (jActiveElem.parents('.toolbar-item').is('#chat-menu'))
+            $('#chat-box').focus();
+
+        this._bChatVisible = true;
+    },
+
     _handleServerAction: function(oAction)
     {
         switch(oAction.sType)
@@ -117,31 +136,17 @@ var Chat = oHelpers.createClass(
                 break;
 
             case 'newClientIDAccepted':
-            case 'connect':
-
-                if (oAction.sType == 'connect')
-                {
-                    if (oAction.oData.bCanChangeID)
-                        return true;
-                }
-                else
-                {
-                    // Save username.
-                    this._oWorkspace.getUserInfo()['sClientID'] = oAction.oData.sClientID;
-                }
+                // Save username.
+                this._oWorkspace.getUserInfo()['sClientID'] = oAction.oData.sClientID;
                 
                 // Show chat box.
-                $('#chat').removeClass('identify');
-                $('#chat-identify').prop('disabled', true);
-                $('#chat-identify-ok-button').prop('disabled', true);
-                $('#chat-box').prop('disabled', false);
-                
-                // Focus chat.
-                var jActiveElem = $(document.activeElement);
-                if (jActiveElem.parents('.toolbar-item').is('#chat-menu'))
-                    $('#chat-box').focus();
+                this._showChatBox();
                 
                 break;
+
+            case 'connect':
+                if (oAction.oData.bLoggedIn)
+                    this._showChatBox();
             
             default:
                 return false;
@@ -245,4 +250,3 @@ var Chat = oHelpers.createClass(
         return $('#workspace').hasClass('people-pane-expanded');
     }
 });
-
