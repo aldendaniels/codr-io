@@ -212,9 +212,9 @@ oApp.configure(function()
         }
 
         var sDocumentID = req.params['DocumentID'];
-        if (sDocumentID in g_oWorkspaces)
+        if (sDocumentID in g_oEditSessions)
         {
-            send(g_oWorkspaces[sDocumentID].getDocument());
+            send(g_oEditSessions[sDocumentID].getDocument());
         }
         else
         {
@@ -237,9 +237,9 @@ oApp.configure(function()
         }
 
         var sDocumentID = req.body.documentID;
-        if (sDocumentID in g_oWorkspaces)
+        if (sDocumentID in g_oEditSessions)
         {
-            _fork(g_oWorkspaces[sDocumentID].getDocument())
+            _fork(g_oEditSessions[sDocumentID].getDocument())
         }
         else
         {
@@ -280,9 +280,9 @@ oApp.configure(function()
         // Send document text.
         var oDocument = null;
         var sDocumentID = req.params['DocumentID'];
-        if (sDocumentID in g_oWorkspaces)
+        if (sDocumentID in g_oEditSessions)
         {
-            oDocument = g_oWorkspaces[sDocumentID].getDocument();
+            oDocument = g_oEditSessions[sDocumentID].getDocument();
             res.send(oDocument.get('sText'));
         }
         else
@@ -312,9 +312,9 @@ oApp.configure(function()
         // Send document text.
         var oDocument = null;
         var sDocumentID = req.params['DocumentID'];
-        if (sDocumentID in g_oWorkspaces)
+        if (sDocumentID in g_oEditSessions)
         {
-            oDocument = g_oWorkspaces[sDocumentID].getDocument();
+            oDocument = g_oEditSessions[sDocumentID].getDocument();
             res.send(oDocument.get('sText'));
         }
         else

@@ -121,7 +121,9 @@ var EditControl = oHelpers.createClass(
     
     removeSelectionMarker: function(sID)
     {
-        oHelpers.assert(sID in this._oAceMarkerIDMap, 'ID not found in map: ' + sID);
+        if (!sID in this._oAceMarkerIDMap)
+            return;
+
         var aAceMarkerIDs = this._oAceMarkerIDMap[sID];
         for (var i in aAceMarkerIDs)
             this._oAceEditSession.removeMarker(aAceMarkerIDs[i]);

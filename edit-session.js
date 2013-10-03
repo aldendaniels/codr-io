@@ -330,7 +330,7 @@ module.exports = oHelpers.createClass(
                         sError = 'This username has already been taken.';
                 }
 
-                if (!oClient.getCanChangeClientID())
+                if (oClient.getLoggedIn())
                     sError = "You can not change your username if you have an account.";
 
                 // Handle errors
