@@ -127,7 +127,7 @@ oApp.configure(function()
     {
         if (req.session.sUser)
         {
-            res.redirect('/');
+            res.redirect(oUrl.parse(req.url, true).query.next || '/');
             return;
         }
 
@@ -155,7 +155,7 @@ oApp.configure(function()
                 if (oUser.checkPassword(req.body.password))
                 {
                     req.session.sUser = req.body.username;
-                    res.redirect(sNext);
+                    res.redirect(sNext || '/');
                 }
                 else
                     res.redirect(sErrorUrl);
