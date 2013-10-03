@@ -532,17 +532,97 @@ body.snapshot .edit-mode-message { display: block; }
                 }
             }
         }
-
     }
     
-    #edit
+    #edit-wrap
     {
+        @editStatusBarHeight: 21px;
+        
         position: absolute;
         top: @top-toolbar-height + 1px;
         left: @left-toolbar-width + 1px;
         right: 0;
         bottom: 0;
+
+        #edit
+        {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: @editStatusBarHeight;
+        }
+        
+        #edit-status-bar
+        {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: @editStatusBarHeight - 1px;
+            border-top: 1px #eee solid;
+            background-color: white;
+            
+            .status-right
+            {
+                float: right;
+                .status-item
+                {
+                    border-right-width: 0px;
+                    border-left: 1px #eee solid;
+                }
+            }
+            
+            .status-item, .ace_gutter
+            {
+                float: left;
+                position: static;
+                height: 100%;
+            }
+            
+            .status-item
+            {
+                border-right: 1px #eee solid;
+                padding-left: 10px;
+                padding-right: 10px;
+                padding-top: 3px;
+                font-size: 8pt;
+                                
+                .status-label
+                {
+                    color: gray;
+                }
+                
+                .status-value
+                {
+                    color: #555;
+                    font-weight: bold;
+                }
+                
+                .icon-arrow-combo
+                {
+                    color: #555;
+                    position: relative;
+                }
+            }
+            
+            .status-item.menu-btn
+            {
+                cursor: pointer;
+                transition: background-color 0.2s;
+                &:hover
+                {
+                    background-color: #f8f8f8;
+                }
+            }
+            
+            .status-item#cursor-pos
+            {
+                width: 130px;
+            }
+        }        
     }
+
     
     i.left-icon{
         font-size: 30pt;
@@ -673,7 +753,6 @@ body.snapshot .edit-mode-message { display: block; }
             }
         }
     }
-
 }
 
 #chat
@@ -808,16 +887,6 @@ body.snapshot .edit-mode-message { display: block; }
         margin-left: 15px;
         margin-right: 15px;
         line-height: 1.3em;
-    }
-}
-
-#toolbar-content-bottom  
-{
-    .toolbar-dropdown
-    {
-        top: auto !important;
-        bottom: 2px !important;
-        border-bottom-right-radius: 0 !important;
     }
 }
 
