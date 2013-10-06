@@ -99,16 +99,8 @@ var Editor = oHelpers.createClass(
                 // Apply pending tranformed deltas.
                 this._oEditControl.applyDeltas(this._aServerUnseenQueue);
                 
-                // Update remote selections.
-                for (var sClientID in this._oRemoteClients)
-                {
-                    var oClient = this._oRemoteClients[sClientID];
-                    if (oClient.oLastSelRange)
-                    {
-                        oClient.oLastSelRange = oOT.transformRange(oDelta, oClient.oLastSelRange);
-                        this._oEditControl.setSelectionMarker(oClient.oLastSelRange, sClientID, oClient.sColor);
-                    }
-                }
+                // Transform remote selections.
+                this._transformRemoteSelections(oDelta);
                 break;
                 
             case 'eventReciept':
@@ -163,6 +155,20 @@ var Editor = oHelpers.createClass(
             'oDelta': oDelta,
             'iClientState': this._iServerState
         });
+        this._transformRemoteSelections(oDelta);
         this._aServerUnseenQueue.push(oDelta);
+    },
+    
+    _transformRemoteSelections: function(oDelta)
+    {
+        for (var sClientID in this._oRemoteClients)
+        {
+            var oClient = this._oRemoteClients[sClientID];
+            if (oClient.oLastSelRange)
+            {
+                oClient.oLastSelRange = oOT.transformRange(oDelta, oClient.oLastSelRange);
+                this._oEditControl.setSelectionMarker(oClient.oLastSelRange, sClientID, oClient.sColor);
+            }
+        }
     }
 });
