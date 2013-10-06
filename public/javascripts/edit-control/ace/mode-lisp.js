@@ -38,9 +38,7 @@ var Tokenizer = require("../tokenizer").Tokenizer;
 var LispHighlightRules = require("./lisp_highlight_rules").LispHighlightRules;
 
 var Mode = function() {
-    var highlighter = new LispHighlightRules();
-    
-    this.$tokenizer = new Tokenizer(highlighter.getRules());
+    this.HighlightRules = LispHighlightRules;
 };
 oop.inherits(Mode, TextMode);
 

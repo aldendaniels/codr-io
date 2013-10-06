@@ -41,7 +41,7 @@ var WorkerClient = require("../worker/worker_client").WorkerClient;
 var oop = require("../lib/oop");
 
 function Mode() {
-    this.$tokenizer = new Tokenizer(new Rules().getRules());
+    this.HighlightRules = Rules;
     this.$outdent = new Outdent();
     this.foldingRules = new FoldMode();
 }
@@ -57,7 +57,7 @@ oop.inherits(Mode, TextMode);
     
     this.getNextLineIndent = function(state, line, tab) {
         var indent = this.$getIndent(line);
-        var tokens = this.$tokenizer.getLineTokens(line, state).tokens;
+        var tokens = this.getTokenizer().getLineTokens(line, state).tokens;
     
         if (!(tokens.length && tokens[tokens.length - 1].type === 'comment') &&
             state === 'start' && indenter.test(line))

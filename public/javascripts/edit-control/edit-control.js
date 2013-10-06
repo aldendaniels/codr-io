@@ -33,8 +33,6 @@ var EditControl = oHelpers.createClass(
         this._oAceEditor.setFontSize(14);
         this._oAceEditor.setShowPrintMargin(false);
         this._oAceEditor.setReadOnly(IS_SNAPSHOT);
-        // TODO: Uncomment when ace is updated:
-        // this._oAceEditor.setOption('vScrollbarAlwaysVisible', false); 
             
         // Attach Ace gotoline command to different shortcut
         this._oAceEditor.commands.bindKey('Ctrl-G|Command-G', 'gotoline');

@@ -39,7 +39,7 @@ var TextMode = require("./text").Mode;
 var oop = require("../lib/oop");
 
 function Mode() {
-    this.$tokenizer = new Tokenizer(new Rules().getRules());
+    this.HighlightRules = Rules;
     this.foldingRules = new FoldMode();
 }
 

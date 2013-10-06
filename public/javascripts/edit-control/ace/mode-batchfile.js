@@ -43,9 +43,8 @@ var BatchFileHighlightRules = require("./batchfile_highlight_rules").BatchFileHi
 var FoldMode = require("./folding/cstyle").FoldMode;
 
 var Mode = function() {
-    var highlighter = new BatchFileHighlightRules();
+    this.HighlightRules = BatchFileHighlightRules;
     this.foldingRules = new FoldMode();
-    this.$tokenizer = new Tokenizer(highlighter.getRules());
 };
 oop.inherits(Mode, TextMode);
 
@@ -99,7 +98,8 @@ var BatchFileHighlightRules = function() {
          { token: 'keyword.operator.redirect.shell',
            regex: '&>|\\d*>&\\d*|\\d*(?:>>|>|<)|\\d*<&|\\d*<>' } ],
         variable: [
-         { token: 'constant.numeric', regex: '%%\\w+'},
+         { token: 'constant.numeric', regex: '%%\\w+|%[*\\d]|%\\w+%'},
+         { token: 'constant.numeric', regex: '%~\\d+'},
          { token: ['markup.list', 'constant.other', 'markup.list'],
             regex: '(%)(\\w+)(%?)' }]}
     
