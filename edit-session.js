@@ -88,11 +88,20 @@ module.exports = oHelpers.createClass(
         if (this._bDocumentLoaded)
         {
             this._broadcastAction(oClient, {
-                'sType': 'addClient',
-                'oData': {
-                    'sClientID': oClient.getClientID()
+                sType: 'addClient',
+                oData:
+                {
+                    sClientID: oClient.getClientID()
                 }
-            });            
+            });
+            this._broadcastAction(oClient, {
+                sType: 'setRemoteSelection',
+                oData:
+                {
+                    sClientID: oClient.getClientID(),
+                    oRange: oClient.getSelectionRange()                    
+                }
+            });
         }
     },
     
@@ -119,16 +128,20 @@ module.exports = oHelpers.createClass(
             {
                 this._broadcastAction(oClient,
                 {
-                    'sType': 'endTyping',
-                    'oData': {'sClientID': oClient.getClientID()}
+                    sType: 'endTyping',
+                    oData: {
+                        sClientID: oClient.getClientID()
+                    }
                 });
                 this._aCurrentlyTyping.splice(this._aCurrentlyTyping.indexOf(oClient), 1);
             }
             
             this._broadcastAction(oClient,
             {
-                'sType': 'removeClient',
-                'oData': {'sClientID': oClient.getClientID()}
+                sType: 'removeClient',
+                oData: {
+                    sClientID: oClient.getClientID()
+                }
             });            
         }
     },
@@ -185,20 +198,16 @@ module.exports = oHelpers.createClass(
                     {
                         'sClientID': oOtherClient.getClientID()
                     });
+                    oClient.sendAction({
+                        sType: 'setRemoteSelection',
+                        oData:
+                        {
+                            sClientID: oOtherClient.getClientID(),
+                            oRange: oOtherClient.getSelectionRange()                    
+                        }
+                    });
                 }
-            }            
-            
-            // Set selection.
-            for (var i in this._aClients)
-            {
-                var oOtherClient = this._aClients[i];
-                if (oClient != oOtherClient)
-                {
-                    var oLastSelAction = oOtherClient.getLastSelAction();
-                    if (oLastSelAction)
-                        oClient.sendAction(oLastSelAction);
-                }
-            }
+            }         
                         
             // Set currently typing users.
             for (var i = 0; i < this._aCurrentlyTyping.length; i++)
@@ -240,14 +249,22 @@ module.exports = oHelpers.createClass(
         this._assertDocumentLoaded();
 		
 		switch(oAction.sType)
-        {            
+        {
             case 'setMode':
                 this._broadcastAction(oClient, oAction);
                 this._oDocument.set('sMode', oAction.oData.sMode);
                 break;
                 
-            case 'setRemoteSelection':
-                this._broadcastAction(oClient, oAction);
+            case 'setSelection':
+                this._broadcastAction(oClient,
+                {
+                    sType: 'setRemoteSelection',
+                    oData:
+                    {
+                        sClientID: oClient.getClientID(),
+                        oRange: oAction.oData.oRange                    
+                    }
+                });
                 break;
             
             case 'setDocumentTitle':
@@ -269,9 +286,8 @@ module.exports = oHelpers.createClass(
                 // Transform client selections.
                 for (var i in this._aClients)
                 {
-                    var oLastSelAction = this._aClients[i].getLastSelAction();
-                    if (oLastSelAction)
-                        oLastSelAction.oData.oRange = oOT.transformRange(oDelta, oLastSelAction.oData.oRange);
+                    var oRange = this._aClients[i].getSelectionRange();
+                    this._aClients[i].setSelectionRange(oOT.transformRange(oDelta, oRange));
                 }
                 
                 // Save to transOps.
@@ -305,10 +321,10 @@ module.exports = oHelpers.createClass(
             // People Pane
             case 'newChatMessage':
                 var oNewAction = {
-                    'sType': 'newChatMessage',
-                    'oData': {
-                        'sClientID': oClient.getClientID(),
-                        'sMessage': oAction.oData.sMessage
+                    sType: 'newChatMessage',
+                    oData: {
+                        sClientID: oClient.getClientID(),
+                        sMessage: oAction.oData.sMessage
                     }
                 };
                 this._broadcastAction(oClient, oNewAction);
@@ -345,9 +361,12 @@ module.exports = oHelpers.createClass(
 
                 // Remove old user
                 // TODO: This is a bit of a hack.
-                this._broadcastAction(oClient, {
-                    'sType': 'removeClient',
-                    'oData': {'sClientID': oClient.getClientID()}
+                this._broadcastAction(oClient,
+                {
+                    sType: 'removeClient',
+                    oData: {
+                        sClientID: oClient.getClientID()
+                    }
                 });
 
                 // Tell client his new name.
@@ -360,8 +379,10 @@ module.exports = oHelpers.createClass(
                 // Add the new client to the list of viewing people.
                 this._broadcastAction(oClient,
                 {
-                    'sType': 'addClient',
-                    'oData': {'sClientID': oClient.getClientID()}
+                    sType: 'addClient',
+                    oData: {
+                        sClientID: oClient.getClientID()
+                    }
                 });
                 break;
 
@@ -369,8 +390,10 @@ module.exports = oHelpers.createClass(
                 this._aCurrentlyTyping.push(oClient);
                 this._broadcastAction(oClient,
                 {
-                    'sType': 'startTyping',
-                    'oData': {'sClientID': oClient.getClientID()}
+                    sType: 'startTyping',
+                    oData: {
+                        sClientID: oClient.getClientID()
+                    }
                 });
                 break;
 
@@ -378,8 +401,10 @@ module.exports = oHelpers.createClass(
                 this._aCurrentlyTyping.splice(this._aCurrentlyTyping.indexOf(oClient), 1);
                 this._broadcastAction(oClient,
                 {
-                    'sType': 'endTyping',
-                    'oData': {'sClientID': oClient.getClientID()}
+                    sType: 'endTyping',
+                    oDat: {
+                        sClientID: oClient.getClientID()
+                    }
                 });
                 break;
             

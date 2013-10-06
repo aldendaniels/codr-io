@@ -12,15 +12,24 @@ module.exports = oHelpers.createClass(
     _bInitialized: false,
     _bClosed: false,
     _sClientID: '',
-    _oLastSelAction: null,
+    _oLastSelRange: null,
     _sUsername: '',
     _bLoggedIn: false,
     
     __init__: function(oSocket, sUsername)
     {
+        // Init objects.
         this._aPreInitActionQueue = [];
         this._oSocket = oSocket;
         this._sUsername = sUsername;
+        
+        // Initial selection at start of document.
+        this._oLastSelRange = {
+            oStart: {iRow: 0, iCol: 0},
+            oEnd:   {iRow: 0, iCol: 0}
+        };
+        
+        // Attach socket events.
         oSocket.on('message', oHelpers.createCallback(this, this._onClientAction));
         oSocket.on('close', oHelpers.createCallback(this, function()
         {
@@ -28,7 +37,7 @@ module.exports = oHelpers.createClass(
                 this._oEditSession.removeClient(this);
             else
                 this._bClosed = true;
-        }));
+        }));        
     },
     
     setClientID: function(sClientID)
@@ -57,9 +66,14 @@ module.exports = oHelpers.createClass(
         return this._bLoggedIn;
     },
     
-    getLastSelAction: function()
+    getSelectionRange: function()
     {
-        return this._oLastSelAction;  
+        return this._oLastSelRange;
+    },
+    
+    setSelectionRange: function(oRange)
+    {
+        this._oLastSelRange = oRange;
     },
     
     clientCreatedDocument: function()
@@ -119,9 +133,7 @@ module.exports = oHelpers.createClass(
                 break;
             
             case 'setSelection':
-                oAction.sType = 'setRemoteSelection';
-                oAction.oData.sClientID = this._sClientID;
-                this._oLastSelAction = oAction;
+                this._oLastSelRange = oAction.oData.oRange;
             
             default:
                 if (this._bInitialized )
@@ -137,7 +149,7 @@ module.exports = oHelpers.createClass(
         oHelpers.assert(!this._oEditSession, 'Client already connected.');
         if (this._bClosed)
             return;
-                
+                        
         // Get or add workspace.
         if (sDocumentID in g_oEditSessions)
         {

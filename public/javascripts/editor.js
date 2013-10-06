@@ -109,6 +109,8 @@ var Editor = oHelpers.createClass(
                 break;
                 
             case 'addClient':
+                
+                // Store client info.
                 var iNumClients = Object.keys(this._oRemoteClients).length;
                 this._oRemoteClients[oAction.oData.sClientID] =
                 {
@@ -116,6 +118,8 @@ var Editor = oHelpers.createClass(
                     oLastSelRange: null,
                     aAceMarkersIDs: []
                 }
+                
+                // Update pople viewing.
                 this._setPeopleViewing();
                 break;
                 
