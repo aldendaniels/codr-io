@@ -301,27 +301,29 @@ oApp.configure(function()
         var sFilename = oUrl.parse(req.url, true).query.filename;
         // Sanitize file name
         sFilename = sFilename.replace(/[^a-z0-9_\.\-]/gi, '');
-
+        
         // Set response headers for file download.
         // Default to plain text in case there is no file name.
         res.set('Content-Type', 'text/plain');
-
+        
         // Content-Type is automatically determined if there is a file name.
         res.attachment(sFilename);
-
+        
         // Send document text.
         var oDocument = null;
         var sDocumentID = req.params['DocumentID'];
         if (sDocumentID in g_oEditSessions)
         {
             oDocument = g_oEditSessions[sDocumentID].getDocument();
-            res.send(oDocument.get('sText'));
+            // TODO: Should determine correct line-ending server-side.
+            res.send(oDocument.get('aLines').join('\r\n'));
         }
         else
         {
             oDatabase.getDocument(sDocumentID, this, function(sDocumentJSON)
             {
-                res.send((new Document(sDocumentJSON)).get('sText'));
+                // TODO: Should determine correct line-ending server-side.
+                res.send((new Document(sDocumentJSON)).get('aLines').join('\r\n'));
             });
         }
     });
