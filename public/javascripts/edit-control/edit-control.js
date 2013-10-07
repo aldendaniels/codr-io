@@ -69,8 +69,10 @@ var EditControl = oHelpers.createClass(
     
     revertDelta: function(oNormDelta)
     {
+        this._bApplyingDelta = true;
         var oAceDelta = this._denormalizeDelta(oNormDelta)
         this._oAceDocument.revertDeltas([oAceDelta]);
+        this._bApplyingDelta = false;
     },
     
     revertDeltas: function(aNormDeltas)
