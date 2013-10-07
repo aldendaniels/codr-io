@@ -23,7 +23,7 @@ var Document = oHelpers.createClass(
             aChatHistory: [],
             bIsSnapshot: false,
             oDateCreated: new Date()
-        }            
+        }
         if (optionalJSONorObj)
             this._load(optionalJSONorObj);
     },

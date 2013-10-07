@@ -164,7 +164,7 @@ var oHelpers = null;
         
         deepCloneObj: function(oObj)
         {
-            return this._fromJSON(this._toJSON(oObj));
+            return this.fromJSON(this.toJSON(oObj));
         },
         
         formatDateTime: function(d)

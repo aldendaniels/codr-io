@@ -132,9 +132,6 @@ module.exports = oHelpers.createClass(
                 this._addToEditSession(oAction.oData.sDocumentID);
                 break;
             
-            case 'setSelection':
-                this._oLastSelRange = oAction.oData.oRange;
-            
             default:
                 if (this._bInitialized )
                     this._oEditSession.onClientAction(this, oAction);

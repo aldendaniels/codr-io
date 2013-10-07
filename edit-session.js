@@ -256,6 +256,14 @@ module.exports = oHelpers.createClass(
                 break;
                 
             case 'setSelection':
+                
+                // Transform selection range.
+                oAction.oData.oRange = this._tranformRangeToCurState(oAction.oData.oRange, oAction.oData.iState);
+                
+                // Save selection.
+                oClient.setSelectionRange(oAction.oData.oRange);
+                
+                // Broadcast.
                 this._broadcastAction(oClient,
                 {
                     sType: 'setRemoteSelection',
@@ -276,12 +284,7 @@ module.exports = oHelpers.createClass(
                 
                 // Transform delta range.
                 var oDelta = oAction.oData.oDelta;
-                var iCatchUp = this._iServerState - oAction.oData.iState;
-                for (var i = this._aPastDeltas.length - iCatchUp; i < this._aPastDeltas.length; i++)
-                {
-                    if (this._aPastDeltas[i].oClient != oClient)
-                        oDelta.oRange = oOT.transformRange(this._aPastDeltas[i].oDelta, oDelta.oRange);                    
-                }
+                oDelta.oRange = this._tranformRangeToCurState(oDelta.oRange, oAction.oData.iState);
                 
                 // Transform client selections.
                 for (var i in this._aClients)
@@ -443,7 +446,7 @@ module.exports = oHelpers.createClass(
             var iNumFound = 0;
             for (var i = 0; i < this._aClients.length; i++)
             {
-                if (this._aClients[i].getClientID().indexOf(sOptionalPrefix) === 0);
+                if (this._aClients[i].getClientID().indexOf(sOptionalPrefix) === 0)
                     iNumFound++;
             }
             if (iNumFound > 0)
@@ -467,6 +470,14 @@ module.exports = oHelpers.createClass(
             if(oClient != oSendingClient)
                 oClient.sendAction(oAction)
         }
+    },
+    
+    _tranformRangeToCurState: function(oRange, iState)
+    {
+        var iCatchUp = this._iServerState - iState;
+        for (var i = this._aPastDeltas.length - iCatchUp; i < this._aPastDeltas.length; i++)
+            oRange = oOT.transformRange(this._aPastDeltas[i].oDelta, oRange);                    
+        return oRange;
     },
     
     _save: function()

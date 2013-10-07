@@ -74,10 +74,15 @@ var Editor = oHelpers.createClass(
                 break;
             
             case 'setRemoteSelection':
+                
+                // Tranform range to reflect local actions.
+                for (var i = 0; i < this._aServerUnseenQueue.length; i++)
+                    oAction.oData.oRange = oOT.transformRange(this._aServerUnseenQueue[i], oAction.oData.oRange);
+                
+                // Save remote selection range and refresh.
                 var sClientID = oAction.oData.sClientID;
-                var sColorClass = this._oRemoteClients[sClientID].sColor;
                 this._oRemoteClients[sClientID].oLastSelRange = oAction.oData.oRange;
-                this._oEditControl.setSelectionMarker(oAction.oData.oRange, sClientID, sColorClass);
+                this._refreshRemoteSelections();
                 break;
             
             case 'docChange':
@@ -86,21 +91,27 @@ var Editor = oHelpers.createClass(
                 this._iServerState = oAction.oData.iServerState;
                 
                 // Revert pending deltas.
-                this._oEditControl.revertDeltas(this._aServerUnseenQueue);
-                
-                // Transform pending deltas.
-                var oDelta = oAction.oData.oDelta;
-                for (var i = 0; i < this._aServerUnseenQueue.length; i++)
-                    this._aServerUnseenQueue[i].oRange = oOT.transformRange(oDelta, this._aServerUnseenQueue[i].oRange);
+                for (var i = this._aServerUnseenQueue.length - 1; i >= 0; i--)
+                {                 
+                    var oLocalDelta = this._aServerUnseenQueue[i];
+                    var oInverseDelta = oHelpers.deepCloneObj(oLocalDelta);
+                    oInverseDelta.sAction = (oLocalDelta.sAction == 'insert' ? 'delete' : 'insert');
+                    this._applyDelta(oInverseDelta);
+                }
                 
                 // Apply new delta.
-                this._oEditControl.applyDelta(oDelta);
+                this._applyDelta(oAction.oData.oDelta);
                 
-                // Apply pending tranformed deltas.
-                this._oEditControl.applyDeltas(this._aServerUnseenQueue);
+                // Transform and apply pending tranformed deltas.
+                for (var i = 0; i < this._aServerUnseenQueue.length; i++)
+                {
+                    oLocalDelta = this._aServerUnseenQueue[i];
+                    oLocalDelta.oRange = oOT.transformRange(oAction.oData.oDelta, oLocalDelta.oRange);
+                    this._applyDelta(oLocalDelta);
+                }
                 
-                // Transform remote selections.
-                this._transformRemoteSelections(oDelta);
+                // Refresh remote cursors.
+                this._refreshRemoteSelections();
                 break;
                 
             case 'eventReciept':
@@ -150,7 +161,8 @@ var Editor = oHelpers.createClass(
         {
             this._oSocket.send('setSelection',
             {
-                oRange: oRange /*, TOOD:
+                oRange: oRange,
+                iState: this._iServerState /*, TOOD:
                 sFocusEnd: 'start' or 'end'*/
             });            
         }
@@ -162,11 +174,13 @@ var Editor = oHelpers.createClass(
     
     _onDocumentChange: function(oDelta)
     {
-        this._oSocket.send('docChange', {
-            'oDelta': oDelta,
-            'iClientState': this._iServerState
+        this._oSocket.send('docChange',
+        {
+            oDelta: oDelta,
+            iState: this._iServerState
         });
         this._transformRemoteSelections(oDelta);
+        this._refreshRemoteSelections();
         this._aServerUnseenQueue.push(oDelta);
     },
     
@@ -176,10 +190,23 @@ var Editor = oHelpers.createClass(
         {
             var oClient = this._oRemoteClients[sClientID];
             if (oClient.oLastSelRange)
-            {
                 oClient.oLastSelRange = oOT.transformRange(oDelta, oClient.oLastSelRange);
-                this._oEditControl.setSelectionMarker(oClient.oLastSelRange, sClientID, oClient.sColor);
-            }
         }
+    },
+    
+    _refreshRemoteSelections: function()
+    {
+        for (var sClientID in this._oRemoteClients)
+        {
+            var oClient = this._oRemoteClients[sClientID];
+            if (oClient.oLastSelRange)
+                this._oEditControl.setSelectionMarker(oClient.oLastSelRange, sClientID, oClient.sColor);
+        }
+    },
+    
+    _applyDelta: function(oDelta)
+    {
+        this._oEditControl.applyDelta(oDelta);
+        this._transformRemoteSelections(oDelta);
     }
 });

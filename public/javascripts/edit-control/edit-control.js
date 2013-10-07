@@ -61,24 +61,12 @@ var EditControl = oHelpers.createClass(
         this._bApplyingDelta = false;
     },
     
-    applyDeltas: function(aDeltas)
-    {
-        for (var i in aDeltas)
-            this.applyDelta(aDeltas[i]);
-    },
-    
     revertDelta: function(oNormDelta)
     {
         this._bApplyingDelta = true;
         var oAceDelta = this._denormalizeDelta(oNormDelta)
         this._oAceDocument.revertDeltas([oAceDelta]);
         this._bApplyingDelta = false;
-    },
-    
-    revertDeltas: function(aNormDeltas)
-    {
-        for (var i = aNormDeltas.length - 1; i >= 0; i--)
-            this.revertDelta(aNormDeltas[i]);
     },
     
     setMode: function(oMode)
