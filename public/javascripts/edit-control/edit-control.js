@@ -167,13 +167,6 @@ var EditControl = oHelpers.createClass(
                     if (bIsDuplicateEvent)
                         return;
                     
-                    // Ignore event after delta.
-                    if (this._bDocumentJustChanged)
-                    {
-                        this._bDocumentJustChanged = false;
-                        return;
-                    }
-                    
                     // Don't send selection event immediatly preceding this one.
                     // This is because ace gives us two selection events in a row
                     // for most selection changes . . . a bogus one followed by a
@@ -183,7 +176,13 @@ var EditControl = oHelpers.createClass(
                     
                     // Send event.
                     var oNormRange = this._normalizeAceRange(oAceSelectionRange);
-                    this._iSendSelEventTimeout = window.setTimeout(function(){ fnCallback(oNormRange); }, 1);
+                    this._iSendSelEventTimeout = window.setTimeout(
+                        oHelpers.createCallback(this, function()
+                        {
+                            fnCallback(oNormRange, this._bDocumentJustChanged);
+                            this._bDocumentJustChanged = false;
+                        }), 1
+                    );
                 }));
                 break;
             

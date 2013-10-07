@@ -144,13 +144,20 @@ var Editor = oHelpers.createClass(
                          .toggleClass('others-viewing', iNumViewers > 0);
     },
     
-    _onSelectionChange: function(oRange)
+    _onSelectionChange: function(oRange, bCausedByDocChange)
     {
-        this._oSocket.send('setSelection',
+        if (!bCausedByDocChange)
         {
-            oRange: oRange /*, TOOD:
-            sFocusEnd: 'start' or 'end'*/
-        });
+            this._oSocket.send('setSelection',
+            {
+                oRange: oRange /*, TOOD:
+                sFocusEnd: 'start' or 'end'*/
+            });            
+        }
+        
+        // Update current col and row (1-based).
+        $('#line-num').text(oRange.oStart.iRow + 1);
+        $('#col-num').text(oRange.oStart.iCol + 1);
     },
     
     _onDocumentChange: function(oDelta)

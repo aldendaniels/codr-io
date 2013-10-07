@@ -19,18 +19,20 @@
                 document.body.className += " snapshot"
         </script>
         
-        <div id="home-login" class="login">
-            <form method="POST" action="/login">
-                Username: <input type="text" name="username" />
-                Password: <input type="password" name="password" />
-                <button type="submit" class="small">Go</button>
-            </form>
-            <span>
-            or <a href="/signup/">Signup</a>
-            </span>
-        </div>
-        <div id="home-user-greeting" class="user-greeting">
-            Hello <span id="home-greeting-username"></span>. (<a href="/logout">Logout</a>)
+        <div style="display: none;">
+            <div id="home-login" class="login">
+                <form method="POST" action="/login">
+                    Username: <input type="text" name="username" />
+                    Password: <input type="password" name="password" />
+                    <button type="submit" class="small">Go</button>
+                </form>
+                <span>
+                or <a href="/signup/">Signup</a>
+                </span>
+            </div>
+            <div id="home-user-greeting" class="user-greeting">
+                Hello <span id="home-greeting-username"></span>. (<a href="/logout">Logout</a>)
+            </div>
         </div>
 
         <div id="home">
@@ -96,7 +98,7 @@
                     <div class="divider"></div>
                     
                     <div id="toolbar-content-right">
-                        <div id="account">
+                        <div id="account" style="display: none;">
                             <a class="login" id="workspace-login">Log in</a>
                             <div class="user-greeting">
                                 Hello <span id="workspace-greeting-username"></span> (<a id="workspace-logout">Logout</a>)
@@ -206,23 +208,28 @@
                     <div id="edit"></div>
                     <div id="edit-status-bar">
                         <div class="ace_gutter"></div>
-                        <div class="status-item menu-btn">
+                        <div class="status-item menu-btn" onclick="alert('Changing the indent mode is not implemented yet.')">
                             <span class="status-label">Indent Mode:</span>
-                            <span class="status-value">Hard</span>
+                            <span class="status-value">Soft</span>
                             <i class="icon-arrow-combo"></i>
                         </div>
-                        <div class="status-item menu-btn">
+                        <div class="status-item menu-btn"  onclick="alert('Changing the indent size is not implemented yet.')">
                             <span class="status-label">Indent Size:</span>
                             <span class="status-value">4</span>
+                            <i class="icon-arrow-combo"></i>
+                        </div>
+                        <div class="status-item menu-btn"  onclick="alert('Showing invisibles is not implemented yet.')">
+                            <span class="status-label">Show Invisibles:</span>
+                            <span class="status-value">No</span>
                             <i class="icon-arrow-combo"></i>
                         </div>
                         <div class="status-right">
                             <div class="status-item" id="cursor-pos">
                                 <span class="status-label">Ln:</span>
-                                <span class="status-value">0</span>
+                                <span class="status-value" id="line-num">1</span>
                                 &nbsp;
                                 <span class="status-label">Col:</span>
-                                <span class="status-value">0</span>
+                                <span class="status-value" id="col-num">1</span>
                             </div>
                         </div>
                     </div>
