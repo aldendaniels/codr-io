@@ -12,7 +12,7 @@
         
         <script type="text/javascript">
             var IS_NEW_DOCUMENT = window.location.pathname === '/';
-            var IS_SNAPSHOT = /^\/v/.test(window.location.pathname);
+            var IS_SNAPSHOT = /^\/v\//.test(window.location.pathname);
             if (IS_NEW_DOCUMENT) // New document.
                 document.body.className = "home";
             if (IS_SNAPSHOT)
