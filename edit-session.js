@@ -302,9 +302,11 @@ module.exports = oHelpers.createClass(
                 this._iServerState++;
 
                 // Brodcast.
-                this._broadcastAction(oClient, {
+                this._broadcastAction(oClient,
+                {
                     sType: 'docChange',
-                    oData: {
+                    oData:
+                    {
                         oDelta: oDelta,
                         iServerState: this._iServerState
                     }
