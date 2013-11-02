@@ -1,7 +1,7 @@
-ace.define('ace/snippets/csharp', ['require', 'exports', 'module' ], function(require, exports, module) {
+define(function(require, exports, module) {
+"use strict";
 
-
-exports.snippetText = "";
+exports.snippetText = require("../requirejs/text!./csharp.snippets");
 exports.scope = "csharp";
 
 });

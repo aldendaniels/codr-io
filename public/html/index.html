@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Codr</title>
+        <link rel=StyleSheet href="/stylesheets/index.css" type="text/css" />
+        <link rel=StyleSheet href="/stylesheets/menu.css" type="text/css" />
+        <link rel=StyleSheet href="/fontello/css/fontello.css" type="text/css" />
+        
+        <link href='http://fonts.googleapis.com/css?family=Sanchez' rel='stylesheet' type='text/css'>
+    </head>
+    <body>
+        
+        <script type="text/javascript">
+            // TODO: Get rid of globals.
+            var IS_NEW_DOCUMENT = window.location.pathname === '/';
+            var IS_SNAPSHOT = /^\/v\//.test(window.location.pathname);
+            if (IS_NEW_DOCUMENT) // New document.
+                document.body.className = "home";
+            if (IS_SNAPSHOT)
+                document.body.className += " snapshot"
+        </script>
+        
+        <div style="display: none;">
+            <div id="home-login" class="login">
+                <form method="POST" action="/login">
+                    Username: <input type="text" name="username" />
+                    Password: <input type="password" name="password" />
+                    <button type="submit" class="small">Go</button>
+                </form>
+                <span>
+                or <a href="/signup/">Signup</a>
+                </span>
+            </div>
+            <div id="home-user-greeting" class="user-greeting">
+                Hello <span id="home-greeting-username"></span>. (<a href="/logout">Logout</a>)
+            </div>
+        </div>
+
+        <div id="home">
+            <div id="home-content">
+                <h3 class="logo">codr<span class="io">.io</span></h3>
+                <div id="modes"></div>
+            </div>
+        </div>
+        
+        <div id="workspace" class="">
+            
+            <div id="snapshot-notify-bar">
+                <div>This file is readonly. You can fork this file to create an editable copy.</div>
+            </div>
+
+            <div id="workspace-main">
+                
+                <div id="toolbar-top">
+                    
+                    <a id="toolbar-logo" href="http://codr.io/">
+                        <i class="icon-cloud left-icon"></i>
+                        <i class="icon-code left-icon"></i>
+                    </a>
+                    <div class="divider"></div>
+                    
+                    <div id="title-shortcut-wrapper">
+                        <div id="title" class="toolbar-item">
+                            <div class="toolbar-item-btn">
+                                <div class="toolbar-item-caption">Title</div>
+                                <div class="toolbar-item-selection">Loading...</div>
+                            </div>
+                            <div class="toolbar-dropdown-top-border"></div>
+                            <div class="toolbar-dropdown">
+                                <div id="title-message" class="edit-mode-message">
+                                    Changes not allowed in read-only files
+                                </div>
+                                <input class="toolbar-input" type="text" id="title-input"></input>
+                                <div class="horizontal-divider"></div>
+                                <button id="title-save">Save</button>
+                                <div class="hidden-focusable">
+                                    <a href="javascript:void(0)">#</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="divider"></div>
+                    
+                    <div id="mode-shortcut-wrapper">
+                        <div id="mode" class="toolbar-item">
+                            <div class="toolbar-item-btn">
+                                <div class="toolbar-item-caption">Language</div>
+                                <div class="toolbar-item-selection">Loading...</div>
+                            </div>
+                            <div class="toolbar-dropdown-top-border"></div>
+                            <div class="toolbar-dropdown">
+                                <div id="mode-message" class="edit-mode-message">
+                                    Changes not allowed in read-only files
+                                </div>
+                                <div id="mode-menu"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="divider"></div>
+                    
+                    <div id="toolbar-content-right">
+                        <div id="account" style="display: none;">
+                            <a class="login" id="workspace-login">Log in</a>
+                            <div class="user-greeting">
+                                Hello <span id="workspace-greeting-username"></span> (<a id="workspace-logout">Logout</a>)
+                            </div>
+                        </div>
+                        <div class="divider"></div>
+                        <div id="num-viewing-box">
+                            <div id="num-viewing-caption" class="toolbar-item-caption">Viewing</div>
+                            <div class="horizontal-divider"></div>
+                            <div id="num-viewing"></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="toolbar-left">
+                    
+                    <!-- Chat Menu -->
+                    <div id="chat-menu-shortcut-wrapper">
+                        <div id="chat-menu" class="toolbar-item" title="Chat">
+                            <div class="toolbar-item-btn">
+                                <i class="icon-chat left-icon"></i>
+                                <div id="chat-unread-count" style="display: none;"></div>
+                            </div>
+                            <div class="toolbar-dropdown-left-border"></div>
+                            <div class="toolbar-dropdown identify" id="chat">
+                                <div id="chat-identify-wrapper">
+                                    Please Identify Yourself:
+                                    <input class="toolbar-input" type="text" id="chat-identify" />
+                                    <button id="chat-identify-ok-button">OK, Enter Chat</button>
+                                    <div id="chat-identify-error-message"></div>
+                                </div>
+                                <div id="chat-main">
+                                    <div id="chat-history" class="selectable" tabindex="1"></div>
+                                    <div id="chat-typing">
+                                        <b>Typing: </b><span id="chat-typing-names"></span>
+                                    </div>
+                                    <textarea type="text" id="chat-box"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="divider"></div>
+
+                    <!-- Link Menu -->
+                    <div id="link-menu-shortcut-wrapper">
+                        <div id="link-menu" class="toolbar-item" title="Link">
+                            <div class="toolbar-item-btn">
+                                <i class="icon-link left-icon"></i>
+                            </div>
+                            <div class="toolbar-dropdown-left-border"></div>
+                            <div class="toolbar-dropdown">
+                                <div class="link-section-title">Editable Link (Collaborative)</div>
+                                <input class="toolbar-input" id="collaborate-url" type="text" placeholder="Result"></input>
+                                <div class="horizontal-divider"></div>
+                                <div class="link-section-title">Readonly Link (Snapshot)</div>
+                                <div id="snapshots">
+                                    <div id="placeholder">
+                                        Use snapshot URLs for forum posts
+                                    </div>
+                                </div>
+                                <div class="horizontal-divider"></div>
+                                <button class="share-button" id="snapshot-button">Create new snapshot</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <!-- Download Menu -->
+                    <div class="divider"></div>
+                    <div id="download-menu-shortcut-wrapper">
+                        <div id="download-menu" class="toolbar-item" title="Download">
+                            <div class="toolbar-item-btn">
+                                <i class="icon-down-circled2 left-icon"></i>
+                            </div>
+                            <div class="toolbar-dropdown-left-border"></div>
+                            <div class="toolbar-dropdown">
+                                <input class="toolbar-input" type="text" id="download-as" placeholder="File name"></input>
+                                <div class="horizontal-divider"></div>
+                                <button id="download">Download</button>
+                            </div>
+                        </div>
+                    </div>
+                                       
+                    <div class="divider"></div>
+                    <div id="fork-menu-shortcut-wrapper">
+                        <div id="fork-menu" class="toolbar-item" title="Fork">
+                            <div class="toolbar-item-btn">
+                                <i class="icon-split left-icon"></i>
+                            </div>
+                            <div class="toolbar-dropdown-left-border"></div>
+                            <div class="toolbar-dropdown">
+                                <div id="fork-desc">
+                                    Forking a file creates an editable clone of the file.
+                                    Chat history will not be cloned, however.
+                                    The forked file will not link back to this one.
+                                </div>
+                                <div class="horizontal-divider"></div>
+                                <form method="POST" action="/fork">
+                                    <input id="clone-doc-id" type="hidden" name="documentID" />
+                                    <button type="submit">Created Fork</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="divider"></div>
+                </div>
+                <div id="edit-wrap">
+                    <div id="edit"></div>
+                    <div id="edit-status-bar">
+                        <div class="ace_gutter"></div>
+                        <div class="status-item menu-btn" onclick="alert('Changing the indent mode is not implemented yet.')">
+                            <span class="status-label">Indent Mode:</span>
+                            <span class="status-value">Soft</span>
+                            <i class="icon-arrow-combo"></i>
+                        </div>
+                        <div class="status-item menu-btn"  onclick="alert('Changing the indent size is not implemented yet.')">
+                            <span class="status-label">Indent Size:</span>
+                            <span class="status-value">4</span>
+                            <i class="icon-arrow-combo"></i>
+                        </div>
+                        <div class="status-item menu-btn"  onclick="alert('Showing invisibles is not implemented yet.')">
+                            <span class="status-label">Show Invisibles:</span>
+                            <span class="status-value">No</span>
+                            <i class="icon-arrow-combo"></i>
+                        </div>
+                        <div class="status-right">
+                            <div class="status-item" id="cursor-pos">
+                                <span class="status-label">Ln:</span>
+                                <span class="status-value" id="line-num">1</span>
+                                &nbsp;
+                                <span class="status-label">Col:</span>
+                                <span class="status-value" id="col-num">1</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="shortcut-overlay">
+        </div>
+        
+        <script type="text/javascript">
+            if (IS_SNAPSHOT)
+            {
+                document.getElementById('chat-menu').className  += ' disabled';
+                document.getElementById('link-menu').className  += ' disabled';
+                document.getElementById('mode-menu').className  += ' disabled';
+                document.getElementById('title-input').disabled  = 'disabled';
+                document.getElementById('title-save').disabled   = 'disabled';
+            }
+        </script>
+        
+        <!-- Load menu chooser -->
+        <script type="text/javascript" src="/javascripts/lib/require.js"></script>
+        <script type="text/javascript" src="/javascripts/require-config.js"></script>
+        <script type="text/javascript">
+            require(['init-app'], function(fnInitApp)
+            {
+                fnInitApp(IS_NEW_DOCUMENT, IS_SNAPSHOT);
+            });
+        </script>        
+    </body>
+</html>
+

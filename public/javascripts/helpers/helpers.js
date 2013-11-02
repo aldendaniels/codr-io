@@ -1,6 +1,11 @@
-var oHelpers = null;
+// Makes importable via node.
+// See http://requirejs.org/docs/node.html
+if (typeof define !== 'function')
+{
+    var define = require('amdefine')(module);
+}
 
-(function()
+define(function()
 {
     var Callback = {
         /*
@@ -56,9 +61,8 @@ var oHelpers = null;
         }
     };
     
-    
-    oHelpers =
-    {
+    var oHelpers = {
+        
         createClass: function(oProps)
         {
             var Class = null;
@@ -210,18 +214,20 @@ var oHelpers = null;
                 }
             }
         });
-        
-        // Export.
-        module.exports = oHelpers;
     }
     else // Web
     {
-        oHelpers.extendObj(oHelpers,
+        require(['jquery'], function($)
         {
-            on: function(oElem, sEventName, oScope, fnCallback)
+            oHelpers.extendObj(oHelpers,
             {
-                $(oElem).on(sEventName, oHelpers.createCallback(oScope, fnCallback));
-            }
+                on: function(oElem, sEventName, oScope, fnCallback)
+                {
+                    $(oElem).on(sEventName, oHelpers.createCallback(oScope, fnCallback));
+                }
+            });
         });
     }
-})();
+    
+    return oHelpers;
+});

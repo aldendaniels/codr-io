@@ -121,7 +121,7 @@ oApp.configure(function()
     oApp.use(oExpress.static(oPath.join(__dirname, 'public')));
 
     /* Save static index.html */
-    oApp.get('^/$',                     function(req, res) { res.sendfile('public/index.html'); });
+    oApp.get('^/$',                     function(req, res) { res.sendfile('public/html/index.html'); });
 
     oApp.get('^/login/?$', function(req, res)
     {
@@ -131,7 +131,7 @@ oApp.configure(function()
             return;
         }
 
-        res.sendfile('public/login.html');
+        res.sendfile('public/html/login.html');
     });
 
     oApp.post('^/login/?$', function(req, res) {
@@ -177,7 +177,7 @@ oApp.configure(function()
             return;
         }
 
-        res.sendfile('public/signup.html');
+        res.sendfile('public/html/signup.html');
     });
     oApp.post('^/signup/?$', function(req, res)
     {
@@ -268,8 +268,8 @@ oApp.configure(function()
         res.send(JSON.stringify(oInfo));
     });
 
-    oApp.get('^/[a-z0-9]+/?$',          function(req, res) { res.sendfile('public/index.html'); });
-    oApp.get('^/v/[a-z0-9]+/?$',        function(req, res) { res.sendfile('public/index.html'); });
+    oApp.get('^/[a-z0-9]+/?$',          function(req, res) { res.sendfile('public/html/index.html'); });
+    oApp.get('^/v/[a-z0-9]+/?$',        function(req, res) { res.sendfile('public/html/index.html'); });
 
     /* Preview files as HTML. */
     oApp.get('/:DocumentID([a-z0-9]+)/preview/?$', function(req, res)

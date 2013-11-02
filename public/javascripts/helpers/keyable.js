@@ -1,80 +1,87 @@
-﻿
-var Keyable = oHelpers.createClass({
+﻿define(function(require)
+{
+    // Dependencies.
+    var $        = require('jquery'),
+        oHelpers = require('helpers/helpers');
 
-    // Constant members.
-    _jParent: null,
-    _sIDAttr: '',
-
-    // Non-constant members.
-    _bAttached: false,
-    _jKeyables: null,
-    _jSelected: null,
-
-    __init__: function(jParent, sIDAttr)
-    {
-        this._jParent = $(jParent);
-        this._sIDAttr = sIDAttr;
-        this.update();
-    },
+    return oHelpers.createClass({
     
-    attach: function()
-    {
-        this._jSelected.addClass('current');
-        this._bAttached = true;
-    },
+        // Constant members.
+        _jParent: null,
+        _sIDAttr: '',
     
-    detach: function()
-    {
-        this._jSelected.removeClass('current');
-        this._bAttached = false;        
-    },
+        // Non-constant members.
+        _bAttached: false,
+        _jKeyables: null,
+        _jSelected: null,
     
-    update: function(bMaintainSel)
-    {
-        // Maintain selection.
-        this._jKeyables = this._jParent.find('.keyable');
-        if (bMaintainSel && this._jSelected)
+        __init__: function(jParent, sIDAttr)
         {
-            var sSelID = this._jSelected.attr(this._sIDAttr);
-            var jSelected = this._jKeyables.filter('[' + this._sIDAttr + '="' + sSelID + '"]');
-            if (jSelected)
-            {
-                this.select(jSelected);
-                return;
-            }
-        }
+            this._jParent = $(jParent);
+            this._sIDAttr = sIDAttr;
+            this.update();
+        },
         
-        // Select the first item.
-        this.select($(this._jKeyables[0]));
-    },
-    
-    select: function(jElem)
-    {
-        this._jSelected = $(jElem);
-        if (this._bAttached)
+        attach: function()
         {
-            this._jKeyables.removeClass('current');
             this._jSelected.addClass('current');
+            this._bAttached = true;
+        },
+        
+        detach: function()
+        {
+            this._jSelected.removeClass('current');
+            this._bAttached = false;        
+        },
+        
+        update: function(bMaintainSel)
+        {
+            // Maintain selection.
+            this._jKeyables = this._jParent.find('.keyable');
+            if (bMaintainSel && this._jSelected)
+            {
+                var sSelID = this._jSelected.attr(this._sIDAttr);
+                var jSelected = this._jKeyables.filter('[' + this._sIDAttr + '="' + sSelID + '"]');
+                if (jSelected)
+                {
+                    this.select(jSelected);
+                    return;
+                }
+            }
+            
+            // Select the first item.
+            this.select($(this._jKeyables[0]));
+        },
+        
+        select: function(jElem)
+        {
+            this._jSelected = $(jElem);
+            if (this._bAttached)
+            {
+                this._jKeyables.removeClass('current');
+                this._jSelected.addClass('current');
+            }
+        },
+        
+        moveDown: function()
+        {
+            var iCurIndex = this._jKeyables.index(this._jSelected);
+            if (iCurIndex < this._jKeyables.length - 1)
+                this.select(this._jKeyables[iCurIndex + 1], true);
+        },
+        
+        moveUp: function()
+        {
+            var iCurIndex = this._jKeyables.index(this._jSelected);
+            if (iCurIndex > 0)
+                this.select(this._jKeyables[iCurIndex - 1], true);        
+        },
+        
+        getSelected: function()
+        {
+            return this._jSelected;
         }
-    },
-    
-    moveDown: function()
-    {
-        var iCurIndex = this._jKeyables.index(this._jSelected);
-        if (iCurIndex < this._jKeyables.length - 1)
-            this.select(this._jKeyables[iCurIndex + 1], true);
-    },
-    
-    moveUp: function()
-    {
-        var iCurIndex = this._jKeyables.index(this._jSelected);
-        if (iCurIndex > 0)
-            this.select(this._jKeyables[iCurIndex - 1], true);        
-    },
-    
-    getSelected: function()
-    {
-        return this._jSelected;
-    }
+    });
 });
+
 

@@ -1,7 +1,7 @@
-ace.define('ace/snippets/groovy', ['require', 'exports', 'module' ], function(require, exports, module) {
+define(function(require, exports, module) {
+"use strict";
 
-
-exports.snippetText = "";
+exports.snippetText = require("../requirejs/text!./groovy.snippets");
 exports.scope = "groovy";
 
 });

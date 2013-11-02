@@ -1,76 +1,84 @@
-var setSessionInfoCallback = (function ()
+
+define(function(require)
 {
-    var bIsSet = false;
-    var sLocalKey = 'codr-io/local'
-
-    function setSessionInfoCallback(oScope, fnOnResponse)
+    // Dependencies.
+    var $        = require('jquery'),
+        oHelpers = require('helpers/helpers');
+        
+    var setSessionInfoCallback = (function ()
     {
-        if (bIsSet)
+        var bIsSet = false;
+        var sLocalKey = 'codr-io/local'
+    
+        function setSessionInfoCallback(oScope, fnOnResponse)
         {
-            oHelpers.assert(false, 'You can not call setSessionInfoCallback twice.');
-            return;
+            if (bIsSet)
+            {
+                oHelpers.assert(false, 'You can not call setSessionInfoCallback twice.');
+                return;
+            }
+    
+            var fnCallback = oHelpers.createCallback(oScope, fnOnResponse);
+    
+            // Call the callback now with possible stale data.
+            if (getFromLocal() !== null)
+                fnCallback(getFromLocal());
+    
+    
+            // The data we sent wasn't clean. We need to update it, then call the callback a second time.
+            getServerSessionInfo(fnCallback);
         }
-
-        var fnCallback = oHelpers.createCallback(oScope, fnOnResponse);
-
-        // Call the callback now with possible stale data.
-        if (getFromLocal() !== null)
-            fnCallback(getFromLocal());
-
-
-        // The data we sent wasn't clean. We need to update it, then call the callback a second time.
-        getServerSessionInfo(fnCallback);
-    }
-
-    function supportsLocalStorage() {
-        try {
-            return 'localStorage' in window && window['localStorage'] !== null;
-        } catch (e) {
-            return false;
+    
+        function supportsLocalStorage() {
+            try {
+                return 'localStorage' in window && window['localStorage'] !== null;
+            } catch (e) {
+                return false;
+            }
         }
-    }
-
-
-    function getFromLocal()
-    {
-        if (supportsLocalStorage())
+    
+    
+        function getFromLocal()
         {
-            var ret = window.localStorage.getItem(sLocalKey);
-            if (ret)
-                return JSON.parse(ret);
+            if (supportsLocalStorage())
+            {
+                var ret = window.localStorage.getItem(sLocalKey);
+                if (ret)
+                    return JSON.parse(ret);
+                return null;
+            }
+    
             return null;
         }
-
-        return null;
-    }
-
-    function setLocal(oNewInfo)
-    {
-        if (supportsLocalStorage())
-            window.localStorage.setItem(sLocalKey, JSON.stringify(oNewInfo));
-    }
-
-    function getServerSessionInfo(fnCallback)
-    {
-        $.getJSON('/userInfo/', function(oResponse)
+    
+        function setLocal(oNewInfo)
         {
-            setLocal(oResponse);
-            fnCallback(oResponse);
-        });
-    }
-
-    return setSessionInfoCallback;
-})();
-
-function onAccountInfo(oInfo)
-{
-    $('body').toggleClass('logged-in', oInfo.bLoggedIn);
-
-    if (oInfo.bLoggedIn)
+            if (supportsLocalStorage())
+                window.localStorage.setItem(sLocalKey, JSON.stringify(oNewInfo));
+        }
+    
+        function getServerSessionInfo(fnCallback)
+        {
+            $.getJSON('/userInfo/', function(oResponse)
+            {
+                setLocal(oResponse);
+                fnCallback(oResponse);
+            });
+        }
+    
+        return setSessionInfoCallback;
+    })();
+    
+    function onAccountInfo(oInfo)
     {
-        $('#home-greeting-username').text(oInfo.sUsername);
-        $('#workspace-greeting-username').text(oInfo.sUsername);
+        $('body').toggleClass('logged-in', oInfo.bLoggedIn);
+    
+        if (oInfo.bLoggedIn)
+        {
+            $('#home-greeting-username').text(oInfo.sUsername);
+            $('#workspace-greeting-username').text(oInfo.sUsername);
+        }
     }
-}
-
-setSessionInfoCallback(this, onAccountInfo);
+    
+    setSessionInfoCallback(this, onAccountInfo);
+});
