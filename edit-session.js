@@ -1,4 +1,4 @@
-var oHelpers     = require('./public/javascripts/helpers/helpers');
+var oHelpers     = require('./helpers-node');
 var oOT          = require('./public/javascripts/OT');
 var Client       = require('./client');
 var Document     = require('./document');

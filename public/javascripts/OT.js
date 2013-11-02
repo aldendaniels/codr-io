@@ -6,7 +6,7 @@ if (typeof define !== 'function')
 define(function(require)
 {
     // Dependencies.
-    var oHelpers = require('./helpers/helpers'); // Rel. path for use in nodejs.
+    var oHelpers = require('./helpers/helpers-core'); // Rel. path for use in nodejs.
     
     return {
         

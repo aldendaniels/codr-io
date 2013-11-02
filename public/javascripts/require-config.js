@@ -10,13 +10,10 @@ requirejs.config(
     
     paths:
     {
-        'jquery': [
-            //'http://ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min', // your cdn
-            'lib/jquery' // your fallback
-        ],
+        'jquery': 'lib/jquery',
         
         /* Ace paths don't work unless hard-coded here. */
-        'ace': [ 'edit-control/ace' ],
+        'ace': 'edit-control/ace',
     },
     
     map: {

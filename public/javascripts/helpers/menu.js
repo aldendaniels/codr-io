@@ -2,7 +2,7 @@ define(function(require)
 {
     // Dependencies.
     var $        = require('jquery'),
-        oHelpers = require('helpers/helpers'),
+        oHelpers = require('helpers/helpers-web'),
         Keyable  = require('helpers/keyable');
 
     return oHelpers.createClass(

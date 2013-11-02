@@ -2,7 +2,7 @@ define(function(require)
 {
     // Dependencies.
     var $                     = require('jquery'),
-        oHelpers              = require('helpers/helpers'),
+        oHelpers              = require('helpers/helpers-web'),
         Socket                = require('helpers/socket'),
         KeyShortcutHandler    = require('helpers/key-shortcut-handler'),
         oModes                = require('edit-control/modes'),

@@ -1,4 +1,4 @@
-var oHelpers    = require('./public/javascripts/helpers/helpers');
+var oHelpers    = require('./helpers-node');
 var EditSession = require('./edit-session');
 var Document    = require('./document');
 var oDatabase   = require('./database');

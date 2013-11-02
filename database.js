@@ -1,7 +1,12 @@
-var fs       = require('fs');
+var oFS       = require('fs');
 var oOS      = require('os');
 var oPath    = require('path');
-var oHelpers = require('./public/javascripts/helpers/helpers');
+var oHelpers = require('./helpers-node');
+
+// Ensure that the user directory exists.
+var sUserDataPath = oPath.join(g_oConfig.sDataPath, 'users');
+if(!oFS.existsSync(sUserDataPath))
+    oFS.mkdirSync(sUserDataPath);
 
 var oFileDatabase =
 {   
@@ -21,7 +26,7 @@ var oFileDatabase =
         this.documentExists(sID, this, function(bExists)
         {
             oHelpers.assert(bExists, 'Document does not exist');  
-            fs.readFile(oPath.join(g_oConfig.sDataPath, sID), function (sIgnoredErr, oFileData) //oFileData is a raw buffer
+            oFS.readFile(oPath.join(g_oConfig.sDataPath, sID), function (sIgnoredErr, oFileData) //oFileData is a raw buffer
             {
                 oHelpers.createCallback(oScope, fnOnResponse)(String(oFileData));
             });
@@ -30,22 +35,22 @@ var oFileDatabase =
 
     saveDocument: function(sID, sData, oScope, fnOnResponse)
     {
-        fs.writeFile(oPath.join(g_oConfig.sDataPath, sID), sData, oHelpers.createCallback(oScope, fnOnResponse));
+        oFS.writeFile(oPath.join(g_oConfig.sDataPath, sID), sData, oHelpers.createCallback(oScope, fnOnResponse));
     },
 
     documentExists: function(sID, oScope, fnOnResponse)
     {
-        fs.exists(oPath.join(g_oConfig.sDataPath, sID), oHelpers.createCallback(oScope, fnOnResponse))
+        oFS.exists(oPath.join(g_oConfig.sDataPath, sID), oHelpers.createCallback(oScope, fnOnResponse))
     },
 
     saveUser: function(sUsername, sData, oScope, fnOnResponse)
     {
-        fs.writeFile(oPath.join(g_oConfig.sUserDataPath, sUsername), sData, oHelpers.createCallback(oScope, fnOnResponse));
+        oFS.writeFile(oPath.join(sUserDataPath, sUsername), sData, oHelpers.createCallback(oScope, fnOnResponse));
     },
 
     getUser: function(sUsername, oScope, fnOnResponse)
     {
-        fs.readFile(oPath.join(g_oConfig.sUserDataPath, sUsername), function(sIgnoredErr, oFileData)
+        oFS.readFile(oPath.join(sUserDataPath, sUsername), function(sIgnoredErr, oFileData)
         {
             oHelpers.createCallback(oScope, fnOnResponse)(oFileData);
         });
@@ -53,7 +58,7 @@ var oFileDatabase =
 
     userExists: function(sUsername, oScope, fnOnResponse)
     {
-        fs.exists(oPath.join(g_oConfig.sUserDataPath, sUsername), oHelpers.createCallback(oScope, fnOnResponse));
+        oFS.exists(oPath.join(sUserDataPath, sUsername), oHelpers.createCallback(oScope, fnOnResponse));
     }
 };
 

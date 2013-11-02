@@ -8,75 +8,26 @@ var oExpress            = require('express');
 var oWS                 = require('ws');
 var oHTTP               = require('http');
 var oLessMiddleware     = require('less-middleware');
-var oUglifyJSMiddleware = require('uglify-js-middleware');
 var oPasswordHash       = require('password-hash');
 var oConnect            = require('connect');
 
+// Setup global config parameters.
+require('./config');
+
 // Import helpers.
-var oHelpers     = require('./public/javascripts/helpers/helpers');
+var oHelpers     = require('./helpers-node');
 var Client       = require('./client');
 var EditSession  = require('./edit-session');
 var Document     = require('./document');
 var oDatabase    = require('./database');
 
-// GLOBALS
-GLOBAL.g_oConfig        = {};
-GLOBAL.g_oEditSessions  = {}; // DocumentID to EditSession instance.
-
-// Set/validation production environmental variables.
-g_oConfig = (function()
-{
-    // Get arguments.
-    var oArgs = {};
-    for (var i = 2; i < process.argv.length; i++)
-    {
-        var aParts = process.argv[i].split('=');
-        oArgs[aParts[0].trim()] = aParts[1].trim();
-    }
-
-    // Populate Config object.
-    var oConfig = {};
-    oConfig.bIsProd   =  (oArgs.is_prod == '1');
-    oConfig.bUglify =  (oArgs.uglify == '1' || oConfig.bIsProd);
-    oConfig.bCompress =  (oArgs.compress == '1' || oConfig.bIsProd);
-    oConfig.iPort     =  (oArgs.port      ? parseInt(oArgs.port) : (oConfig.bIsProd ? 80 : 8080));
-    oConfig.sDataPath =  (oArgs.data_path ? oArgs.data_path : function()
-                            {
-                                if (oConfig.bIsProd)
-                                    return '/home/ubuntu/data';
-                                else
-                                {
-                                    var sDataPath = oPath.join(oOS.tmpDir(), 'data');
-                                    if(!oFS.existsSync(sDataPath))
-                                        oFS.mkdirSync(sDataPath);
-                                    return sDataPath;
-                                }
-                            }());
-    oConfig.sUserDataPath = oPath.join(oConfig.sDataPath, 'users');
-    if(!oFS.existsSync(oConfig.sUserDataPath))
-        oFS.mkdirSync(oConfig.sUserDataPath);
-    return oConfig;
-}());
-
-// Error handling.
-// TODO: This is a horrible hack.
+// Error handling. // TODO: This is a horrible hack.
 if (g_oConfig.bIsProd)
 {
     process.on('uncaughtException', function (err)
     {
         console.error(err); // Keep node from exiting.
     });
-}
-
-// Create empty codr_static directory.
-var sCodrStaticOutputPath = oPath.join(oOS.tmpDir(), 'codr_static');
-if (oFS.existsSync(sCodrStaticOutputPath))
-{
-    oHelpers.emptyDirSync(sCodrStaticOutputPath);
-}
-else
-{
-    oFS.mkdirSync(sCodrStaticOutputPath);
 }
 
 // Create express app.
@@ -90,38 +41,44 @@ oApp.configure(function()
     oApp.use(oCookieParser);
     oApp.use(oExpress.session({secret: 'testing', store: oSessionStore}));
 
-    if (g_oConfig.bCompress)
-    {
-        oApp.use(oExpress.compress());
-    }
 
-    // Configure LESS middleware.
-    oApp.use(oLessMiddleware(
-    {
-        src: __dirname + '/public',
-        dest: sCodrStaticOutputPath
-    }));
-
+    // AldenD 11/01/2013: What does this do?
     oApp.use(oExpress.bodyParser());
 
-    // Configure UglifyJS middleware in Production.
-    if (g_oConfig.bUglify)
+    // Configur static serving.
+    if (g_oConfig.bIsProd)
     {
-        oApp.use(oUglifyJSMiddleware(
+        oApp.use(oExpress.static(oPath.join(__dirname, 'public/build')));        
+    }
+    else
+    {
+        // Configure LESS middleware.
+        if (!g_oConfig.bIsProd)
         {
-            src : __dirname + '/public',
-            dest: sCodrStaticOutputPath,
-            uglytext: false,
-            mangle: true,
-            squeeze: true
-        }));
+            // Create empty codr_less_output directory.
+            var sLessOutputDir = oPath.join(oOS.tmpDir(), 'codr_less_output');
+            if (oFS.existsSync(sLessOutputDir))
+                oHelpers.emptyDirSync(sLessOutputDir);
+            else
+                oFS.mkdirSync(sLessOutputDir);
+                
+            oApp.use(oLessMiddleware(
+            {
+                src: __dirname + '/public',
+                dest: sLessOutputDir
+            }));
+        }
+        
+        // Server static content.
+        oApp.use(oExpress.static(sLessOutputDir));
+        oApp.use(oExpress.static(oPath.join(__dirname, 'public')));        
     }
 
-    oApp.use(oExpress.static(sCodrStaticOutputPath));
-    oApp.use(oExpress.static(oPath.join(__dirname, 'public')));
-
     /* Save static index.html */
-    oApp.get('^/$',                     function(req, res) { res.sendfile('public/html/index.html'); });
+    oApp.get('^/$', function(req, res)
+    {
+        res.sendfile('public/html/index.html');
+    });
 
     oApp.get('^/login/?$', function(req, res)
     {
@@ -130,25 +87,26 @@ oApp.configure(function()
             res.redirect(oUrl.parse(req.url, true).query.next || '/');
             return;
         }
-
+        
         res.sendfile('public/html/login.html');
     });
 
-    oApp.post('^/login/?$', function(req, res) {
+    oApp.post('^/login/?$', function(req, res)
+    {
         oDatabase.userExists(req.body.username, this, function(bExists)
         {
             var sErrorUrl = '/login?error=true'
-
+            
             var sNext = oUrl.parse(req.url, true).query.next;
             if (sNext)
                 sErrorUrl += ('&next=' + sNext)
-
+            
             if (!bExists)
             {
                 res.redirect(sErrorUrl);
                 return;
             }
-
+            
             oDatabase.getUser(req.body.username, this, function(sUser)
             {
                 var oUser = new User(sUser);

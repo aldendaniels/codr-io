@@ -6,7 +6,7 @@ var fg_iReceiveMsDelay = 0;
 define(function(require)
 {
     // Dependencies.
-    var oHelpers = require('helpers/helpers');
+    var oHelpers = require('helpers/helpers-web');
     
     return oHelpers.createClass(
     {

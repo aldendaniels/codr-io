@@ -3,7 +3,7 @@ define(function(require)
 {
     // Dependencies.
     var $        = require('jquery'),
-        oHelpers = require('helpers/helpers'),
+        oHelpers = require('helpers/helpers-web'),
         oModes   = require('edit-control/modes');
         
     function loadModeChooser(fnOnModeSelect)

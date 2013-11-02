@@ -9,7 +9,7 @@ if (typeof define !== 'function')
 define(function(require)
 {
     // Dependencies
-    var oHelpers = require('./public/javascripts/helpers/helpers');
+    var oHelpers = require('./public/javascripts/helpers/helpers-core');
     
     // Document class
     return oHelpers.createClass(
