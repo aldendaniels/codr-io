@@ -36,7 +36,7 @@ module.exports = oHelpers.createClass(
         this._sDocumentID = sDocumentID;
         this._aClients = [];
         this._aCurrentlyTyping = [];
-        this._aPastDeltas = [];
+        this._aDeltaHistory = [];
         
         // Add the intial client.
         this.addClient(oClient);
@@ -258,7 +258,7 @@ module.exports = oHelpers.createClass(
             case 'setSelection':
                 
                 // Transform selection range.
-                oAction.oData.oRange = this._tranformRangeToCurState(oAction.oData.oRange, oAction.oData.iState);
+                oAction.oData.oRange = this._tranformRangeToCurState(oClient, oAction.oData.oRange, oAction.oData.iState);
                 
                 // Save selection.
                 oClient.setSelectionRange(oAction.oData.oRange);
@@ -284,7 +284,7 @@ module.exports = oHelpers.createClass(
                 
                 // Transform delta range.
                 var oDelta = oAction.oData.oDelta;
-                oDelta.oRange = this._tranformRangeToCurState(oDelta.oRange, oAction.oData.iState);
+                oDelta.oRange = this._tranformRangeToCurState(oClient, oDelta.oRange, oAction.oData.iState);
                 
                 // Transform client selections.
                 for (var i in this._aClients)
@@ -294,7 +294,7 @@ module.exports = oHelpers.createClass(
                 }
                 
                 // Save to transOps.
-                this._aPastDeltas.push(
+                this._aDeltaHistory.push(
                 {
                     oClient: oClient,
                     oDelta: oDelta
@@ -474,11 +474,22 @@ module.exports = oHelpers.createClass(
         }
     },
     
-    _tranformRangeToCurState: function(oRange, iState)
+    _tranformRangeToCurState: function(oClient, oRange, iState)
     {
         var iCatchUp = this._iServerState - iState;
-        for (var i = this._aPastDeltas.length - iCatchUp; i < this._aPastDeltas.length; i++)
-            oRange = oOT.transformRange(this._aPastDeltas[i].oDelta, oRange);                    
+        for (var i = this._aDeltaHistory.length - iCatchUp; i < this._aDeltaHistory.length; i++)
+        {
+            // Get past delta info.
+            var oOtherDelta  = this._aDeltaHistory[i].oDelta;
+            var oOtherClient = this._aDeltaHistory[i].oClient;
+            
+            // Don't transform a range for the client's own past events,
+            // since the range already reflects those.
+            if (oOtherClient != oClient)
+            {
+                oRange = oOT.transformRange(oOtherDelta, oRange);                    
+            }
+        }
         return oRange;
     },
     

@@ -50,8 +50,7 @@ define(function(require)
             if (bIsNewDocument)
             {
                 this._oToolbar.setTitle(_sUNTITLED);
-                this._oToolbar.setMode(oNewDocumentMode);
-                this._oEditor.setMode(oNewDocumentMode);
+                this._setMode(oNewDocumentMode);
                 this._oSocket.send('createDocument',
                 {
                     sMode:  oNewDocumentMode.getName(),
@@ -84,8 +83,7 @@ define(function(require)
                     
                     // Set mode.
                     var oMode = oModes.oModesByName[oResponse.sMode];
-                    this._oEditor.setMode(oMode);
-                    this._oToolbar.setMode(oMode);
+                    this._setMode(oMode);
                     
                     // Set title.
                     this._oToolbar.setTitle(oResponse.sTitle);
@@ -126,6 +124,12 @@ define(function(require)
         getUserInfo: function()
         {
             return this._oUserInfo;
+        },
+        
+        _setMode: function(oMode)
+        {
+            this._oEditor.setMode(oMode);
+            this._oToolbar.setMode(oMode);
         },
         
         _getContainingObj: function(jElem)
@@ -247,7 +251,7 @@ define(function(require)
                     
                 case 'setMode':
                     var oMode = oModes.oModesByName[oAction.oData.sMode];
-                    this._oToolbar.setMode(oMode);
+                    this._setMode(oMode);
                     break;
                                     
                 case 'setDocumentID': // Fired after creating a new document.

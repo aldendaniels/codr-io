@@ -124,7 +124,7 @@ define(function(require)
                     
                 case 'eventReciept':
                     this._iServerState = oAction.oData.iServerState;
-                    this._aServerUnseenQueue = this._aServerUnseenQueue.splice(0, 1);
+                    this._aServerUnseenQueue.splice(0, 1);
                     break;
                     
                 case 'addClient':
