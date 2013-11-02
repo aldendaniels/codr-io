@@ -7,7 +7,7 @@ if (typeof define !== 'function')
 
 define(function()
 {
-    var Callback = {
+    var oCallback = {
         /*
          * This function solves the problem of the value of "this" not persisting for callbacks.
          * (This function correctly maintains all parameters that are passed to the callback function.)
@@ -22,7 +22,7 @@ define(function()
          *
          *   var myHandler = {};
          *   myHandler.onDownload = function(sData) { this._sData = sData; };
-         *   downloadData(Callback.create(myHandler, myHandler.onDownload));
+         *   downloadData(oCallback.create(myHandler, myHandler.onDownload));
          *
          * In some situations, the callback's parameters need to be specified when the callback is created.
          * This is particularly cumbersome when creating callbacks in a loop, because it's not possible
@@ -36,7 +36,7 @@ define(function()
         create: function(/*oObject, fnCallback, aArgumentsOverride*/)
         {
             // "this" will return the global object
-            function getClosureCache() { return Callback._aClosureCache; }
+            function getClosureCache() { return oCallback._aClosureCache; }
     
             // cache the parameters in the member variable
             var iID = getClosureCache().push(arguments)-1;
@@ -82,7 +82,7 @@ define(function()
         createCallback: function(oObject, fnCallback, aOptionalArguments)
         {
             aOptionalArguments = aOptionalArguments || [];
-            return Callback.create(oObject, fnCallback, aOptionalArguments);
+            return oCallback.create(oObject, fnCallback, aOptionalArguments);
         },
     
         assert: function(bCondition, sMessage)
@@ -145,7 +145,7 @@ define(function()
                         _objectMutate(oSrcObj[sKey], oTgtObj[sKey], oScope, fnCallback);
                     }
                     else
-                        oTgtObj[sKey] = oHelpers.createCallback(oScope, fnCallback)(oSrcObj[sKey]);
+                        oTgtObj[sKey] = oCallback.create(oScope, fnCallback)(oSrcObj[sKey]);
                 }            
             }
             
@@ -157,7 +157,7 @@ define(function()
                 return oClone;
             }
             else
-                return oHelpers.createCallback(oScope, fnCallback)(oObj);
+                return oCallback.create(oScope, fnCallback)(oObj);
         },
         
         extendObj: function(oObj1, oObj2)
