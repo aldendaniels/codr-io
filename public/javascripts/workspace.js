@@ -1,4 +1,4 @@
-define(function(require)
+define('workspace', function(require)
 {
     // Dependencies.
     var $                     = require('jquery'),

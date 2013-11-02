@@ -3,6 +3,7 @@ var oFS = require('fs');
 var oLESS = require('less');
 var requirejs = require('requirejs');
 var mkdirp = require('mkdirp');
+var ncp = require('ncp').ncp;
 
 // Delete output dir.
 oHelpers.emptyDirSync(__dirname + '/public/build');
@@ -25,7 +26,7 @@ for (var i = 2; i < process.argv.length; i++)
 
 ////////////// RequireJS. /////////////////
 
-function compileJS(sName, include)
+function compileJS(sName, aInclude, aExclude)
 {
     var oOptions = {
         
@@ -33,11 +34,13 @@ function compileJS(sName, include)
             
         baseUrl: './public/javascripts',
             
-        name: 'init-app',
+        name: sName,
         
         out: './public/build/javascripts/' + sName + '.js',
         
-        include: include || [],
+        include: aInclude || [],
+        
+        exclude: aExclude || [],
         
         preserveLicenseComments: false,
         
@@ -50,7 +53,7 @@ function compileJS(sName, include)
 compileJS('init-app', ['lib/require', 'require-config']);
 
 // Workspace.
-compileJS('workspace', ['lib/require', 'require-config']);
+compileJS('workspace', [], ['init-app']);
 
 // Ace
 requirejs.optimize(
@@ -68,8 +71,8 @@ requirejs.optimize(
 }, function(){}, handleError);
 
 
+////////////// LESS COMPILATION /////////////////
 
-// CSS.
 function complileLESS(sDirIn, sFilename)
 {
     // Paths.
@@ -100,3 +103,29 @@ function complileLESS(sDirIn, sFilename)
 }
 
 complileLESS('./public/stylesheets', 'index.less');
+
+////////////// HTML /////////////////
+var stream = require('stream');
+function createTransform()
+{
+    var transform = new stream.Transform();
+    transform._transform = function(chunk, encoding, done)
+    {
+        r = /<!--START_DEV_ONLY-->(.|\n|\r)*<!--END_DEV_ONLY-->/g;
+        s = chunk.toString().replace(r, '');
+        this.push(s);
+        done();
+    }
+    return transform;
+}
+
+
+var bIsDevOnly = false;
+ncp('./public/html', './public/build/html',
+{
+    transform: function(read, write)
+    {
+        var transform = createTransform();
+        read.pipe(transform).pipe(write);
+    }
+}, handleError);

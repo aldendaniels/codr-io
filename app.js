@@ -74,10 +74,12 @@ oApp.configure(function()
         oApp.use(oExpress.static(oPath.join(__dirname, 'public')));        
     }
 
+    var sHTMLPath = (g_oConfig.bIsProd ? 'public/build/html/' : 'public/html/');
+    
     /* Save static index.html */
     oApp.get('^/$', function(req, res)
     {
-        res.sendfile('public/html/index.html');
+        res.sendfile(sHTMLPath + 'index.html');
     });
 
     oApp.get('^/login/?$', function(req, res)
@@ -88,7 +90,7 @@ oApp.configure(function()
             return;
         }
         
-        res.sendfile('public/html/login.html');
+        res.sendfile(sHTMLPath + 'login.html');
     });
 
     oApp.post('^/login/?$', function(req, res)
@@ -135,7 +137,7 @@ oApp.configure(function()
             return;
         }
 
-        res.sendfile('public/html/signup.html');
+        res.sendfile(sHTMLPath + 'signup.html');
     });
     oApp.post('^/signup/?$', function(req, res)
     {
@@ -226,8 +228,8 @@ oApp.configure(function()
         res.send(JSON.stringify(oInfo));
     });
 
-    oApp.get('^/[a-z0-9]+/?$',          function(req, res) { res.sendfile('public/html/index.html'); });
-    oApp.get('^/v/[a-z0-9]+/?$',        function(req, res) { res.sendfile('public/html/index.html'); });
+    oApp.get('^/[a-z0-9]+/?$',          function(req, res) { res.sendfile(sHTMLPath + 'index.html'); });
+    oApp.get('^/v/[a-z0-9]+/?$',        function(req, res) { res.sendfile(sHTMLPath + 'index.html'); });
 
     /* Preview files as HTML. */
     oApp.get('/:DocumentID([a-z0-9]+)/preview/?$', function(req, res)
