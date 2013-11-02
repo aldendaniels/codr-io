@@ -23,6 +23,6 @@
         "password-hash": "1.2.x",
         "less-middleware": "~0.1.10",
         "connect": "2.9.0",
-        "amdefine": ">=0.1.0",
+        "amdefine": ">=0.1.0"
     }
 }

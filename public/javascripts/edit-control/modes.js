@@ -4,7 +4,7 @@ define(function(require)
     var $            = require('jquery'),
         oHelpers     = require('helpers/helpers-web'),
         Menu         = require('helpers/menu'),
-        oAceModeList = require('ace/ext/modelist');
+        oAceModeList = require('./ace-ext-modelist');
     
     // Select favorite modes.
     var aCodrFavModeNames = ['text', 'html', 'javascript', 'css', 'python', 'mysql'];

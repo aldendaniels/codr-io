@@ -1,0 +1,1 @@
+define(["require","jquery","./helpers-core"],function(e){var t=e("jquery");return oHelpers=e("./helpers-core"),oHelpers.extendObj(oHelpers,{on:function(e,n,r,i){t(e).on(n,oHelpers.createCallback(r,i))}}),oHelpers});

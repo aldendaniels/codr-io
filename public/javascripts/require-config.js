@@ -13,7 +13,7 @@ requirejs.config(
         'jquery': 'lib/jquery',
         
         /* Ace paths don't work unless hard-coded here. */
-        'ace': 'edit-control/ace/lib/ace',
+        'ace': 'edit-control/ace',
     },
     
     map: {
@@ -28,5 +28,11 @@ requirejs.config(
         'lib/jquery-private': { 'jquery': 'jquery' }
     },
     
-    shim: {} // Used for scripts that have no define().
+    shim: // Used for scripts that have no define()
+    {
+        'edit-control/ace/ace':
+        {
+            exports: 'ace'
+        }
+    }
 });

@@ -5,22 +5,38 @@ oHelpers.emptyDirSync(__dirname + '/public/build');
 
 // RequireJS.
 var requirejs = require('requirejs');
-function onBuildError(sError)
-{
-    console.log(sError);
-}
+
 requirejs.optimize(
 {
     mainConfigFile: './public/javascripts/require-config.js',
+        
     baseUrl: './public/javascripts',
+        
     name: 'init-app',
-    out: './public/build/init-app.js'
-}, function(){}, onBuildError);
+    
+    out: './public/build/javascripts/init-app.js'
+    
+}, function(){}, function(sError) { console.log(sError); });
 
-// ACE.
-var oAceBuilder = require('./public/javascripts/edit-control/ace/Makefile.dryice');
-oAceBuilder.buildAce(
+requirejs.optimize(
 {
-    targetDir: __dirname + '/public/build/ace',
-    compress: true,
-});
+    mainConfigFile: './public/javascripts/require-config.js',
+        
+    baseUrl: './public/javascripts',
+        
+    name: 'workspace',
+    
+    out: './public/build/javascripts/workspace.js'
+    
+}, function(){}, function(sError) { console.log(sError); });
+
+// Ace
+requirejs.optimize(
+{
+    mainConfigFile: './public/javascripts/require-config.js',
+        
+    baseUrl: './public/javascripts/edit-control/ace',
+            
+    dir: './public/build/javascripts/edit-control/ace',
+    
+}, function(){}, function(sError) { console.log(sError); });

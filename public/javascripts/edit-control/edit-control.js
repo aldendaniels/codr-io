@@ -3,9 +3,9 @@ define(function(require)
 {
     // Dependencies
     var $         = require('jquery'),
-        oHelpers  = require('helpers/helpers-web'),
-        oAce      = require('ace/ace')
-        AceRange  = require('ace/range').Range;
+        oHelpers  = require('helpers/helpers-web');
+        oAce      = require('./ace/ace')
+        AceRange  = oAce.require('ace/range').Range;
     
     return oHelpers.createClass(
     {
