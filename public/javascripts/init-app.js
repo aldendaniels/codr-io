@@ -1,62 +1,66 @@
-
-define(function(require)
+define('init-app', function(require)
 {
     // Dependencies.
     var $        = require('jquery'),
         oHelpers = require('helpers/helpers-web'),
         oModes   = require('edit-control/modes');
-        
-    function loadModeChooser(fnOnModeSelect)
-    {
-        // Init menu.
-        var oMenu = oModes.createModeMenu('#modes', this, function(oMode) // On Mode select
-        {
-            fnOnModeSelect(oMode);
-        });
-        oMenu.focusInput();
-        
-        // Maintain focus.
-        oHelpers.on(window, 'mousedown.home', this, function(oEvent)
-        {
-            if (!$(oEvent.target).is('input, textarea'))
-                oEvent.preventDefault();
-        });
-        
-        // Pass events through to the menu.
-        oHelpers.on(window, 'click.home keyup.home keydown.home', this, function(oEvent)
-        {
-            if ($(oEvent.target).parents('#home #modes').length > 0)
-                oMenu.onEvent(oEvent);
-            
-        });        
-    }
     
-    function loadWorkspace(bIsNewDocument, bIsSnapshot, oNewDocumentMode)
-    {
-        require(['workspace'], function(Workspace, Socket)
+    return {
+        loadModeChooser: function(fnOnModeSelect)
         {
-            // Instantiate Worksapce.
-            var oWorkspace = new Workspace(bIsNewDocument, bIsSnapshot, oNewDocumentMode);
+            // Init menu.
+            var oMenu = oModes.createModeMenu('#modes', this, function(oMode) // On Mode select
+            {
+                fnOnModeSelect(oMode);
+            });
+            oMenu.focusInput();
             
-            // Hide mode chooser.
-            if (bIsNewDocument)
+            // Maintain focus.
+            oHelpers.on(window, 'mousedown.home', this, function(oEvent)
             {
-                $('BODY').removeClass('home');
-                $(window).off('.home');
-            }
-        });
-    }
+                if (!$(oEvent.target).is('input, textarea'))
+                    oEvent.preventDefault();
+            });
+            
+            // Pass events through to the menu.
+            oHelpers.on(window, 'click.home keyup.home keydown.home', this, function(oEvent)
+            {
+                if ($(oEvent.target).parents('#home #modes').length > 0)
+                    oMenu.onEvent(oEvent);
+                
+            });        
+        },
     
-    return function(bIsNewDocument, bIsSnapshot)
-    {
-        if (bIsNewDocument)
+        loadWorkspace: function(bIsNewDocument, bIsSnapshot, oNewDocumentMode)
         {
-            loadModeChooser(function(oMode)
+            require(['workspace'], function(Workspace, Socket)
             {
-                loadWorkspace(bIsNewDocument, bIsSnapshot, oMode)
+                // Instantiate Worksapce.
+                var oWorkspace = new Workspace(bIsNewDocument, bIsSnapshot, oNewDocumentMode);
+                
+                // Hide mode chooser.
+                if (bIsNewDocument)
+                {
+                    $('BODY').removeClass('home');
+                    $(window).off('.home');
+                }
             });
         }
-        else
-            loadWorkspace(bIsNewDocument, bIsSnapshot, null);        
     }
+});
+
+require(['init-app'], function(oInitApp)
+{
+    // Hack: references global variables defined in index.html:
+    //   - IS_NEW_DOCUMENT
+    //   - IS_SNAPSHOT
+    if (IS_NEW_DOCUMENT)
+    {
+        oInitApp.loadModeChooser(function(oMode)
+        {
+            oInitApp.loadWorkspace(IS_NEW_DOCUMENT, IS_SNAPSHOT, oMode)
+        });
+    }
+    else
+        oInitApp.loadWorkspace(IS_NEW_DOCUMENT, IS_SNAPSHOT, null);  
 });
