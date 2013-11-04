@@ -11,9 +11,6 @@ requirejs.config(
     paths:
     {
         'jquery': 'lib/jquery',
-        
-        /* Ace paths don't work unless hard-coded here. */
-        'ace': 'edit-control/ace',
     },
     
     map: {

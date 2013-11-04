@@ -1,1 +1,0 @@
-requirejs.config({enforceDefine:!0,baseUrl:"/javascripts/",paths:{jquery:"lib/jquery",ace:"edit-control/ace"},map:{"*":{jquery:"lib/jquery-private"},"lib/jquery-private":{jquery:"jquery"}},shim:{"edit-control/ace/ace":{exports:"ace"}}});

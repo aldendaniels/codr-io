@@ -4,8 +4,18 @@ define(function(require)
     // Dependencies
     var $         = require('jquery'),
         oHelpers  = require('helpers/helpers-web');
-        oAce      = require('./ace/ace')
-        AceRange  = oAce.require('ace/range').Range;
+        oAce      = require('./ace/ace');
+    
+    // Hack: Ace expect there to be a script tag to load a file named "ace.js"
+    // and uses that to determine what url to load modes / extensions from.
+    // This expectation is not met in production, where ace is combined with
+    // other files. In this case, we manually set the path.
+    if (!oAce.config.get('basePath'))
+    {
+        oAce.config.set('basePath', window.location.origin + '/javascripts/ace');
+    }
+    
+    var AceRange  = oAce.require('ace/range').Range;
     
     return oHelpers.createClass(
     {

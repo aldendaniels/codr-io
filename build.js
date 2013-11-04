@@ -24,9 +24,9 @@ for (var i = 2; i < process.argv.length; i++)
     oArgs[aParts[0].trim()] = aParts[1].trim();
 }
 
-////////////// RequireJS. /////////////////
+////////////// JS COMPILATION /////////////////
 
-function compileJS(sName, aInclude, aExclude)
+function compileJS(sName, oExtraOptions)
 {
     var oOptions = {
         
@@ -38,37 +38,43 @@ function compileJS(sName, aInclude, aExclude)
         
         out: './public/build/javascripts/' + sName + '.js',
         
-        include: aInclude || [],
-        
-        exclude: aExclude || [],
-        
         preserveLicenseComments: false,
         
         optimize: (oArgs.fast ? 'none': 'uglify')
+        
     };
+    oHelpers.extendObj(oOptions, oExtraOptions);
     requirejs.optimize(oOptions, handleError);
 }
 
 // Init-Aapp.
-compileJS('init-app', ['lib/require', 'require-config']);
+compileJS('init-app',
+{
+    include: ['lib/require', 'require-config']
+});
 
 // Workspace.
-compileJS('workspace', [], ['init-app']);
-
-// Ace
-requirejs.optimize(
+compileJS('workspace',
 {
+    exclude: ['init-app'],
+});
+
+// Ace.
+requirejs.optimize({
+    
     mainConfigFile: './public/javascripts/require-config.js',
         
     baseUrl: './public/javascripts/edit-control/ace',
-            
-    dir: './public/build/javascripts/edit-control/ace',
     
-    exclude: ['ace'],
+    dir: './public/build/javascripts/ace',
+                        
+    fileExclusionRegExp: /^ace.js$/, // Already built into workspace.js
+   
+    preserveLicenseComments: false,
     
     optimize: (oArgs.fast ? 'none': 'uglify')
     
-}, function(){}, handleError);
+}, handleError);
 
 
 ////////////// LESS COMPILATION /////////////////
@@ -104,7 +110,7 @@ function complileLESS(sDirIn, sFilename)
 
 complileLESS('./public/stylesheets', 'index.less');
 
-////////////// HTML /////////////////
+////////////// HTML COMPILATION /////////////////
 var stream = require('stream');
 function createTransform()
 {
