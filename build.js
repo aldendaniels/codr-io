@@ -5,8 +5,11 @@ var requirejs = require('requirejs');
 var mkdirp = require('mkdirp');
 var ncp = require('ncp').ncp;
 
+// OUPUT DIR
+var sOutputDir = './public_build';
+
 // Delete output dir.
-oHelpers.emptyDirSync(__dirname + '/public/build');
+oHelpers.emptyDirSync(__dirname + sOutputDir);
 
 // OnError handler function
 function handleError(e)
@@ -36,7 +39,7 @@ function compileJS(sName, oExtraOptions)
             
         name: sName,
         
-        out: './public/build/javascripts/' + sName + '.js',
+        out: sOutputDir + '/javascripts/' + sName + '.js',
         
         preserveLicenseComments: false,
         
@@ -66,7 +69,7 @@ requirejs.optimize({
         
     baseUrl: './public/javascripts/edit-control/ace',
     
-    dir: './public/build/javascripts/ace',
+    dir: sOutputDir + '/javascripts/ace',
                         
     fileExclusionRegExp: /^ace.js$/, // Already built into workspace.js
    
@@ -82,7 +85,7 @@ requirejs.optimize({
 function complileLESS(sDirIn, sFilename)
 {
     // Paths.
-    var sDirOut  = sDirIn.replace('public/', 'public/build/');
+    var sDirOut  = sDirIn.replace('public/', sOutputDir + '/');
     var sPathIn  = sDirIn  + '/' + sFilename;
     var sPathOut = sDirOut + '/' + sFilename.replace('.less', '.css');
     
@@ -127,7 +130,7 @@ function createTransform()
 
 
 var bIsDevOnly = false;
-ncp('./public/html', './public/build/html',
+ncp('./public/html', sOutputDir + '/html',
 {
     transform: function(read, write)
     {
