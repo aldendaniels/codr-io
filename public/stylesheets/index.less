@@ -1,6 +1,6 @@
 @import "helpers.less";
 @import "menu.less";
-@import (css) "fontello/css/fontello.css";
+@import (css) "icomoon/style.css";
 
 @top-toolbar-height: 50px;
 @codr-blue: #319ac2;
@@ -366,7 +366,7 @@ body.snapshot .edit-mode-message { display: block; }
         
         #toolbar-logo
         {
-            margin-top: -1px;
+            margin-top: 2px;
             width: @left-toolbar-width;
             text-align: center;
             text-decoration: none;
@@ -389,7 +389,7 @@ body.snapshot .edit-mode-message { display: block; }
                 font-size: 15pt;
                 color: white;
                 position: absolute;
-                left: 16px;
+                left: 20px;
                 top: 15px;
                 text-shadow: none;
             }
@@ -586,9 +586,10 @@ body.snapshot .edit-mode-message { display: block; }
             {
                 border-right: 1px #eee solid;
                 padding-left: 10px;
-                padding-right: 10px;
+                padding-right: 25px;
                 padding-top: 3px;
                 font-size: 8pt;
+                position: relative;
                                 
                 .status-label
                 {
@@ -601,10 +602,13 @@ body.snapshot .edit-mode-message { display: block; }
                     font-weight: bold;
                 }
                 
-                .icon-arrow-combo
+                .icon-sort
                 {
                     color: #555;
-                    position: relative;
+                    position: absolute;
+                    font-size: 12px;
+                    right: 6px;
+                    top: 5px;
                 }
             }
             
@@ -626,19 +630,18 @@ body.snapshot .edit-mode-message { display: block; }
     }
 
     
-    i.left-icon{
-        font-size: 30pt;
-        line-height: 0;
-        color: #555;
-        position: relative;
-        left: -2px;
-        -webkit-text-stroke: 1px;
+    .left-icon
+    {
+        font-size: 36px;
+        margin-top: 3px;
+        display: block;
+        -webkit-text-stroke: 0.2px;
         text-shadow: 1px 2px 3px white;
-        
-        &.icon-cog-alt
-        {
-            font-size: 30.4pt; /* Chrome hack */
-        }
+        display: block;
+        text-align: center;
+        -webkit-text-stroke: 0.5px;
+        color: #555;
+        text-shadow: 1px 2px 3px white;
     }
     
     #toolbar-left
@@ -668,6 +671,7 @@ body.snapshot .edit-mode-message { display: block; }
             .toolbar-item-btn
             {
                 padding-left: 3px;
+                padding-right: 3px;
                 height: @icon-height;
                 padding-top: @icon-botton-padding-top;
             }
