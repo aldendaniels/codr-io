@@ -13,6 +13,7 @@ var oConnect            = require('connect');
 
 // Setup global config parameters.
 require('./config');
+var sBuildDir = './public_build';
 
 // Import helpers.
 var oHelpers     = require('./helpers-node');
@@ -48,7 +49,7 @@ oApp.configure(function()
     // Configur static serving.
     if (g_oConfig.bIsProd)
     {
-        oApp.use(oExpress.static(oPath.join(__dirname, 'public/build')));        
+        oApp.use(oExpress.static(sBuildDir));        
     }
     else
     {
@@ -74,7 +75,7 @@ oApp.configure(function()
         oApp.use(oExpress.static(oPath.join(__dirname, 'public')));        
     }
 
-    var sHTMLPath = (g_oConfig.bIsProd ? 'public/build/html/' : 'public/html/');
+    var sHTMLPath = (g_oConfig.bIsProd ? sBuildDir + '/html/' : 'public/html/');
     
     /* Save static index.html */
     oApp.get('^/$', function(req, res)
