@@ -2,7 +2,7 @@
 define(function(require)
 {
     // Dependencies.
-    var $        = require('jquery'),
+    var $        = require('lib/jquery'),
         oHelpers = require('helpers/helpers-web');
         
     var setSessionInfoCallback = (function ()

@@ -1,7 +1,7 @@
 define('workspace', function(require)
 {
     // Dependencies.
-    var $                     = require('jquery'),
+    var $                     = require('lib/jquery'),
         oHelpers              = require('helpers/helpers-web'),
         Socket                = require('helpers/socket'),
         KeyShortcutHandler    = require('helpers/key-shortcut-handler'),
@@ -227,7 +227,7 @@ define('workspace', function(require)
                     
                     case 'mousedown':
                         // Focus should always be in a text-entry box.
-                        if (jTarget.is(':not(input, textarea)') || jTarget.prop('disabled'))
+                        if (!jTarget.is('input, textarea') || jTarget.prop('disabled'))
                             oEvent.preventDefault();
                         
                     // Forward non-keyboard events.

@@ -8,28 +8,16 @@ requirejs.config(
     
     baseUrl: '/javascripts/',
     
-    paths:
-    {
-        'jquery': 'lib/jquery',
-    },
-    
-    map: {
-        // See http://requirejs.org/docs/jquery.html
-        // '*' means all modules will get 'jquery-private'
-        // for their 'jquery' dependency.
-        '*': { 'jquery': 'lib/jquery-private' },
-        
-        // 'jquery-private' wants the real jQuery module
-        // though. If this line was not here, there would
-        // be an unresolvable cyclic dependency.
-        'lib/jquery-private': { 'jquery': 'jquery' }
-    },
-    
     shim: // Used for scripts that have no define()
     {
         'edit-control/ace/ace':
         {
             exports: 'ace'
+        },
+        
+        'lib/jquery':
+        {
+            exports: '$'
         }
     }
 });

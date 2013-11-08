@@ -1,11 +1,11 @@
 define(function(require)
 {
     // Dependencies.
-    var $        = require('jquery'),
+    var $        = require('lib/jquery'),
         oHelpers = require('helpers/helpers-web'),
         oModes   = require('edit-control/modes'),
         Chat     = require('chat');
-                   require('lib/jquery.ui-selectors'); // Plugin: No return object.
+                   //require('lib/jquery.ui-selectors'); // Plugin: No return object.
 
     return oHelpers.createClass(
     {
@@ -213,7 +213,7 @@ define(function(require)
             if (!jItem.hasClass('open'))
             {
                 jItem.addClass('open');
-                jItem.find(':focusable').first().focus().select();            
+                jItem.find('button,input,textarea').first().focus().select();            
             }
             
             /* Notify chat. */

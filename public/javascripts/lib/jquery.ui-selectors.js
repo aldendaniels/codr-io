@@ -4,7 +4,7 @@ define(function(require)
     // Dependencies.
     // _jquery is native jquery.
     // jquery (used elsewhere), includes jquery and jquery-selectors.
-    var $ = require('jquery');
+    var $ = require('lib/jquery');
     
     /*! jQuery UI - v1.10.3 - 2013-06-21
     * http://jqueryui.com

@@ -1,7 +1,7 @@
 define('init-app', function(require)
 {
     // Dependencies.
-    var $        = require('jquery'),
+    var $        = require('lib/jquery'),
         oHelpers = require('helpers/helpers-web'),
         oModes   = require('edit-control/modes');
     

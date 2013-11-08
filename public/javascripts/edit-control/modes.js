@@ -1,7 +1,7 @@
 define(function(require)
 {
     // Dependencies
-    var $            = require('jquery'),
+    var $            = require('lib/jquery'),
         oHelpers     = require('helpers/helpers-web'),
         Menu         = require('helpers/menu'),
         oAceModeList = require('./ace-ext-modelist');
