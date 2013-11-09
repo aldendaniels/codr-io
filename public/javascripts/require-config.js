@@ -18,6 +18,12 @@ requirejs.config(
         'lib/jquery':
         {
             exports: '$'
+        },
+        
+        'tests/qunit':
+        {
+            deps: ['lib/jquery'], 
+            exports: 'QUnit',
         }
     }
 });
