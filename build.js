@@ -129,7 +129,6 @@ function createTransform()
 }
 
 
-var bIsDevOnly = false;
 ncp('./public/html', sOutputDir + '/html',
 {
     transform: function(read, write)
@@ -138,3 +137,16 @@ ncp('./public/html', sOutputDir + '/html',
         read.pipe(transform).pipe(write);
     }
 }, handleError);
+
+
+////////////////////// COMPRESS /////////////////////
+/*
+var oZLib = require('zlib');
+oHelpers.emptyDirSync(__dirname + sOutputDir + '_compressed');
+ncp('./public_build', sOutputDir + '_compressed',
+{
+    transform: function(read, write)
+    {
+        read.pipe(new oZLib.Gzip()).pipe(write);
+    }
+}, handleError);*/
