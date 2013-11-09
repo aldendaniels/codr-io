@@ -72,7 +72,8 @@ module.exports = oHelpers.createClass(
     addClient: function(oClient)
     {
         // Assign the client an ID (username).
-        oClient.setClientID(this._generateNewClientID(oClient.getUsername()));
+        this._iGeneratedClientNames++;
+        oClient.setClientID('User ' + this._iGeneratedClientNames);
         
         // Add the client: Automatically allow editing if you're the only client.
         this._aClients.push(oClient);
@@ -87,7 +88,8 @@ module.exports = oHelpers.createClass(
         // Propagate to the other clients.
         if (this._bDocumentLoaded)
         {
-            this._broadcastAction(oClient, {
+            this._broadcastAction(oClient,
+            {
                 sType: 'addClient',
                 oData:
                 {
@@ -153,8 +155,7 @@ module.exports = oHelpers.createClass(
         // Send ID (Username).
         oClient.sendAction('connect',
         {
-            'sClientID': oClient.getClientID(),
-            'bLoggedIn': oClient.getLoggedIn()
+            'sClientID': oClient.getClientID()
         });
         
         // Send documentID on document creation.
@@ -338,6 +339,7 @@ module.exports = oHelpers.createClass(
                 break;
 
             case 'changeClientID':
+                
                 var sNewClientID = oAction.oData.sClientID;
 
                 // Check for errors
@@ -350,9 +352,6 @@ module.exports = oHelpers.createClass(
                     if (this._aClients[i] != oClient && this._aClients[i].getClientID() == sNewClientID)
                         sError = 'This username has already been taken.';
                 }
-
-                if (oClient.getLoggedIn())
-                    sError = "You can not change your username if you have an account.";
 
                 // Handle errors
                 if (sError)
@@ -369,7 +368,8 @@ module.exports = oHelpers.createClass(
                 this._broadcastAction(oClient,
                 {
                     sType: 'removeClient',
-                    oData: {
+                    oData:
+                    {
                         sClientID: oClient.getClientID()
                     }
                 });
@@ -439,27 +439,6 @@ module.exports = oHelpers.createClass(
             default:
                 oHelpers.assert(false, 'Unrecognized event type: "' + oAction.sType + '"');
         }
-    },
-
-    _generateNewClientID: function(sOptionalPrefix)
-    {
-        if (sOptionalPrefix)
-        {
-            var iNumFound = 0;
-            for (var i = 0; i < this._aClients.length; i++)
-            {
-                if (this._aClients[i].getClientID().indexOf(sOptionalPrefix) === 0)
-                    iNumFound++;
-            }
-            if (iNumFound > 0)
-                return sOptionalPrefix + ' (' + iNumFound + ')';
-            else
-                return sOptionalPrefix;
-
-        }
-
-        this._iGeneratedClientNames++;
-        return 'User ' + this._iGeneratedClientNames;
     },
 
     _broadcastAction: function(oSendingClient /*May be null*/, oAction)

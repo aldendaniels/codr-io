@@ -16,22 +16,6 @@
             if (IS_SNAPSHOT)
                 document.body.className += " snapshot"
         </script>
-        
-        <div style="display: none;">
-            <div id="home-login" class="login">
-                <form method="POST" action="/login">
-                    Username: <input type="text" name="username" />
-                    Password: <input type="password" name="password" />
-                    <button type="submit" class="small">Go</button>
-                </form>
-                <span>
-                or <a href="/signup/">Signup</a>
-                </span>
-            </div>
-            <div id="home-user-greeting" class="user-greeting">
-                Hello <span id="home-greeting-username"></span>. (<a href="/logout">Logout</a>)
-            </div>
-        </div>
 
         <div id="home">
             <div id="home-content">

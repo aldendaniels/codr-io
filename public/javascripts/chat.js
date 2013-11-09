@@ -40,7 +40,6 @@ define(function(require)
         
         onClose: function()
         {
-            console.log('on close');
             this._bChatOpen = false;
         },
         
@@ -138,10 +137,12 @@ define(function(require)
                     break;
     
                 case 'invalidClientIDChange':
+                    
                     $('#chat-identify-error-message').text(oAction.oData.sReason);
                     break;
     
                 case 'newClientIDAccepted':
+                    
                     // Save username.
                     this._oWorkspace.getUserInfo()['sClientID'] = oAction.oData.sClientID;
                     
@@ -149,10 +150,6 @@ define(function(require)
                     this._showChatBox();
                     
                     break;
-    
-                case 'connect':
-                    if (oAction.oData.bLoggedIn)
-                        this._showChatBox();
                 
                 default:
                     return false;

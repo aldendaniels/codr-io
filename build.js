@@ -3,7 +3,6 @@ var oFS = require('fs');
 var oLESS = require('less');
 var requirejs = require('requirejs');
 var mkdirp = require('mkdirp');
-var ncp = require('ncp').ncp;
 
 // OUPUT DIR
 var sOutputDir = './public_build';
@@ -114,33 +113,22 @@ function complileLESS(sDirIn, sFilename)
 complileLESS('./public/stylesheets', 'index.less');
 
 ////////////// HTML COMPILATION /////////////////
-var stream = require('stream');
-function createTransform()
+
+var aFileNames = oFS.readdirSync('./public');
+for(var i in aFileNames)
 {
-    var transform = new stream.Transform();
-    transform._transform = function(chunk, encoding, done)
+    var sFileName = aFileNames[i];
+    if (sFileName.slice(-5) == '.html')
     {
         r = /<!--START_DEV_ONLY-->(.|\n|\r)*<!--END_DEV_ONLY-->/g;
-        s = chunk.toString().replace(r, '');
-        this.push(s);
-        done();
+        var sFileContent = String(oFS.readFileSync('./public/' + sFileName)).replace(r, '');
+        oFS.writeFileSync(sOutputDir + '/' + sFileName, sFileContent, {}, handleError);
     }
-    return transform;
 }
-
-
-ncp('./public/html', sOutputDir + '/html',
-{
-    transform: function(read, write)
-    {
-        var transform = createTransform();
-        read.pipe(transform).pipe(write);
-    }
-}, handleError);
-
 
 ////////////////////// COMPRESS /////////////////////
 /*
+var ncp = require('ncp').ncp;
 var oZLib = require('zlib');
 oHelpers.emptyDirSync(__dirname + sOutputDir + '_compressed');
 ncp('./public_build', sOutputDir + '_compressed',

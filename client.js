@@ -13,15 +13,12 @@ module.exports = oHelpers.createClass(
     _bClosed: false,
     _sClientID: '',
     _oLastSelRange: null,
-    _sUsername: '',
-    _bLoggedIn: false,
     
-    __init__: function(oSocket, sUsername)
+    __init__: function(oSocket)
     {
         // Init objects.
         this._aPreInitActionQueue = [];
         this._oSocket = oSocket;
-        this._sUsername = sUsername;
         
         // Initial selection at start of document.
         this._oLastSelRange = {
@@ -42,30 +39,15 @@ module.exports = oHelpers.createClass(
     
     setClientID: function(sClientID)
     {
-        oHelpers.assert(!this._bLoggedIn, "You can\'t set the client ID for a client with a user account.");
-
-        if (this._sUsername != "" && sClientID.indexOf(this._sUsername) === 0 && this._sClientID == "")
-            this._bLoggedIn = true;
-
         this._sClientID = sClientID;
     },
 
     getClientID: function()
     {
-        oHelpers.assert(this._sClientID, 'The username is not yet initialized.')
+        oHelpers.assert(this._sClientID, 'The client ID is not yet initialized.')
         return this._sClientID;
     },
 
-    getUsername: function()
-    {
-        return this._sUsername;
-    },
-
-    getLoggedIn: function()
-    {
-        return this._bLoggedIn;
-    },
-    
     getSelectionRange: function()
     {
         return this._oLastSelRange;
