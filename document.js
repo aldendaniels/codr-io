@@ -43,7 +43,7 @@ module.exports = oHelpers.createClass(
         
     clone: function(bIsSnapshot)
     {
-        var oClone = new Document(this.toJSON());
+        var oClone = new this.constructor(this.toJSON());
         oClone.set('bIsSnapshot', bIsSnapshot || false);
         oClone.set('aSnapshots', []);
         oClone.set('oDateCreated', new Date());
