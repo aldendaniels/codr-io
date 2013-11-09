@@ -32,27 +32,6 @@ body, textarea, input, button
     text-shadow: 1px 2px 3px white;
 }
 
-body:not(.home) #home-login,
-body:not(.home) #home-user-greeting,
-body.logged-in  .login,
-body:not(.logged-in) .user-greeting
-{
-    display: none;
-}
-
-#home-login,
-#home-user-greeting
-{
-    position: absolute;
-    right: 0;
-    margin: 1em;
-
-    button
-    {
-        display: inline-block;
-    }
-}
-
             #home      { display: none;  }
 body.home   #home      { display: block; }
 body.home   #workspace { display: none;  }

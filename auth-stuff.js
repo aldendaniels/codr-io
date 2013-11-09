@@ -51,6 +51,37 @@
 <div id="home-user-greeting" class="user-greeting">
     Hello <span id="home-greeting-username"></span>. (<a href="/logout">Logout</a>)
 </div>
+[...]
+<div id="account">
+    <a class="login" id="workspace-login">Log in</a>
+    <div class="user-greeting">
+        Hello <span id="workspace-greeting-username"></span> (<a id="workspace-logout">Logout</a>)
+    </div>
+</div>
+
+//==============index.less=============//
+body:not(.home) #home-login,
+body:not(.home) #home-user-greeting,
+body.logged-in  .login,
+body:not(.logged-in) .user-greeting
+{
+    display: none;
+}
+
+#home-login,
+#home-user-greeting
+{
+    position: absolute;
+    right: 0;
+    margin: 1em;
+
+    button
+    {
+        display: inline-block;
+    }
+}
+
+
 */
 
 //===============app.js==================//
