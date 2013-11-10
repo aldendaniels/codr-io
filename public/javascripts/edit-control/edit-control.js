@@ -23,6 +23,7 @@ define(function(require)
         _oAceEditor: null,
         _oAceEditSession: null,
         _oAceDocument: null,
+        _oAceUndoManager: null,
         _sNewLineChar: '',
         
         /* Keep from sending too many selection change events. */
@@ -43,6 +44,7 @@ define(function(require)
             this._oAceEditor = oAce.edit(sEditorID);
             this._oAceEditSession = this._oAceEditor.getSession();
             this._oAceDocument = this._oAceEditSession.getDocument();
+            this._oAceUndoManager = this._oAceEditSession.getUndoManager();
             this._sNewLineChar = this._oAceDocument.getNewLineCharacter();
             
             // Set initial ace editor settings.
@@ -76,7 +78,7 @@ define(function(require)
             this._oAceDocument.applyDeltas([oAceDelta]);
             this._bApplyingDelta = false;
         },
-        
+                
         revertDelta: function(oNormDelta)
         {
             this._bApplyingDelta = true;
@@ -159,7 +161,10 @@ define(function(require)
                         
                         // Notify callback.
                         if (!this._bApplyingDelta)
-                            fnCallback(this._normalizeAceDelta(oEvent.data));
+                        {
+                            var oDelta = this._normalizeAceDelta(oEvent.data);
+                            fnCallback(oDelta);
+                        }
                     }));
                     break;
                 
@@ -192,11 +197,25 @@ define(function(require)
                     }));
                     break;
                 
+                case 'undo':
+                    this._oAceEditor.commands.commands.undo.exec = oHelpers.createCallback(this, function()
+                    {
+                        fnCallback();
+                    })
+                    break;
+                
+                case 'redo':
+                    this._oAceEditor.commands.commands.redo.exec = oHelpers.createCallback(this, function()
+                    {
+                        fnCallback();
+                    })
+                    break;
+                
                 default:
                     oHelpers.assert(false, 'Invalid event type ' + sEventType);
             }
         },
-        
+                
         _normalizeAceDelta: function(oAceDelta)
         {
             var oNormRange = this._normalizeAceRange(oAceDelta.range);

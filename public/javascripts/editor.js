@@ -1,3 +1,52 @@
+/* We maintain a sorted list of all deltas (ours and others.):
+    [
+        {
+            oDelta:         object,
+            bIsMe:          boolean,
+            bIsPending:     boolean,
+            bIsUndo:        boolean,
+            bHasBeenUndone: boolean, // Allies to all events EXCEPT undo events.
+            bHasBeenRedone: boolean, // Applies to undo events.
+        },
+        [...]
+    ]
+    
+    On Undo:
+    
+        1. Find the last action where:
+            bIsMe = true
+            bIsUndo = false
+            bHasBeenUndone = false
+      
+        2. Create a new event with a reversed delta. Set bIsUndo=true.
+      
+        3. Transform the new event based on subsequent events
+           
+        4. Apply the new event.
+        
+        5. Set bHasBeenUndone to true on the original event.
+    
+    On Redo:
+    
+        1. Find the last action where:
+            bIsMe = true
+            bIsUndo = true
+            bHasBeenUndone = false
+            
+            NOTE: If a non-undo-event is ecountered before an event
+                  matching the above criteria, don't do anything.
+        
+      
+        2. Create a new event with a reversed delta. Set bIsRedo=true.
+      
+        3. Transform the new event based on subsequent events
+           
+        4. Apply the new event.
+        
+        5. Set bHasBeenRedone to true on the original undo event.
+         
+*/
+
 define(function(require)
 {
     // Dependencies.
@@ -21,7 +70,7 @@ define(function(require)
     
         // OT Transform state.
         _iServerState: 0,
-        _aServerUnseenQueue: null,
+        _aPastDeltas: null, // Also used for undo/redo.
     
         __type__: 'Editor',    
     
@@ -29,7 +78,7 @@ define(function(require)
         {
             this._oSocket = oSocket;
             this._oRemoteClients = {};
-            this._aServerUnseenQueue = [];
+            this._aPastDeltas = [];
             
             // Attach socket.
             this._oSocket.bind('message', this, this._handleServerAction);
@@ -38,6 +87,8 @@ define(function(require)
             this._oEditControl = new EditControl(EDITOR_ID);
             this._oEditControl.on('docChange', this, this._onDocumentChange);
             this._oEditControl.on('selChange', this, this._onSelectionChange);
+            //this._oEditControl.on('undo', this, this._onUndo);
+            //this._oEditControl.on('redo', this, this._onRedo);
             
             // Update status bar.
             this._setPeopleViewing();
@@ -83,9 +134,10 @@ define(function(require)
                 
                 case 'setRemoteSelection':
                     
-                    // Tranform range to reflect local actions.
-                    for (var i = 0; i < this._aServerUnseenQueue.length; i++)
-                        oAction.oData.oRange = oOT.transformRange(this._aServerUnseenQueue[i], oAction.oData.oRange);
+                    // Tranform range to reflect local deltas.
+                    var aPendingDeltas = this._getPendingDeltas();
+                    for (var i in aPendingDeltas)
+                        oAction.oData.oRange = oOT.transformRange(aPendingDeltas[i], oAction.oData.oRange);
                     
                     // Save remote selection range and refresh.
                     var sClientID = oAction.oData.sClientID;
@@ -99,23 +151,29 @@ define(function(require)
                     this._iServerState = oAction.oData.iServerState;
                     
                     // Revert pending deltas.
-                    for (var i = this._aServerUnseenQueue.length - 1; i >= 0; i--)
-                    {                 
-                        var oLocalDelta = this._aServerUnseenQueue[i];
-                        var oInverseDelta = oHelpers.deepCloneObj(oLocalDelta);
-                        oInverseDelta.sAction = (oLocalDelta.sAction == 'insert' ? 'delete' : 'insert');
-                        this._applyDelta(oInverseDelta);
-                    }
+                    var aPendingDeltas = this._getPendingDeltas(true /*remove*/);
+                    for(var i = aPendingDeltas.length - 1; i >= 0; i--)
+                        this._applyDelta(this._getReversedDelta(aPendingDeltas[i]));
                     
                     // Apply new delta.
                     this._applyDelta(oAction.oData.oDelta);
+                    this._aPastDeltas.push(
+                    {
+                        oDelta:         oAction.oData.oDelta,
+                        bIsPending:     false,
+                        bIsMe:          false,
+                        bIsUndo:        false,
+                        bHasBeenUndone: false, // Applies to all events EXCEPT undo events.
+                        bHasBeenRedone: false, // Applies to undo events.
+                    });
                     
                     // Transform and apply pending tranformed deltas.
-                    for (var i = 0; i < this._aServerUnseenQueue.length; i++)
+                    for (i in aPendingDeltas)
                     {
-                        oLocalDelta = this._aServerUnseenQueue[i];
-                        oLocalDelta.oRange = oOT.transformRange(oAction.oData.oDelta, oLocalDelta.oRange);
-                        this._applyDelta(oLocalDelta);
+                        var oPendingDelta = aPendingDeltas[i];
+                        oPendingDelta.oRange = oOT.transformRange(oAction.oData.oDelta, oPendingDelta.oRange);
+                        this._applyDelta(oPendingDelta);
+                        this._aPastDeltas.push(oPendingDelta);
                     }
                     
                     // Refresh remote cursors.
@@ -124,7 +182,9 @@ define(function(require)
                     
                 case 'eventReciept':
                     this._iServerState = oAction.oData.iServerState;
-                    this._aServerUnseenQueue.splice(0, 1);
+                    var iFirstPendingDeltaOffset = this._getFirstPendingDeltaOffset();
+                    if (iFirstPendingDeltaOffset)
+                        this._aPastDeltas[iFirstPendingDeltaOffset].bIsPending = false;              
                     break;
                     
                 case 'addClient':
@@ -180,8 +240,11 @@ define(function(require)
             $('#col-num').text(oRange.oStart.iCol + 1);
         },
         
-        _onDocumentChange: function(oDelta)
+        _onDocumentChange: function(oDelta, bIsUndo)
         {
+            // Note: applyDelta calls do not result in docchange events.
+            // The docchange is only fired when the local user makes
+            // local changes.
             this._oSocket.send('docChange',
             {
                 oDelta: oDelta,
@@ -189,7 +252,36 @@ define(function(require)
             });
             this._transformRemoteSelections(oDelta);
             this._refreshRemoteSelections();
-            this._aServerUnseenQueue.push(oDelta);
+            this._aPastDeltas.push(
+            {
+                oDelta:         oDelta,
+                bIsMe:          true,
+                bIsPending:     false,
+                bIsUndo:        bIsUndo || false,
+                bHasBeenUndone: false, // Applies to all events EXCEPT undo events.
+                bHasBeenRedone: false  // Applies to undo events.
+            });
+        },
+        
+        _onUndo: function()
+        {
+            /*if (this._aUndoStack.length)
+            {
+                var oDelta = this._aUndoStack.pop();
+                this._applyDelta(oDelta);
+                this._onDocumentChange(oDelta, true);
+                this._aRedoStack.push(this._getReversedDelta(oDelta));                
+            }*/
+        },
+        
+        _onRedo: function()
+        {
+            /*if (this._aRedoStack.length)
+            {
+                var oDelta = this._aRedoStack.pop();
+                this._applyDelta(oDelta);
+                this._onDocumentChange(oDelta);             
+            }*/
         },
         
         _transformRemoteSelections: function(oDelta)
@@ -216,6 +308,35 @@ define(function(require)
         {
             this._oEditControl.applyDelta(oDelta);
             this._transformRemoteSelections(oDelta);
-        }
+        },
+        
+        _getReversedDelta: function(oNormDelta)
+        {
+            var oInverseDelta = oHelpers.deepCloneObj(oNormDelta);
+            oInverseDelta.sAction = (oNormDelta.sAction == 'insert' ? 'delete' : 'insert');
+            return oInverseDelta;
+        },
+        
+        _getPendingDeltas: function(bRemove)
+        {
+            var iFirstPendingDeltaOffset = this._getFirstPendingDeltaOffset();
+            if (iFirstPendingDeltaOffset)
+            {
+                if (bRemove)
+                    return this._aPastDeltas.splice(iFirstPendingDeltaOffset, this._aPastDeltas.length);
+                else
+                    return this._aPastDeltas.slice( iFirstPendingDeltaOffset, this._aPastDeltas.length);                
+            }
+            return [];
+        },
+        
+        _getFirstPendingDeltaOffset: function()
+        {
+            var iFirstPendingDeltaOffset = null;
+            for (var i = this._aPastDeltas.length - 1; i >=0;  i--)
+                iFirstPendingDeltaOffset = i;
+            return iFirstPendingDeltaOffset;
+        },
+        
     });
 });
