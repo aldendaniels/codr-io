@@ -23,7 +23,6 @@ define(function(require)
         _oAceEditor: null,
         _oAceEditSession: null,
         _oAceDocument: null,
-        _oAceUndoManager: null,
         _sNewLineChar: '',
         
         /* Keep from sending too many selection change events. */
@@ -44,7 +43,6 @@ define(function(require)
             this._oAceEditor = oAce.edit(sEditorID);
             this._oAceEditSession = this._oAceEditor.getSession();
             this._oAceDocument = this._oAceEditSession.getDocument();
-            this._oAceUndoManager = this._oAceEditSession.getUndoManager();
             this._sNewLineChar = this._oAceDocument.getNewLineCharacter();
             
             // Set initial ace editor settings.
