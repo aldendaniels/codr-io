@@ -98,6 +98,11 @@ define(function(require)
             this._bApplyingDelta = false;
         },
         
+        moveCursorToPoint: function(oPoint)
+        {
+            this._oAceEditor.navigateTo(oPoint.iRow, oPoint.iCol);
+        },
+        
         setSelectionMarker: function(oRange, sID, sClassName)
         {
             // Remove existing ranges (if exists)
@@ -156,6 +161,10 @@ define(function(require)
                         // We don't want to send any selection event in this case.
                         this._bDocumentJustChanged = true;
                         clearTimeout(this._iSendSelEventTimeout);
+                        
+                        // Keep ace's native undo manager from builing an undo queue
+                        // since undo is handled externally. Go Green! Save Memory!
+                        this._oAceEditSession.getUndoManager().reset();
                         
                         // Notify callback.
                         if (!this._bApplyingDelta)

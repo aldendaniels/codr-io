@@ -171,6 +171,13 @@ define(function()
             return this.fromJSON(this.toJSON(oObj));
         },
         
+        cloneObj: function(oObj)
+        {
+            var oRet = {};
+            this.extendObj(oRet, oObj);
+            return oRet;
+        },
+        
         formatDateTime: function(d)
         {
             return '' +

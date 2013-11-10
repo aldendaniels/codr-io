@@ -87,8 +87,8 @@ define(function(require)
             this._oEditControl = new EditControl(EDITOR_ID);
             this._oEditControl.on('docChange', this, this._onDocumentChange);
             this._oEditControl.on('selChange', this, this._onSelectionChange);
-            //this._oEditControl.on('undo', this, this._onUndo);
-            //this._oEditControl.on('redo', this, this._onRedo);
+            this._oEditControl.on('undo', this, this._onUndo);
+            this._oEditControl.on('redo', this, this._onRedo);
             
             // Update status bar.
             this._setPeopleViewing();
@@ -163,6 +163,7 @@ define(function(require)
                         bIsPending:     false,
                         bIsMe:          false,
                         bIsUndo:        false,
+                        bIsRedo:        false,
                         bHasBeenUndone: false, // Applies to all events EXCEPT undo events.
                         bHasBeenRedone: false, // Applies to undo events.
                     });
@@ -241,7 +242,7 @@ define(function(require)
             $('#col-num').text(oRange.oStart.iCol + 1);
         },
         
-        _onDocumentChange: function(oDelta, bIsUndo)
+        _onDocumentChange: function(oDelta, bIsUndo, bIsRedo)
         {
             // Note: applyDelta calls do not result in docchange events.
             // The docchange is only fired when the local user makes
@@ -259,6 +260,7 @@ define(function(require)
                 bIsMe:          true,
                 bIsPending:     false,
                 bIsUndo:        bIsUndo || false,
+                bIsRedo:        bIsRedo || false,
                 bHasBeenUndone: false, // Applies to all events EXCEPT undo events.
                 bHasBeenRedone: false  // Applies to undo events.
             });
@@ -266,10 +268,68 @@ define(function(require)
         
         _onUndo: function()
         {
+            for (var iPastDocChange = this._aPastDocChanges.length - 1; iPastDocChange >=0; iPastDocChange--)
+            {
+                var oDocChange = this._aPastDocChanges[iPastDocChange];
+                if (oDocChange.bIsMe && !oDocChange.bIsUndo && !oDocChange.bHasBeenUndone)
+                {
+                    // Create reverse delta.
+                    var oReverseDelta = this._getReversedDelta(oDocChange.oDelta);
+                    for (var i = iPastDocChange + 1; i < this._aPastDocChanges.length; i++)
+                    {
+                        var oOTDocChange = this._aPastDocChanges[i];
+                        if (!oOTDocChange.bIsMe)
+                            oReverseDelta.oRange = oOT.transformRange(oOTDocChange.oDelta, oReverseDelta.oRange);                            
+                    }
+                    
+                    // Apply undo delta.
+                    this._applyDelta(oReverseDelta);
+                    this._onDocumentChange(oReverseDelta, true /*bIsUndo*/);
+                    oDocChange.bHasBeenUndone = true;
+                    
+                    // Refresh cursors.
+                    this._refreshRemoteSelections();
+                    this._moveLocalCursorToDeltaEnd(oReverseDelta);
+                    break;
+                }
+            }
         },
         
         _onRedo: function()
         {
+            for (var iPastDocChange = this._aPastDocChanges.length - 1; iPastDocChange >=0; iPastDocChange--)
+            {
+                var oDocChange = this._aPastDocChanges[iPastDocChange];
+                if (oDocChange.bIsMe)
+                {                    
+                    // Skip redo events.
+                    if (oDocChange.bIsRedo || oDocChange.bHasBeenRedone)
+                        continue;
+                    
+                    // Stop if my last event was not an undo.
+                    if (!oDocChange.bIsUndo)
+                        break;
+                
+                    // Create reverse delta.
+                    var oReverseDelta = this._getReversedDelta(oDocChange.oDelta);
+                    for (var i = iPastDocChange + 1; i < this._aPastDocChanges.length; i++)
+                    {
+                        var oOTDocChange = this._aPastDocChanges[i];
+                        if (!oOTDocChange.bIsMe)
+                            oReverseDelta.oRange = oOT.transformRange(oOTDocChange.oDelta, oReverseDelta.oRange);                            
+                    }
+                    
+                    // Apply redo delta.
+                    this._applyDelta(oReverseDelta);
+                    this._onDocumentChange(oReverseDelta, false /*bIsUndo*/, true /*bIsRedo*/);
+                    oDocChange.bHasBeenRedone = true;
+                    
+                    // Refresh cursors.
+                    this._refreshRemoteSelections();
+                    this._moveLocalCursorToDeltaEnd(oReverseDelta);
+                    break;
+                }
+            }
         },
         
         _transformRemoteSelections: function(oDelta)
@@ -290,6 +350,12 @@ define(function(require)
                 if (oClient.oLastSelRange)
                     this._oEditControl.setSelectionMarker(oClient.oLastSelRange, sClientID, oClient.sColor);
             }
+        },
+        
+        _moveLocalCursorToDeltaEnd: function(oDelta)
+        {
+            var oPoint = (oDelta.sAction == 'insert' ? oDelta.oRange.oEnd : oDelta.oRange.oStart);
+            this._oEditControl.moveCursorToPoint(oPoint);
         },
         
         _applyDelta: function(oDelta)
