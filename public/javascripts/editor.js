@@ -70,7 +70,7 @@ define(function(require)
     
         // OT Transform state.
         _iServerState: 0,
-        _aPastDeltas: null, // Also used for undo/redo.
+        _aPastDocChanges: null, // Also used for undo/redo.
     
         __type__: 'Editor',    
     
@@ -78,7 +78,7 @@ define(function(require)
         {
             this._oSocket = oSocket;
             this._oRemoteClients = {};
-            this._aPastDeltas = [];
+            this._aPastDocChanges = [];
             
             // Attach socket.
             this._oSocket.bind('message', this, this._handleServerAction);
@@ -135,9 +135,9 @@ define(function(require)
                 case 'setRemoteSelection':
                     
                     // Tranform range to reflect local deltas.
-                    var aPendingDeltas = this._getPendingDeltas();
-                    for (var i in aPendingDeltas)
-                        oAction.oData.oRange = oOT.transformRange(aPendingDeltas[i], oAction.oData.oRange);
+                    var aPendingDocChanges = this._getPendingDocChanges();
+                    for (var i in aPendingDocChanges)
+                        oAction.oData.oRange = oOT.transformRange(aPendingDocChanges[i].oDelta, oAction.oData.oRange);
                     
                     // Save remote selection range and refresh.
                     var sClientID = oAction.oData.sClientID;
@@ -151,13 +151,13 @@ define(function(require)
                     this._iServerState = oAction.oData.iServerState;
                     
                     // Revert pending deltas.
-                    var aPendingDeltas = this._getPendingDeltas(true /*remove*/);
-                    for(var i = aPendingDeltas.length - 1; i >= 0; i--)
-                        this._applyDelta(this._getReversedDelta(aPendingDeltas[i]));
+                    var aPendingDocChanges = this._getPendingDocChanges(true /*remove*/);
+                    for(var i = aPendingDocChanges.length - 1; i >= 0; i--)
+                        this._applyDelta(this._getReversedDelta(aPendingDeltas[i].oDelta));
                     
                     // Apply new delta.
                     this._applyDelta(oAction.oData.oDelta);
-                    this._aPastDeltas.push(
+                    this._aPastDocChanges.push(
                     {
                         oDelta:         oAction.oData.oDelta,
                         bIsPending:     false,
@@ -168,12 +168,13 @@ define(function(require)
                     });
                     
                     // Transform and apply pending tranformed deltas.
-                    for (i in aPendingDeltas)
+                    for (i in aPendingDocChanges)
                     {
-                        var oPendingDelta = aPendingDeltas[i];
-                        oPendingDelta.oRange = oOT.transformRange(oAction.oData.oDelta, oPendingDelta.oRange);
-                        this._applyDelta(oPendingDelta);
-                        this._aPastDeltas.push(oPendingDelta);
+                        var oPendingDocChange = aPendingDocChanges[i];
+                        var oDelta = oPendingDocChange.oDelta;
+                        oDelta.oRange = oOT.transformRange(oAction.oData.oDelta, oDelta.oRange);
+                        this._applyDelta(oDelta);
+                        this._aPastDocChanges.push(oPendingDocChange);
                     }
                     
                     // Refresh remote cursors.
@@ -182,9 +183,9 @@ define(function(require)
                     
                 case 'eventReciept':
                     this._iServerState = oAction.oData.iServerState;
-                    var iFirstPendingDeltaOffset = this._getFirstPendingDeltaOffset();
-                    if (iFirstPendingDeltaOffset)
-                        this._aPastDeltas[iFirstPendingDeltaOffset].bIsPending = false;              
+                    var iFirstPendingDocChangeOffset = this._getFirstPendingDocChangeOffset();
+                    if (iFirstPendingDocChangeOffset)
+                        this._aPastDocChanges[iFirstPendingDocChangeOffset].bIsPending = false;              
                     break;
                     
                 case 'addClient':
@@ -252,7 +253,7 @@ define(function(require)
             });
             this._transformRemoteSelections(oDelta);
             this._refreshRemoteSelections();
-            this._aPastDeltas.push(
+            this._aPastDocChanges.push(
             {
                 oDelta:         oDelta,
                 bIsMe:          true,
@@ -265,23 +266,10 @@ define(function(require)
         
         _onUndo: function()
         {
-            /*if (this._aUndoStack.length)
-            {
-                var oDelta = this._aUndoStack.pop();
-                this._applyDelta(oDelta);
-                this._onDocumentChange(oDelta, true);
-                this._aRedoStack.push(this._getReversedDelta(oDelta));                
-            }*/
         },
         
         _onRedo: function()
         {
-            /*if (this._aRedoStack.length)
-            {
-                var oDelta = this._aRedoStack.pop();
-                this._applyDelta(oDelta);
-                this._onDocumentChange(oDelta);             
-            }*/
         },
         
         _transformRemoteSelections: function(oDelta)
@@ -317,25 +305,25 @@ define(function(require)
             return oInverseDelta;
         },
         
-        _getPendingDeltas: function(bRemove)
+        _getPendingDocChanges: function(bRemove)
         {
-            var iFirstPendingDeltaOffset = this._getFirstPendingDeltaOffset();
-            if (iFirstPendingDeltaOffset)
+            var iFirstPendingDocChangeOffset = this._getFirstPendingDocChangeOffset();
+            if (iFirstPendingDocChangeOffset)
             {
                 if (bRemove)
-                    return this._aPastDeltas.splice(iFirstPendingDeltaOffset, this._aPastDeltas.length);
+                    return this._aPastDocChanges.splice(iFirstPendingDocChangeOffset, this._aPastDocChanges.length);
                 else
-                    return this._aPastDeltas.slice( iFirstPendingDeltaOffset, this._aPastDeltas.length);                
+                    return this._aPastDocChanges.slice( iFirstPendingDocChangeOffset, this._aPastDocChanges.length);                
             }
             return [];
         },
         
-        _getFirstPendingDeltaOffset: function()
+        _getFirstPendingDocChangeOffset: function()
         {
-            var iFirstPendingDeltaOffset = null;
-            for (var i = this._aPastDeltas.length - 1; i >=0;  i--)
-                iFirstPendingDeltaOffset = i;
-            return iFirstPendingDeltaOffset;
+            var iFirstPendingDocChangeOffset = null;
+            for (var i = this._aPastDocChanges.length - 1; i >=0;  i--)
+                iFirstPendingDocChangeOffset = i;
+            return iFirstPendingDocChangeOffset;
         },
         
     });
