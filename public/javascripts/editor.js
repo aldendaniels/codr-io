@@ -1,52 +1,3 @@
-/* We maintain a sorted list of all deltas (ours and others.):
-    [
-        {
-            oDelta:         object,
-            bIsMe:          boolean,
-            bIsPending:     boolean,
-            bIsUndo:        boolean,
-            bHasBeenUndone: boolean, // Allies to all events EXCEPT undo events.
-            bHasBeenRedone: boolean, // Applies to undo events.
-        },
-        [...]
-    ]
-    
-    On Undo:
-    
-        1. Find the last action where:
-            bIsMe = true
-            bIsUndo = false
-            bHasBeenUndone = false
-      
-        2. Create a new event with a reversed delta. Set bIsUndo=true.
-      
-        3. Transform the new event based on subsequent events
-           
-        4. Apply the new event.
-        
-        5. Set bHasBeenUndone to true on the original event.
-    
-    On Redo:
-    
-        1. Find the last action where:
-            bIsMe = true
-            bIsUndo = true
-            bHasBeenUndone = false
-            
-            NOTE: If a non-undo-event is ecountered before an event
-                  matching the above criteria, don't do anything.
-        
-      
-        2. Create a new event with a reversed delta. Set bIsRedo=true.
-      
-        3. Transform the new event based on subsequent events
-           
-        4. Apply the new event.
-        
-        5. Set bHasBeenRedone to true on the original undo event.
-         
-*/
-
 define(function(require)
 {
     // Dependencies.
@@ -58,6 +9,89 @@ define(function(require)
     // Constants.
     var COLORS     = ['green', 'pink', 'orange', 'purple', 'red', 'turquoise '];
     var EDITOR_ID  = 'edit';
+    
+    // DocChange object.
+    var DocChange = oHelpers.createClass(
+    {
+        _oConstants: null,
+        _oVariables: null,
+        
+        __type__: 'DocChange',
+        __init__: function(oData)
+        {   
+            this._oConstants =
+            {
+                bIsMe:               false,
+                oDelta:              null,
+                sType:               'normal', // normal | undo | redo
+                bUndoWithPrevChange: false
+            };
+            this._oVariables =
+            {
+                bIsPending:          false,
+                bHasBeenRedone:      false, // Undo events only
+                bHasBeenUndone:      false, // NOT undo events
+            };
+            
+            // Set constants.
+            for (var sKey in oData)
+            {
+                if (sKey in this._oConstants)
+                    this._setConstant(sKey, oData[sKey]);
+            }
+                
+            // Validate constants.
+            var sType = this._oConstants.sType;
+            oHelpers.assert(sType == 'normal' || this._oConstants.bIsMe                , 'DocChange Error 1');
+            oHelpers.assert(sType == 'normal' || !this._oConstants.bUndoWithPrevChange , 'DocChange Error 2');
+            oHelpers.assert(oHelpers.inArray(sType, ['normal', 'undo', 'redo'])        , 'DocChange Error 3');
+            
+            // Remove non-applicable variables.
+            if (this._oConstants.bIsMe)
+            {                
+                if (sType == 'undo')
+                    delete this._oVariables.bHasBeenUndone;
+                else
+                    delete this._oVariables.bHasBeenRedone;
+            }
+            else
+                this._oVariables = {};
+            
+            // Set variables.
+            for (var sKey in oData)
+            {
+                if (!sKey in this._oConstants)
+                    this.set(sKey, oData[sKey]);
+            }
+        },
+        
+        set: function(sVariable, oValue)
+        {
+            oHelpers.assert(sVariable in this._oVariables,                       'Variable not found: '        + sVariable);
+            oHelpers.assert(typeof oValue == typeof this._oVariables[sVariable], 'Variable has invalid type: ' + sVariable);
+            this._oVariables[sVariable] = oValue;
+        },
+        
+        get: function(sKey)
+        {
+            if (sKey in this._oConstants)
+                return this._oConstants[sKey];
+            else if (sKey in this._oVariables)
+                return this._oVariables[sKey];
+            else
+            {
+                oHelpers.assert(false, 'Key not found: ' + sKey);
+                return null;
+            }
+        },
+        
+        _setConstant: function(sConstant, oValue)
+        {
+            oHelpers.assert(sConstant in this._oConstants,                       'Constant not found: '        + sConstant);
+            oHelpers.assert(typeof oValue == typeof this._oConstants[sConstant], 'Constant has invalid type: ' + sConstant);
+            this._oConstants[sConstant] = oValue;            
+        },
+    });
     
     // Editor object.
     return oHelpers.createClass(
@@ -137,7 +171,7 @@ define(function(require)
                     // Tranform range to reflect local deltas.
                     var aPendingDocChanges = this._getPendingDocChanges();
                     for (var i in aPendingDocChanges)
-                        oAction.oData.oRange = oOT.transformRange(aPendingDocChanges[i].oDelta, oAction.oData.oRange);
+                        oAction.oData.oRange = oOT.transformRange(aPendingDocChanges[i].get('oDelta'), oAction.oData.oRange);
                     
                     // Save remote selection range and refresh.
                     var sClientID = oAction.oData.sClientID;
@@ -153,26 +187,21 @@ define(function(require)
                     // Revert pending deltas.
                     var aPendingDocChanges = this._getPendingDocChanges(true /*remove*/);
                     for(var i = aPendingDocChanges.length - 1; i >= 0; i--)
-                        this._applyDelta(this._getReversedDelta(aPendingDeltas[i].oDelta));
+                        this._applyDelta(this._getReversedDelta(aPendingDeltas[i].get('oDelta')));
                     
                     // Apply new delta.
                     this._applyDelta(oAction.oData.oDelta);
-                    this._aPastDocChanges.push(
+                    this._aPastDocChanges.push(new DocChange(
                     {
-                        oDelta:         oAction.oData.oDelta,
-                        bIsPending:     false,
-                        bIsMe:          false,
-                        bIsUndo:        false,
-                        bIsRedo:        false,
-                        bHasBeenUndone: false, // Applies to all events EXCEPT undo events.
-                        bHasBeenRedone: false, // Applies to undo events.
-                    });
+                        bIsMe: false,
+                        oDelta: oAction.oData.oDelta
+                    }));
                     
                     // Transform and apply pending tranformed deltas.
                     for (i in aPendingDocChanges)
                     {
                         var oPendingDocChange = aPendingDocChanges[i];
-                        var oDelta = oPendingDocChange.oDelta;
+                        var oDelta = oPendingDocChange.get('oDelta');
                         oDelta.oRange = oOT.transformRange(oAction.oData.oDelta, oDelta.oRange);
                         this._applyDelta(oDelta);
                         this._aPastDocChanges.push(oPendingDocChange);
@@ -186,7 +215,7 @@ define(function(require)
                     this._iServerState = oAction.oData.iServerState;
                     var iFirstPendingDocChangeOffset = this._getFirstPendingDocChangeOffset();
                     if (iFirstPendingDocChangeOffset)
-                        this._aPastDocChanges[iFirstPendingDocChangeOffset].bIsPending = false;              
+                        this._aPastDocChanges[iFirstPendingDocChangeOffset].set('bIsPending', false);              
                     break;
                     
                 case 'addClient':
@@ -242,28 +271,61 @@ define(function(require)
             $('#col-num').text(oRange.oStart.iCol + 1);
         },
         
-        _onDocumentChange: function(oDelta, bIsUndo, bIsRedo)
+        _onDocumentChange: function(aDeltas, sType)
         {
-            // Note: applyDelta calls do not result in docchange events.
-            // The docchange is only fired when the local user makes
-            // local changes.
-            this._oSocket.send('docChange',
+            // Default type.
+            sType = sType || 'normal';
+            
+            // Process deltas.
+            for (var i in aDeltas)
             {
-                oDelta: oDelta,
-                iState: this._iServerState
-            });
-            this._transformRemoteSelections(oDelta);
+                // Should merge with previous action for undo history?
+                var oDelta = aDeltas[i];
+                if (i > 0)
+                {
+                    // If we're given multiple deltas at once, undo them together.
+                    var bUndoWithPrevChange = true;
+                }
+                else
+                {
+                    // Get previous change.
+                    var oPrevChange = null;
+                    for (var i_ = this._aPastDocChanges.length - 1; i_ >= 0; i_--)
+                    {
+                        var oDocChange = this._aPastDocChanges[i_];
+                        if (oDocChange.get('bIsMe'))
+                        {
+                            oPrevChange = oDocChange;
+                            break;
+                        }
+                    }
+                    
+                    // Should merge?
+                    bUndoWithPrevChange = oPrevChange !== null && 
+                                          oPrevChange.get('sType') == 'normal' && sType == 'normal' &&
+                                          oPrevChange.get('oDelta').sAction == oDelta.sAction &&
+                                          oPrevChange.get('oDelta').aLines.length == 1;
+                }
+                
+                // Handle change.
+                this._oSocket.send('docChange',
+                {
+                    oDelta: oDelta,
+                    iState: this._iServerState
+                });
+                this._transformRemoteSelections(oDelta);
+                
+                // Record change.
+                this._aPastDocChanges.push(new DocChange(
+                {
+                    bIsMe:  true,
+                    oDelta: oDelta,
+                    sType:  sType,
+                    bUndoWithPrevChange: bUndoWithPrevChange,
+                    bIsPending: true
+                }));
+            }
             this._refreshRemoteSelections();
-            this._aPastDocChanges.push(
-            {
-                oDelta:         oDelta,
-                bIsMe:          true,
-                bIsPending:     false,
-                bIsUndo:        bIsUndo || false,
-                bIsRedo:        bIsRedo || false,
-                bHasBeenUndone: false, // Applies to all events EXCEPT undo events.
-                bHasBeenRedone: false  // Applies to undo events.
-            });
         },
         
         _onUndo: function()
@@ -271,21 +333,21 @@ define(function(require)
             for (var iPastDocChange = this._aPastDocChanges.length - 1; iPastDocChange >=0; iPastDocChange--)
             {
                 var oDocChange = this._aPastDocChanges[iPastDocChange];
-                if (oDocChange.bIsMe && !oDocChange.bIsUndo && !oDocChange.bHasBeenUndone)
+                if (oDocChange.get('bIsMe') && oDocChange.get('sType') != 'undo' && !oDocChange.get('bHasBeenUndone'))
                 {
                     // Create reverse delta.
-                    var oReverseDelta = this._getReversedDelta(oDocChange.oDelta);
+                    var oReverseDelta = this._getReversedDelta(oDocChange.get('oDelta'));
                     for (var i = iPastDocChange + 1; i < this._aPastDocChanges.length; i++)
                     {
                         var oOTDocChange = this._aPastDocChanges[i];
-                        if (!oOTDocChange.bIsMe)
-                            oReverseDelta.oRange = oOT.transformRange(oOTDocChange.oDelta, oReverseDelta.oRange);                            
+                        if (!oOTDocChange.get('bIsMe'))
+                            oReverseDelta.oRange = oOT.transformRange(oOTDocChange.get('oDelta'), oReverseDelta.oRange);
                     }
                     
                     // Apply undo delta.
                     this._applyDelta(oReverseDelta);
-                    this._onDocumentChange(oReverseDelta, true /*bIsUndo*/);
-                    oDocChange.bHasBeenUndone = true;
+                    this._onDocumentChange([oReverseDelta], 'undo');
+                    oDocChange.set('bHasBeenUndone', true);
                     
                     // Refresh cursors.
                     this._refreshRemoteSelections();
@@ -300,29 +362,34 @@ define(function(require)
             for (var iPastDocChange = this._aPastDocChanges.length - 1; iPastDocChange >=0; iPastDocChange--)
             {
                 var oDocChange = this._aPastDocChanges[iPastDocChange];
-                if (oDocChange.bIsMe)
+                if (oDocChange.get('bIsMe'))
                 {                    
                     // Skip redo events.
-                    if (oDocChange.bIsRedo || oDocChange.bHasBeenRedone)
+                    if (oDocChange.get('sType') == 'redo')
                         continue;
-                    
+                                        
                     // Stop if my last event was not an undo.
-                    if (!oDocChange.bIsUndo)
+                    if (oDocChange.get('sType') != 'undo')
                         break;
+                    
+                    // Skip undo events that have already been redone.
+                    if (oDocChange.get('bHasBeenRedone'))
+                        continue;
                 
                     // Create reverse delta.
-                    var oReverseDelta = this._getReversedDelta(oDocChange.oDelta);
+                    var oReverseDelta = this._getReversedDelta(oDocChange.get('oDelta'));
                     for (var i = iPastDocChange + 1; i < this._aPastDocChanges.length; i++)
                     {
                         var oOTDocChange = this._aPastDocChanges[i];
-                        if (!oOTDocChange.bIsMe)
-                            oReverseDelta.oRange = oOT.transformRange(oOTDocChange.oDelta, oReverseDelta.oRange);                            
+                        if (!oOTDocChange.get('bIsMe'))
+                            oReverseDelta.oRange = oOT.transformRange(oOTDocChange.get('oDelta'), oReverseDelta.oRange);
+                        
                     }
                     
                     // Apply redo delta.
                     this._applyDelta(oReverseDelta);
-                    this._onDocumentChange(oReverseDelta, false /*bIsUndo*/, true /*bIsRedo*/);
-                    oDocChange.bHasBeenRedone = true;
+                    this._onDocumentChange([oReverseDelta], 'redo');
+                    oDocChange.set('bHasBeenRedone', true);
                     
                     // Refresh cursors.
                     this._refreshRemoteSelections();

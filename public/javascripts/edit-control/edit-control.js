@@ -74,15 +74,10 @@ define(function(require)
             this._bApplyingDelta = true;
             var oAceDelta = this._denormalizeDelta(oNormDelta);
             this._oAceDocument.applyDeltas([oAceDelta]);
-            this._bApplyingDelta = false;
-        },
-                
-        revertDelta: function(oNormDelta)
-        {
-            this._bApplyingDelta = true;
-            var oAceDelta = this._denormalizeDelta(oNormDelta)
-            this._oAceDocument.revertDeltas([oAceDelta]);
-            this._bApplyingDelta = false;
+            window.setTimeout(oHelpers.createCallback(this, function()
+            {
+                this._bApplyingDelta = false;
+            }), 1);
         },
         
         setMode: function(oMode)
@@ -95,7 +90,10 @@ define(function(require)
             this._bApplyingDelta = true;
             this._oAceDocument.setValue(aLines.join(this._sNewLineChar));
             this._oAceEditor.moveCursorTo(0, 0);
-            this._bApplyingDelta = false;
+            window.setTimeout(oHelpers.createCallback(this, function()
+            {
+                this._bApplyingDelta = false;
+            }), 1);
         },
         
         moveCursorToPoint: function(oPoint)
@@ -155,23 +153,30 @@ define(function(require)
             switch (sEventType)
             {
                 case 'docChange':
+                    
+                    // Notify on document changes.
+                    this._oAceEditSession.getUndoManager().execute = oHelpers.createCallback(this, function(oEvent)
+                    {
+                        if (!this._bApplyingDelta)
+                        {
+                            // Get normalized deltas.
+                            var aAceDeltas = oEvent.args[0][0].deltas;
+                            var aNormDeltas = [];
+                            for (var i in aAceDeltas)
+                                aNormDeltas.push(this._normalizeAceDelta(aAceDeltas[i]));
+                                
+                            // Notify callback.
+                            fnCallback(aNormDeltas);
+                        }
+                    });
+                    
+                    // Selection events are sent before and after document changes.
+                    // We don't want to send any selection event in this case.
                     this._oAceEditor.on('change', oHelpers.createCallback(this, function(oEvent)
                     {
-                        // Selection events are sent before and after document changes.
-                        // We don't want to send any selection event in this case.
                         this._bDocumentJustChanged = true;
                         clearTimeout(this._iSendSelEventTimeout);
                         
-                        // Keep ace's native undo manager from builing an undo queue
-                        // since undo is handled externally. Go Green! Save Memory!
-                        this._oAceEditSession.getUndoManager().reset();
-                        
-                        // Notify callback.
-                        if (!this._bApplyingDelta)
-                        {
-                            var oDelta = this._normalizeAceDelta(oEvent.data);
-                            fnCallback(oDelta);
-                        }
                     }));
                     break;
                 

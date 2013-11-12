@@ -88,7 +88,7 @@ define(function()
         assert: function(bCondition, sMessage)
         {
             if (!bCondition)
-                throw sMessage;
+                throw sMessage || 'Unspecified Error';
         },
         
         inArray: function(oItem, aArray)
