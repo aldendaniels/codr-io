@@ -24,7 +24,7 @@ define(function(require)
                 bIsMe:               false,
                 oDelta:              null,
                 sType:               'normal', // normal | undo | redo
-                bUndoWithPrevChange: false
+                bMergeWithPrevChange: false
             };
             this._oVariables =
             {
@@ -42,9 +42,8 @@ define(function(require)
                 
             // Validate constants.
             var sType = this._oConstants.sType;
-            oHelpers.assert(sType == 'normal' || this._oConstants.bIsMe                , 'DocChange Error 1');
-            oHelpers.assert(sType == 'normal' || !this._oConstants.bUndoWithPrevChange , 'DocChange Error 2');
-            oHelpers.assert(oHelpers.inArray(sType, ['normal', 'undo', 'redo'])        , 'DocChange Error 3');
+            oHelpers.assert(sType == 'normal' || this._oConstants.bIsMe                 , 'DocChange Error 1');
+            oHelpers.assert(oHelpers.inArray(sType, ['normal', 'undo', 'redo'])         , 'DocChange Error 2');
             
             // Remove non-applicable variables.
             if (this._oConstants.bIsMe)
@@ -284,7 +283,7 @@ define(function(require)
                 if (i > 0)
                 {
                     // If we're given multiple deltas at once, undo them together.
-                    var bUndoWithPrevChange = true;
+                    var bMergeWithPrevChange = true;
                 }
                 else
                 {
@@ -301,10 +300,11 @@ define(function(require)
                     }
                     
                     // Should merge?
-                    bUndoWithPrevChange = oPrevChange !== null && 
-                                          oPrevChange.get('sType') == 'normal' && sType == 'normal' &&
-                                          oPrevChange.get('oDelta').sAction == oDelta.sAction &&
-                                          oPrevChange.get('oDelta').aLines.length == 1;
+                    bMergeWithPrevChange = oPrevChange !== null && 
+                                           oPrevChange.get('sType') == 'normal' && sType == 'normal' &&
+                                           oPrevChange.get('oDelta').sAction == oDelta.sAction &&
+                                           oPrevChange.get('oDelta').aLines.length == 1 &&
+                                           oPrevChange.get('oDelta').oRange.oStart.iRow == oDelta.oRange.oStart.iRow;
                 }
                 
                 // Handle change.
@@ -321,7 +321,7 @@ define(function(require)
                     bIsMe:  true,
                     oDelta: oDelta,
                     sType:  sType,
-                    bUndoWithPrevChange: bUndoWithPrevChange,
+                    bMergeWithPrevChange: bMergeWithPrevChange,
                     bIsPending: true
                 }));
             }
@@ -330,37 +330,54 @@ define(function(require)
         
         _onUndo: function()
         {
+            // Find the first DocChange in group.
+            var aDocChangesOffset = [];
             for (var iPastDocChange = this._aPastDocChanges.length - 1; iPastDocChange >=0; iPastDocChange--)
             {
                 var oDocChange = this._aPastDocChanges[iPastDocChange];
-                if (oDocChange.get('bIsMe') && oDocChange.get('sType') != 'undo' && !oDocChange.get('bHasBeenUndone'))
+                if ( oDocChange.get('bIsMe') && oDocChange.get('sType') != 'undo' && !oDocChange.get('bHasBeenUndone'))
                 {
-                    // Create reverse delta.
-                    var oReverseDelta = this._getReversedDelta(oDocChange.get('oDelta'));
-                    for (var i = iPastDocChange + 1; i < this._aPastDocChanges.length; i++)
-                    {
-                        var oOTDocChange = this._aPastDocChanges[i];
-                        if (!oOTDocChange.get('bIsMe'))
-                            oReverseDelta.oRange = oOT.transformRange(oOTDocChange.get('oDelta'), oReverseDelta.oRange);
-                    }
-                    
-                    // Apply undo delta.
-                    this._applyDelta(oReverseDelta);
-                    this._onDocumentChange([oReverseDelta], 'undo');
-                    oDocChange.set('bHasBeenUndone', true);
-                    
-                    // Refresh cursors.
-                    this._refreshRemoteSelections();
-                    this._moveLocalCursorToDeltaEnd(oReverseDelta);
-                    break;
+                    aDocChangesOffset.push(iPastDocChange);
+                    if (!oDocChange.get('bMergeWithPrevChange'))
+                        break;
                 }
             }
+            
+            // Undo Changes.
+            var aReverseDeltas = [];
+            for (var i_ in aDocChangesOffset)
+            {
+                iPastDocChange = aDocChangesOffset[i_];
+                var oDocChange = this._aPastDocChanges[iPastDocChange];
+                
+                // Create reverse delta.
+                var oReverseDelta = this._getReversedDelta(oDocChange.get('oDelta'));
+                for (var i = iPastDocChange + 1; i < this._aPastDocChanges.length; i++)
+                {
+                    var oOTDocChange = this._aPastDocChanges[i];
+                    if (!oOTDocChange.get('bIsMe'))
+                        oReverseDelta.oRange = oOT.transformRange(oOTDocChange.get('oDelta'), oReverseDelta.oRange);
+                }
+                
+                // Apply undo delta.
+                aReverseDeltas.push(oReverseDelta);
+                this._applyDelta(oReverseDelta);
+                oDocChange.set('bHasBeenUndone', true);
+                
+                // Refresh cursors.
+                this._refreshRemoteSelections();
+                this._moveLocalCursorToDeltaEnd(oReverseDelta);
+            }
+
+            this._onDocumentChange(aReverseDeltas, 'undo');
         },
         
         _onRedo: function()
         {
+            // Find the first DocChange in group.
+            var aDocChangesOffset = [];
             for (var iPastDocChange = this._aPastDocChanges.length - 1; iPastDocChange >=0; iPastDocChange--)
-            {
+            {    
                 var oDocChange = this._aPastDocChanges[iPastDocChange];
                 if (oDocChange.get('bIsMe'))
                 {                    
@@ -375,28 +392,41 @@ define(function(require)
                     // Skip undo events that have already been redone.
                     if (oDocChange.get('bHasBeenRedone'))
                         continue;
-                
-                    // Create reverse delta.
-                    var oReverseDelta = this._getReversedDelta(oDocChange.get('oDelta'));
-                    for (var i = iPastDocChange + 1; i < this._aPastDocChanges.length; i++)
-                    {
-                        var oOTDocChange = this._aPastDocChanges[i];
-                        if (!oOTDocChange.get('bIsMe'))
-                            oReverseDelta.oRange = oOT.transformRange(oOTDocChange.get('oDelta'), oReverseDelta.oRange);
                         
-                    }
-                    
-                    // Apply redo delta.
-                    this._applyDelta(oReverseDelta);
-                    this._onDocumentChange([oReverseDelta], 'redo');
-                    oDocChange.set('bHasBeenRedone', true);
-                    
-                    // Refresh cursors.
-                    this._refreshRemoteSelections();
-                    this._moveLocalCursorToDeltaEnd(oReverseDelta);
-                    break;
+                    aDocChangesOffset.push(iPastDocChange);
+                    if (!oDocChange.get('bMergeWithPrevChange'))
+                        break;
                 }
             }
+            
+            // Redo changes.
+            var aReverseDeltas = [];
+            for (var i_ in aDocChangesOffset)
+            {
+                iPastDocChange = aDocChangesOffset[i_];
+                var oDocChange = this._aPastDocChanges[iPastDocChange];
+                
+                // Create reverse delta.
+                var oReverseDelta = this._getReversedDelta(oDocChange.get('oDelta'));
+                for (var i = iPastDocChange + 1; i < this._aPastDocChanges.length; i++)
+                {
+                    var oOTDocChange = this._aPastDocChanges[i];
+                    if (!oOTDocChange.get('bIsMe'))
+                        oReverseDelta.oRange = oOT.transformRange(oOTDocChange.get('oDelta'), oReverseDelta.oRange);
+                
+                }
+                
+                // Apply redo delta.
+                aReverseDeltas.push(oReverseDelta);
+                this._applyDelta(oReverseDelta);
+                oDocChange.set('bHasBeenRedone', true);
+                
+                // Refresh cursors.
+                this._refreshRemoteSelections();
+                this._moveLocalCursorToDeltaEnd(oReverseDelta);
+            }
+            
+            this._onDocumentChange(aReverseDeltas, 'redo');
         },
         
         _transformRemoteSelections: function(oDelta)

@@ -42,6 +42,9 @@ define('workspace', function(require)
             this._oToolbar    = new Toolbar(this, this._oSocket, oShortcutHandler);
             this._oEditor     = new Editor(this._oSocket);
             
+            // Development Hack: Expose the editor object.
+            window._editor = this._oEditor;
+            
             // Init DOM focus.
             this._aObjects = [this._oToolbar, this._oEditor];
             this._aFocusHistory = [];
