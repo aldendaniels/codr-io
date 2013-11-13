@@ -13,83 +13,61 @@ define(function(require)
     // DocChange object.
     var DocChange = oHelpers.createClass(
     {
-        _oConstants: null,
-        _oVariables: null,
+        _oData: null,
         
         __type__: 'DocChange',
         __init__: function(oData)
         {   
-            this._oConstants =
+            this._oData =
             {
-                bIsMe:               false,
-                oDelta:              null,
-                sType:               'normal', // normal | undo | redo
-                bMergeWithPrevChange: false
-            };
-            this._oVariables =
-            {
-                bIsPending:          false,
-                bHasBeenRedone:      false, // Undo events only
-                bHasBeenUndone:      false, // NOT undo events
-            };
-            
-            // Set constants.
-            for (var sKey in oData)
-            {
-                if (sKey in this._oConstants)
-                    this._setConstant(sKey, oData[sKey]);
-            }
+                // General
+                bIsMe:                false,
+                oDelta:               null,
+                bIsPending:           false,    // Applies only to my changes
                 
-            // Validate constants.
-            var sType = this._oConstants.sType;
-            oHelpers.assert(sType == 'normal' || this._oConstants.bIsMe                 , 'DocChange Error 1');
-            oHelpers.assert(oHelpers.inArray(sType, ['normal', 'undo', 'redo'])         , 'DocChange Error 2');
+                // Undo & Redo (Applies only to my changes)
+                sType:                'normal', // normal | undo | redo
+                bMergeWithPrevChange: false,    // Applies to: normal | undo | redo
+                bHasBeenUndone:       false,    // Applies to: normal |      | redo
+                bHasBeenRedone:       false     // Applies to: undo 
+            };
             
-            // Remove non-applicable variables.
-            if (this._oConstants.bIsMe)
-            {                
-                if (sType == 'undo')
-                    delete this._oVariables.bHasBeenUndone;
-                else
-                    delete this._oVariables.bHasBeenRedone;
-            }
-            else
-                this._oVariables = {};
-            
-            // Set variables.
+            // Set data.
             for (var sKey in oData)
-            {
-                if (!sKey in this._oConstants)
-                    this.set(sKey, oData[sKey]);
-            }
-        },
-        
-        set: function(sVariable, oValue)
-        {
-            oHelpers.assert(sVariable in this._oVariables,                       'Variable not found: '        + sVariable);
-            oHelpers.assert(typeof oValue == typeof this._oVariables[sVariable], 'Variable has invalid type: ' + sVariable);
-            this._oVariables[sVariable] = oValue;
+                this.set(sKey, oData[sKey], true /* bSkipValidate*/);
+            this._validate();
         },
         
         get: function(sKey)
         {
-            if (sKey in this._oConstants)
-                return this._oConstants[sKey];
-            else if (sKey in this._oVariables)
-                return this._oVariables[sKey];
-            else
-            {
-                oHelpers.assert(false, 'Key not found: ' + sKey);
-                return null;
-            }
+            if (sKey in this._oData)
+                return this._oData[sKey];
+            oHelpers.assert(false, 'Key not found: ' + sKey);
+            return null;
         },
         
-        _setConstant: function(sConstant, oValue)
+        set: function(sKey, oValue, bSkipValidate)
         {
-            oHelpers.assert(sConstant in this._oConstants,                       'Constant not found: '        + sConstant);
-            oHelpers.assert(typeof oValue == typeof this._oConstants[sConstant], 'Constant has invalid type: ' + sConstant);
-            this._oConstants[sConstant] = oValue;            
+            // Validate type.
+            oHelpers.assert(sKey in this._oData,                       'Key not found: '          + sKey);
+            oHelpers.assert(typeof oValue == typeof this._oData[sKey], 'Invalid type for key: '   + sKey);
+            
+            // Set.
+            this._oData[sKey] = oValue;
+            
+            // Validate values.
+            if (!bSkipValidate)
+                this._validate();
         },
+        
+        _validate: function()
+        {
+            oHelpers.assert( this.get('sType') == 'normal' ||  this.get('bIsMe')             , 'DocChange Error 1' );
+            oHelpers.assert( this.get('sType') != 'undo'   || !this.get('bHasBeenUndone')    , 'DocChange Error 2' );
+            oHelpers.assert( this.get('sType') == 'undo'   || !this.get('bHasBeenRedone')    , 'DocChange Error 3' );
+            oHelpers.assert( this.get('bIsMe')             || !this.get('bIsPending')        , 'DocChange Error 4' );
+            oHelpers.assert( oHelpers.inArray(this.get('sType'), ['normal', 'undo', 'redo']) , 'DocChange Error 5' );
+        }
     });
     
     // Editor object.
