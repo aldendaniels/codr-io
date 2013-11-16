@@ -23,7 +23,6 @@ define(function(require)
                 // General
                 bIsMe:                false,
                 oDelta:               null,
-                bIsPending:           false,    // Applies only to my changes
                 
                 // Undo & Redo (Applies only to my changes)
                 sType:                'normal', // normal | undo | redo
@@ -65,7 +64,6 @@ define(function(require)
             oHelpers.assert( this.get('sType') == 'normal' ||  this.get('bIsMe')             , 'DocChange Error 1' );
             oHelpers.assert( this.get('sType') != 'undo'   || !this.get('bHasBeenUndone')    , 'DocChange Error 2' );
             oHelpers.assert( this.get('sType') == 'undo'   || !this.get('bHasBeenRedone')    , 'DocChange Error 3' );
-            oHelpers.assert( this.get('bIsMe')             || !this.get('bIsPending')        , 'DocChange Error 4' );
             oHelpers.assert( oHelpers.inArray(this.get('sType'), ['normal', 'undo', 'redo']) , 'DocChange Error 5' );
         }
     });
@@ -81,6 +79,7 @@ define(function(require)
     
         // OT Transform state.
         _iServerState: 0,
+        _iNumPendingActions: 0,
         _aPastDocChanges: null, // Also used for undo/redo.
     
         __type__: 'Editor',    
@@ -98,8 +97,8 @@ define(function(require)
             this._oEditControl = new EditControl(EDITOR_ID);
             this._oEditControl.on('docChange', this, this._onDocumentChange);
             this._oEditControl.on('selChange', this, this._onSelectionChange);
-            this._oEditControl.on('undo', this, this._onUndo);
-            this._oEditControl.on('redo', this, this._onRedo);
+            this._oEditControl.on('undo',      this, this._onUndo);
+            this._oEditControl.on('redo',      this, this._onRedo);
             
             // Update status bar.
             this._setPeopleViewing();
@@ -117,7 +116,7 @@ define(function(require)
         
         contains: function(jElem)
         {
-            return jElem.closest('#' + EDITOR_ID).length > 0 || jElem.closest(this._jSummaryBar).length > 0;
+            return jElem.closest('#' + EDITOR_ID).length > 0;
         },
     
         focus: function()
@@ -174,7 +173,7 @@ define(function(require)
                         oDelta: oAction.oData.oDelta
                     }));
                     
-                    // Transform and apply pending tranformed deltas.
+                    // Transform and re-apply pending deltas.
                     for (i in aPendingDocChanges)
                     {
                         var oPendingDocChange = aPendingDocChanges[i];
@@ -190,9 +189,8 @@ define(function(require)
                     
                 case 'eventReciept':
                     this._iServerState = oAction.oData.iServerState;
-                    var iFirstPendingDocChangeOffset = this._getFirstPendingDocChangeOffset();
-                    if (iFirstPendingDocChangeOffset)
-                        this._aPastDocChanges[iFirstPendingDocChangeOffset].set('bIsPending', false);              
+                    oHelpers.assert(this._iNumPendingActions > 0, 'No pending action found for "eventReceipt".');
+                    this._iNumPendingActions--;
                     break;
                     
                 case 'addClient':
@@ -300,8 +298,8 @@ define(function(require)
                     oDelta: oDelta,
                     sType:  sType,
                     bMergeWithPrevChange: bMergeWithPrevChange,
-                    bIsPending: true
                 }));
+                this._iNumPendingActions++;
             }
             this._refreshRemoteSelections();
         },
@@ -448,24 +446,19 @@ define(function(require)
         
         _getPendingDocChanges: function(bRemove)
         {
-            var iFirstPendingDocChangeOffset = this._getFirstPendingDocChangeOffset();
-            if (iFirstPendingDocChangeOffset)
+            var aPending = [];
+            for (var i = this._aPastDocChanges.length - 1; i >=0 && aPending.length < this._iNumPendingActions;  i--)
             {
-                if (bRemove)
-                    return this._aPastDocChanges.splice(iFirstPendingDocChangeOffset, this._aPastDocChanges.length);
-                else
-                    return this._aPastDocChanges.slice( iFirstPendingDocChangeOffset, this._aPastDocChanges.length);                
+                var oDocChange = this._aPastDocChanges[i];
+                if (oDocChange.get('bIsMe') && oDocChange.get('bIsPending'))
+                {
+                    aPending.push(oDocChange);
+                    if (bRemove)
+                        this._aPastDocChanges.splice(i, 1);
+                }
             }
-            return [];
-        },
-        
-        _getFirstPendingDocChangeOffset: function()
-        {
-            var iFirstPendingDocChangeOffset = null;
-            for (var i = this._aPastDocChanges.length - 1; i >=0;  i--)
-                iFirstPendingDocChangeOffset = i;
-            return iFirstPendingDocChangeOffset;
-        },
-        
+            oHelpers.assert(aPending.length == this._iNumPendingActions, 'Pending change not found.');
+            return aPending;
+        }
     });
 });
