@@ -151,13 +151,13 @@ oApp.configure(function()
         if (sDocumentID in g_oEditSessions)
         {
             oDocument = g_oEditSessions[sDocumentID].getDocument();
-            res.send(oDocument.get('sText'));
+            res.send(oDocument.get('aLines').join('\n'));
         }
         else
         {
             oDatabase.getDocument(sDocumentID, this, function(sDocumentJSON)
             {
-                res.send((new Document(sDocumentJSON)).get('sText'));
+                res.send((new Document(sDocumentJSON)).get('aLines').join('\n'));
             });
         }
     });
@@ -183,7 +183,7 @@ oApp.configure(function()
         if (sDocumentID in g_oEditSessions)
         {
             oDocument = g_oEditSessions[sDocumentID].getDocument();
-            // TODO: Should determine correct line-ending server-side.
+            // TODO: Determine correct line-ending client-side.
             res.send(oDocument.get('aLines').join('\r\n'));
         }
         else
