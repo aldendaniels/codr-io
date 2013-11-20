@@ -50,13 +50,13 @@ define(function(require)
                 }
                 else
                 {
-                    var sSel = 'input:not([disabled],[type="hidden"]),' +
-                               'button:not([disabled]), a, select:not([disabled]), textarea:not([disabled])';
-                    jElem.find(sSel)[0].focus();
+                    oHelpers.findFirstChild(jElem, this, function(eChild)
+                    {
+                        return oHelpers.isFocusable(eChild);
+                    }).focus();
                 }
-    
                 this._close();
-    
+                
                 oEvent.preventDefault();
             }
         },

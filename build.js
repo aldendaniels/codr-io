@@ -114,7 +114,7 @@ complileLESS('./public/stylesheets', 'index.less');
 
 ////////////// HTML COMPILATION /////////////////
 
-var aFileNames = oFS.readdirSync('./public');
+var aFileNames = ['index.html'];
 for(var i in aFileNames)
 {
     var sFileName = aFileNames[i];

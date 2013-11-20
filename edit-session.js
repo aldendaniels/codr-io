@@ -407,7 +407,7 @@ module.exports = oHelpers.createClass(
                 this._broadcastAction(oClient,
                 {
                     sType: 'endTyping',
-                    oDat: {
+                    oData: {
                         sClientID: oClient.getClientID()
                     }
                 });
