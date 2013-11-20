@@ -25,6 +25,6 @@
         "less": "1.4.x",
         "connect": "2.9.0",
         "amdefine": ">=0.1.0",
-        "mkdirp": "0.3.x",
+        "mkdirp": "0.3.x"
     }
 }
