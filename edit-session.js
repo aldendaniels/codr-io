@@ -294,7 +294,7 @@ module.exports = oHelpers.createClass(
                     this._aClients[i].setSelectionRange(oOT.transformRange(oDelta, oRange));
                 }
                 
-                // Save to transOps.
+                // Record in DeltaHistory.
                 this._aDeltaHistory.push(
                 {
                     oClient: oClient,

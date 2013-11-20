@@ -52,24 +52,25 @@ define(function(require)
         
         send: function(sEventType, oEventData)
         {
-            if (this._oSocket === null)
-                return;
-    
+            // Serialize message.
+            var sMessage = oHelpers.toJSON({ sType: sEventType, oData: oEventData });
+            
+            // Send message.
             if (fg_iSendMsDelay > 0)
             {
-                window.setTimeout(oHelpers.createCallback(this, function(){
-                    this._send(sEventType, oEventData);
+                window.setTimeout(oHelpers.createCallback(this, function()
+                {
+                    this._send(sEventType, sMessage);
                 }), fg_iSendMsDelay);
             }
             else
             {
-                this._send(sEventType, oEventData);
+                this._send(sEventType, sMessage);
             }
         },
     
-        _send: function(sEventType, oEventData)
+        _send: function(sEventType, sMessage)
         {
-             var sMessage = oHelpers.toJSON({ sType: sEventType, oData: oEventData });
             if (this._bIsOpen)
                 this._oSocket.send(sMessage);
             else

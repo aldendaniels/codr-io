@@ -144,7 +144,7 @@ define(function(require)
                 
                 case 'setRemoteSelection':
                     
-                    // Tranform range to reflect local deltas.
+                    // Tranform range to reflect local changes.
                     var aPendingDocChanges = this._getPendingDocChanges();
                     for (var i in aPendingDocChanges)
                         oAction.oData.oRange = oOT.transformRange(aPendingDocChanges[i].get('oDelta'), oAction.oData.oRange);
@@ -160,10 +160,10 @@ define(function(require)
                     // Store server state.
                     this._iServerState = oAction.oData.iServerState;
                     
-                    // Revert pending deltas.
+                    // Revert pending changes.
                     var aPendingDocChanges = this._getPendingDocChanges(true /*remove*/);
                     for(var i = aPendingDocChanges.length - 1; i >= 0; i--)
-                        this._applyDelta(this._getReversedDelta(aPendingDeltas[i].get('oDelta')));
+                        this._applyDelta(this._getReversedDelta(aPendingDocChanges[i].get('oDelta')));
                     
                     // Apply new delta.
                     this._applyDelta(oAction.oData.oDelta);
@@ -173,7 +173,7 @@ define(function(require)
                         oDelta: oAction.oData.oDelta
                     }));
                     
-                    // Transform and re-apply pending deltas.
+                    // Transform and re-apply pending change.
                     for (i in aPendingDocChanges)
                     {
                         var oPendingDocChange = aPendingDocChanges[i];
@@ -450,9 +450,9 @@ define(function(require)
             for (var i = this._aPastDocChanges.length - 1; i >=0 && aPending.length < this._iNumPendingActions;  i--)
             {
                 var oDocChange = this._aPastDocChanges[i];
-                if (oDocChange.get('bIsMe') && oDocChange.get('bIsPending'))
+                if (oDocChange.get('bIsMe'))
                 {
-                    aPending.push(oDocChange);
+                    aPending.splice(0, 0, oDocChange);
                     if (bRemove)
                         this._aPastDocChanges.splice(i, 1);
                 }
