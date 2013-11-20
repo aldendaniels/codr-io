@@ -4,26 +4,27 @@
     "version": "0.0.1-18",
     "private": true,
     "subdomain": "CodrAdmin.codr",
-    "domains": [
+    "domains":
+    [
         "codr.io"
     ],
-    "scripts": {
+    "scripts":
+    {
         "start": "app.js"
     },
-    "engines": {
+    "engines":
+    {
         "node": "0.8.x"
     },
-    "devDependencies":
+    "dependencies":
     {
-        "requirejs": "2.1.x"  
-    },
-    "dependencies": {
+        "requirejs": "2.1.x",
+        "less-middleware": "~0.1.10",
         "ws": "0.4.x",
         "express": "3.1.x",
-        "password-hash": "1.2.x",
         "less": "1.4.x",
-        "less-middleware": "~0.1.10",
         "connect": "2.9.0",
-        "amdefine": ">=0.1.0"
+        "amdefine": ">=0.1.0",
+        "mkdirp": "0.3.x",
     }
 }
