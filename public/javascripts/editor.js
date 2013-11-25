@@ -391,7 +391,6 @@ define(function(require)
                     var oOTDocChange = this._aPastDocChanges[i];
                     if (!oOTDocChange.get('bIsMe'))
                         oReverseDelta.oRange = oOT.transformRange(oOTDocChange.get('oDelta'), oReverseDelta.oRange);
-                
                 }
                 
                 // Apply redo delta.

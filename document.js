@@ -1,5 +1,6 @@
 // Dependencies
 var oHelpers = require('./public/javascripts/helpers/helpers-core');
+var applyDelta = require('./public/javascripts/apply-delta');
 
 // Document class
 module.exports = oHelpers.createClass(
@@ -72,44 +73,6 @@ module.exports = oHelpers.createClass(
     
     applyDelta: function(oDelta)
     {
-        switch (oDelta.sAction)
-        {
-            case 'insert':
-                this._splitLine(oDelta.oRange.oStart);
-                for (var i = 0; i < oDelta.aLines.length; i++)
-                {
-                    var iDocLine = oDelta.oRange.oStart.iRow + 1 + i;
-                    this.get('aLines').splice(iDocLine, 0, oDelta.aLines[i]);
-                }
-                this._joinLineWithNext(oDelta.oRange.oStart.iRow);
-                this._joinLineWithNext(oDelta.oRange.oEnd.iRow);
-                break;
-            
-            case 'delete':
-                this._splitLine(oDelta.oRange.oEnd);
-                this._splitLine(oDelta.oRange.oStart);
-                this.get('aLines').splice(
-                    oDelta.oRange.oStart.iRow + 1,                           // Where to start deleting
-                    oDelta.oRange.oEnd.iRow - oDelta.oRange.oStart.iRow + 1  // Num lines to delete.
-                );
-                this._joinLineWithNext(oDelta.oRange.oStart.iRow);
-                break;
-            
-            default:
-                oHelpers.assert(false, 'Invalid delta type: ' + oDelta.sAction);
-        }
-    },
-    
-    _splitLine: function(oPoint)
-    {
-        var sText = this.get('aLines')[oPoint.iRow];
-        this.get('aLines')[oPoint.iRow] = sText.slice(0, oPoint.iCol);
-        this.get('aLines').splice(oPoint.iRow + 1, 0, sText.slice(oPoint.iCol));
-    },
-    
-    _joinLineWithNext: function(iRow)
-    {
-        this.get('aLines')[iRow] += this.get('aLines')[iRow + 1];
-        this.get('aLines').splice(iRow + 1, 1);            
+        applyDelta(this.get('aLines'), oDelta);
     }
 });
