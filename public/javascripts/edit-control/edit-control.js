@@ -27,6 +27,7 @@ define(function(require)
         
         /* Keep from sending too many selection change events. */
         _bApplyingDelta: false,
+        _iApplyingDeltaTimeoutHandle: null,
         _bDocumentJustChanged: false,
         _iSendSelEventTimeout: null,
         
@@ -71,13 +72,10 @@ define(function(require)
             
         applyDelta: function(oNormDelta)
         {
-            this._bApplyingDelta = true;
+            this._setApplyingDelta(true);
             var oAceDelta = this._denormalizeDelta(oNormDelta);
             this._oAceDocument.applyDeltas([oAceDelta]);
-            window.setTimeout(oHelpers.createCallback(this, function()
-            {
-                this._bApplyingDelta = false;
-            }), 1);
+            this._setApplyingDelta(false);
         },
         
         setMode: function(oMode)
@@ -87,13 +85,10 @@ define(function(require)
         
         setContent: function(aLines)
         {
-            this._bApplyingDelta = true;
+            this._setApplyingDelta(true);
             this._oAceDocument.setValue(aLines.join(this._sNewLineChar));
             this._oAceEditor.moveCursorTo(0, 0);
-            window.setTimeout(oHelpers.createCallback(this, function()
-            {
-                this._bApplyingDelta = false;
-            }), 1);
+            this._setApplyingDelta(false);
         },
         
         moveCursorToPoint: function(oPoint)
@@ -302,6 +297,25 @@ define(function(require)
         {
             return new AceRange(oNormRange.oStart.iRow, oNormRange.oStart.iCol,
                                 oNormRange.oEnd.iRow,   oNormRange.oEnd.iCol);
-        }    
+        },
+
+        _setApplyingDelta: function(bApplyingDelta)
+        {
+            if (bApplyingDelta)
+            {
+                this._bApplyingDelta = true;
+            }
+            else
+            {
+                if (this._iApplyingDeltaTimeoutHandle)
+                    window.clearTimeout(this._iApplyingDeltaTimeoutHandle);
+
+                this._iApplyingDeltaTimeoutHandle = window.setTimeout(oHelpers.createCallback(this, function()
+                {
+                    this._bApplyingDelta = false;
+                    this._iApplyingDeltaTimeoutHandle = null;
+                }), 0);
+            }
+        }
     });
 });

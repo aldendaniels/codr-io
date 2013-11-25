@@ -276,11 +276,13 @@ define(function(require)
                     }
                     
                     // Should merge?
-                    bMergeWithPrevChange = oPrevChange !== null && 
-                                           oPrevChange.get('sType') == 'normal' && sType == 'normal' &&
-                                           oPrevChange.get('oDelta').sAction == oDelta.sAction &&
-                                           oPrevChange.get('oDelta').aLines.length == 1 &&
-                                           oPrevChange.get('oDelta').oRange.oStart.iRow == oDelta.oRange.oStart.iRow;
+                    bMergeWithPrevChange = oPrevChange !== null && oPrevChange.get('sType') == 'normal' && sType == 'normal' &&
+                                           oPrevChange.get('oDelta').sAction            == oDelta.sAction &&
+                                           oPrevChange.get('oDelta').oRange.oStart.iRow == oDelta.oRange.oStart.iRow &&
+                                           oPrevChange.get('oDelta').oRange.oEnd.iRow   == oDelta.oRange.oEnd.iRow &&
+                                           // Don't merge pastes. Hack: We chose 2 chars instead of 1 because if you hit two keys at the same time ACE gives one event.
+                                           oPrevChange.get('oDelta').aLines[0].length <= 2 &&
+                                           oDelta.aLines[0].length <= 2;
                 }
                 
                 // Handle change.
@@ -306,7 +308,7 @@ define(function(require)
         
         _onUndo: function()
         {
-            // Find the first DocChange in group.
+            // Get changes to undo (reverse order).
             var aDocChangesOffset = [];
             for (var iPastDocChange = this._aPastDocChanges.length - 1; iPastDocChange >=0; iPastDocChange--)
             {
@@ -350,7 +352,7 @@ define(function(require)
         
         _onRedo: function()
         {
-            // Find the first DocChange in group.
+            // Get changes to undo (reverse order).
             var aDocChangesOffset = [];
             for (var iPastDocChange = this._aPastDocChanges.length - 1; iPastDocChange >=0; iPastDocChange--)
             {    
@@ -437,10 +439,10 @@ define(function(require)
             this._transformRemoteSelections(oDelta);
         },
         
-        _getReversedDelta: function(oNormDelta)
+        _getReversedDelta: function(oDelta)
         {
-            var oInverseDelta = oHelpers.deepCloneObj(oNormDelta);
-            oInverseDelta.sAction = (oNormDelta.sAction == 'insert' ? 'delete' : 'insert');
+            var oInverseDelta = oHelpers.deepCloneObj(oDelta);
+            oInverseDelta.sAction = (oDelta.sAction == 'insert' ? 'delete' : 'insert');
             return oInverseDelta;
         },
         
