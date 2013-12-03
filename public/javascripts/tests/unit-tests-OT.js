@@ -1,13 +1,14 @@
 define(function(require)
 {
     // Dependencies.
-    var oHelpers = require('helpers/helpers-web');
-        oOT      = require('OT')
-        oQUnit   = require('./qunit');
+    var oHelpers     = require('helpers/helpers-web'),
+        oOT          = require('OT'),
+        oQUnit       = require('./qunit'),
+        fnApplyDelta = require('apply-delta');
     
     // Define module (displayed before test names).
     oQUnit.module('OT Unit Tests');
-        
+    
     ///////////////////////////////////////////////////////////////////////////////
     //                                 Single Line                               //
     ///////////////////////////////////////////////////////////////////////////////
@@ -40,7 +41,8 @@ define(function(require)
         },
         {
             sAction: 'delete',
-            oRange: r(0, 1, 0, 2)
+            oRange: r(0, 1, 0, 2),
+            aLines: ['X']
         }
     );
     
@@ -49,12 +51,14 @@ define(function(require)
         ['12Yay!'], ['Yay!'],
         {
             sAction: 'delete',
-            oRange: r(0, 0, 0, 1) //Remove '1'
+            oRange: r(0, 0, 0, 1),
+            aLines: ['1']
             
         },
         {
             sAction: 'delete',
-            oRange: r(0, 1, 0, 2) // Remove '2'
+            oRange: r(0, 1, 0, 2),
+            aLines: ['2']
         }
     );
     
@@ -63,12 +67,12 @@ define(function(require)
         ['1ay!'], ['Yay!'],
         {
             sAction: 'delete',
-            oRange: r(0, 0, 0, 1) //Remove '1'
-            
+            oRange: r(0, 0, 0, 1),
+            aLines: ['1']
         },
         {
             sAction: 'insert',
-            oRange: r(0, 1, 0, 2), // Insert 'Y'
+            oRange: r(0, 1, 0, 2),
             aLines: ['Y']
         }
     );
@@ -211,7 +215,7 @@ define(function(require)
         {
             sAction: 'delete',
             oRange: r(0, 3, 0, 4),
-            aLinex: ['X']
+            aLines: ['X']
         },
         {
             sAction: 'insert',
@@ -340,7 +344,7 @@ define(function(require)
         {
             sAction: 'delete',
             oRange: r(0, 0, 2, 0),
-            aLines: ['1', '2', '']
+            aLines: ['0', '1', '']
         },
         {
             sAction: 'insert',
@@ -649,24 +653,30 @@ define(function(require)
     
     function _test(sTestName, aStartLines, aEndLines, oPrevDelta, oDelta)
     {
-        oQUnit.asyncTest(sTestName, function()
+        oHelpers.assert(oDelta.aLines && oPrevDelta.aLines, 'All deltas must define aLines.');
+        
+        function getReversedDelta(oDelta)
+        {
+            var oInverseDelta = oHelpers.deepCloneObj(oDelta);
+            oInverseDelta.sAction = (oDelta.sAction == 'insert' ? 'delete' : 'insert');
+            return oInverseDelta;
+        }
+        
+        oQUnit.test(sTestName, 2, function()
         {
             // Transform delta.
-            oDelta.oRange = oOT.transformRange(oPrevDelta, oDelta.oRange);
+            oOT.transformDelta(oPrevDelta, oDelta);
             
-            // Apply delta.
-            var sJSON = oHelpers.toJSON({
-                aStartLines: aStartLines,
-                aDeltas: [
-                    oPrevDelta,
-                    oDelta
-                ]
-            });
-            $.get('/ajax/test/apply-doc-actions', {sJSON: sJSON}, function(aResultingLines)
-            {
-                oQUnit.deepEqual(aResultingLines, aEndLines);
-                oQUnit.start();
-            });
+            // Test Apply.
+            var aResultingLines = oHelpers.deepCloneObj(aStartLines);
+            fnApplyDelta(aResultingLines, oPrevDelta);
+            fnApplyDelta(aResultingLines, oDelta);
+            oQUnit.deepEqual(aResultingLines, aEndLines);
+            
+            // Test Undo
+            fnApplyDelta(aResultingLines, getReversedDelta(oDelta));
+            fnApplyDelta(aResultingLines, getReversedDelta(oPrevDelta));
+            oQUnit.deepEqual(aResultingLines, aStartLines);
         });
     }
 });

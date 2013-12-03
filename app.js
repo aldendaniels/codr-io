@@ -96,20 +96,6 @@ oApp.configure(function()
         }
     });
     
-    oApp.get('^/ajax/test/apply-doc-actions/?$', function(req, res)
-    {
-        // Create document.
-        var oData = oHelpers.fromJSON(req.query.sJSON);
-        var oDocument = new Document( { aLines: oData.aStartLines } );
-        
-        // Apply deltas.
-        for (var i in oData.aDeltas)
-            oDocument.applyDelta(oData.aDeltas[i]);
-            
-        // Return result.
-        res.send(oDocument.get('aLines'));
-    });
-
     oApp.post('^/fork/?$', function(req, res)
     {
         function _fork(oDocument)
