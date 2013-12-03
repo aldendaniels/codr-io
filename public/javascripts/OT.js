@@ -67,7 +67,7 @@ define(function(require)
 {
     // Dependencies.
     var oHelpers = require('./helpers/helpers-core'); // Rel. path for use in nodejs.
-    var applyDelta = require('./apply-delta');
+    var fnApplyDelta = require('./apply-delta');
     
     return (
     {
@@ -81,7 +81,7 @@ define(function(require)
             {
                 // Transformed start point.
                 var oOldStartPoint = oRange2.oStart;
-                oRange2.oStart = this._getTransformPoint(oDelta1, oDelta2.oRange.oStart, false);
+                oRange2.oStart = this._getTransformedPoint(oDelta1, oDelta2.oRange.oStart, false);
                 
                 // Increment end point the same amount (to contain inserted text).
                 oRange2.oEnd.iRow += (oRange2.oStart.iRow - oOldStartPoint.iRow);
@@ -91,46 +91,43 @@ define(function(require)
             else
             {
                 // Transform deletion range.
-                var oOldRange  = oDelta2.oRange;
                 var oNewRange  = this.getTransformedRange(oDelta1, oRange2);
                 oDelta2.oRange = oNewRange;
                 
-                // If the new range has changed size, we know we need to modify oDelta2.asLines to reflect those changes.
-                // This is so that we can accurately reverse the deletion event.
-                if ((oNewRange.oEnd.iRow - oNewRange.iStart.iRow) != (oOldRange.oEnd.iRow - oOldRange.oStart.iRow) ||
-                    (oNewRange.oEnd.iCol - oNewRange.iStart.iCol) != (oOldRange.oEnd.iCol - oOldRange.oStart.iCol))
+                // Remove the text from delta2 that delta1 already deleted.
+                if (oDelta1.sAction == 'delete')
                 {
-                    if (oDelta1.sAction == 'delete') // Remove the text from delta2 that delta1 already deleted.
+                    // Find the intersection of the two ranges.
+                    var oIntersectStartPoint = this._pointsInOrder(oRange1.oStart, oRange2.oStart) ? oRange2.oStart : oRange1.oStart; // Max start point
+                    var oIntersectEndPoint   = this._pointsInOrder(oRange1.oEnd,   oRange2.oEnd)   ? oRange1.oEnd   : oRange2.oEnd;   // Min end point
+                    
+                    // Munger oDelta2.aLines to reflect the intersecting changes
+                    fnApplyDelta(oDelta2.aLines,
                     {
-                        // Find the intersection of the two ranges.
-                        var oIntersectStartPoint = this._pointsInOrder(oRange1.oStart, oOldRange.oStart) ? oOldRange.oStart : oRange1.oStart; // Max start point
-                        var oIntersectEndPoint   = this._pointsInOrder(oRange1.oEnd,   oOldRange.oEnd)   ? oRange1.oEnd     : oOldRange.oEnd; // Min end point
-                        
-                        // Munger oDelta2.asLines to reflect the intersecting changes
-                        applyDelta(oDelta2.asLines,
-                        {
-                            sAction: 'delete',
-                            oRange:
-                            {           // Make points relative to delta2's aLines.
-                                oStart: this._getDecrementedPoint(oRange1.oStart, oIntersectStartPoint),
-                                oEnd:   this._getDecrementedPoint(oRange1.oStart, oIntersectEndPoint)
-                            }
-                        });
-                    }
-                    else // Add text that delta1 inserted into delta2's deleted text.
+                        sAction: 'delete',
+                        oRange:
+                        {           // Make points relative to delta2's aLines.
+                            oStart: this._getDecrementedPoint(oRange2.oStart, oIntersectStartPoint),
+                            oEnd:   this._getDecrementedPoint(oRange2.oStart, oIntersectEndPoint)
+                        }
+                    });
+                }
+                
+                // Add text that delta1 inserted into delta2's deleted text.
+                else if (this._pointsInOrder(oRange2.oStart, oRange1.oStart, false) &&
+                         this._pointsInOrder(oRange1.oStart, oRange2.oEnd  , false))
+                {
+                    fnApplyDelta(oDelta2.aLines,
                     {
-                        applyDelta(oDelta2.asLines,
-                        {
-                            sAction: 'insert',
-                            oRange:
-                            {           // Make points relative to delta2's aLines.
-                                oStart: this._getDecrementedPoint(oRange2.oStart, oRange1.oStart),
-                                oEnd:   this._getDecrementedPoint(oRange2.oStart, oRange1.oEnd)
-                            },
-                            asLines: oDelta1.asLines
-                        });
-                    }
-                }                
+                        sAction: 'insert',
+                        oRange:
+                        {           // Make points relative to delta2's aLines.
+                            oStart: this._getDecrementedPoint(oRange2.oStart, oRange1.oStart),
+                            oEnd:   this._getDecrementedPoint(oRange2.oStart, oRange1.oEnd)
+                        },
+                        aLines: oDelta1.aLines
+                    });
+                }
             }
         },
         
@@ -142,12 +139,12 @@ define(function(require)
             var bIsCollapsed = oRange.oStart.iRow == oRange.oEnd.iRow && oRange.oStart.iCol == oRange.oEnd.iCol;
             return (
             {
-                oStart: this._getTransformPoint(oDelta, oRange.oStart , bIsCollapsed),
-                oEnd:   this._getTransformPoint(oDelta, oRange.oEnd   , true)
+                oStart: this._getTransformedPoint(oDelta, oRange.oStart , bIsCollapsed),
+                oEnd:   this._getTransformedPoint(oDelta, oRange.oEnd   , true)
             });
         },
         
-        _getTransformPoint: function(oDelta, oPoint, bPointIsEndOfRange)
+        _getTransformedPoint: function(oDelta, oPoint, bPointIsEndOfRange)
         {
             // Get delta info.
             var bDeltaIsInsert = (oDelta.sAction == 'insert')
@@ -172,12 +169,12 @@ define(function(require)
                 return (
                 {
                     iRow: oPoint.iRow + iDeltaRowShift,
-                    iCol: oPoint.iCol + (Point.iRow == oDeltaEnd.iRow ? iDeltaColShift : 0)
+                    iCol: oPoint.iCol + (oPoint.iRow == oDeltaEnd.iRow ? iDeltaColShift : 0)
                 });
             }
             
             // DELTA ENVELOPS POINT (delete only): Move point to delta start.
-            oHelpers.assert(oDelta.sAction == 'delete', 'Oops!');
+            oHelpers.assert(oDelta.sAction == 'delete', 'Delete action expected.');
             return (
             {
                 iRow: oDeltaStart.iRow,
@@ -188,7 +185,7 @@ define(function(require)
         _pointsInOrder: function(oPoint1, oPoint2, bEqualPointsInOrder)
         {
             var bColIsAfter = bEqualPointsInOrder ? oPoint1.iCol <= oPoint2.iCol : oPoint1.iCol < oPoint2.iCol;
-            return (oPoint1.iRow < oPoint2.iRow) || ( oPoint1.iRow == oPoint2.iRow && oPoint1.iCol < oPoint2.iCol )
+            return (oPoint1.iRow < oPoint2.iRow) || (oPoint1.iRow == oPoint2.iRow && bColIsAfter);
         },
         
         _getDecrementedPoint: function(oPoint1, oPoint2) // Decrement oPoint2 by oPoint1
