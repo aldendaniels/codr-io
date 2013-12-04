@@ -84,9 +84,10 @@ define(function(require)
     
         __type__: 'Editor',    
     
-        __init__: function(oSocket)
+        __init__: function(oSocket, oWorkspace)
         {
             this._oSocket = oSocket;
+            this._oWorkspace = oWorkspace;
             this._oRemoteClients = {};
             this._aPastDocChanges = [];
             
@@ -147,7 +148,7 @@ define(function(require)
                     // Tranform range to reflect local changes.
                     var aPendingDocChanges = this._getPendingDocChanges();
                     for (var i in aPendingDocChanges)
-                        oAction.oData.oRange = oOT.transformRange(aPendingDocChanges[i].get('oDelta'), oAction.oData.oRange);
+                        oOT.transformRange(aPendingDocChanges[i].get('oDelta'), oAction.oData.oRange);
                     
                     // Save remote selection range and refresh.
                     var sClientID = oAction.oData.sClientID;
@@ -178,7 +179,7 @@ define(function(require)
                     {
                         var oPendingDocChange = aPendingDocChanges[i];
                         var oDelta = oPendingDocChange.get('oDelta');
-                        oDelta.oRange = oOT.transformRange(oAction.oData.oDelta, oDelta.oRange);
+                        oOT.transformDelta(oAction.oData.oDelta, oDelta);
                         this._applyDelta(oDelta);
                         this._aPastDocChanges.push(oPendingDocChange);
                     }
@@ -280,12 +281,14 @@ define(function(require)
                                            oPrevChange.get('oDelta').sAction            == oDelta.sAction &&
                                            oPrevChange.get('oDelta').oRange.oStart.iRow == oDelta.oRange.oStart.iRow &&
                                            oPrevChange.get('oDelta').oRange.oEnd.iRow   == oDelta.oRange.oEnd.iRow &&
-                                           // Don't merge pastes. Hack: We chose 2 chars instead of 1 because if you hit two keys at the same time ACE gives one event.
+                                           // Don't merge pastes.
+                                           // Hack: We chose 2 chars instead of 1 because ace gives one even when you hit two keys at once.
                                            oPrevChange.get('oDelta').aLines[0].length <= 2 &&
                                            oDelta.aLines[0].length <= 2;
                 }
                 
                 // Handle change.
+                oDelta.sClientID = this._oWorkspace.getUserInfo().sClientID;
                 this._oSocket.send('docChange',
                 {
                     oDelta: oDelta,
@@ -334,7 +337,7 @@ define(function(require)
                 {
                     var oOTDocChange = this._aPastDocChanges[i];
                     if (!oOTDocChange.get('bIsMe'))
-                        oReverseDelta.oRange = oOT.transformRange(oOTDocChange.get('oDelta'), oReverseDelta.oRange);
+                        oOT.transformDelta(oOTDocChange.get('oDelta'), oReverseDelta);
                 }
                 
                 // Apply undo delta.
@@ -390,7 +393,7 @@ define(function(require)
                 {
                     var oOTDocChange = this._aPastDocChanges[i];
                     if (!oOTDocChange.get('bIsMe'))
-                        oReverseDelta.oRange = oOT.transformRange(oOTDocChange.get('oDelta'), oReverseDelta.oRange);
+                        oOT.transformDelta(oOTDocChange.get('oDelta'), oReverseDelta);
                 }
                 
                 // Apply redo delta.
@@ -412,7 +415,10 @@ define(function(require)
             {
                 var oClient = this._oRemoteClients[sClientID];
                 if (oClient.oLastSelRange)
-                    oClient.oLastSelRange = oOT.transformRange(oDelta, oClient.oLastSelRange);
+                {
+                    var bPushEqualPoints = (sClientID == oDelta.sClientID); // Always push a client's own selection.
+                    oOT.transformRange(oDelta, oClient.oLastSelRange, sClientID == oDelta.sClientID);
+                }
             }
         },
         

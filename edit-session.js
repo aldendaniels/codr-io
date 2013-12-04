@@ -259,7 +259,7 @@ module.exports = oHelpers.createClass(
             case 'setSelection':
                 
                 // Transform selection range.
-                oAction.oData.oRange = this._tranformRangeToCurState(oClient, oAction.oData.oRange, oAction.oData.iState);
+                this._tranformToCurState(oClient, oAction.oData.oRange, oAction.oData.iState, 'range');
                 
                 // Save selection.
                 oClient.setSelectionRange(oAction.oData.oRange);
@@ -285,13 +285,13 @@ module.exports = oHelpers.createClass(
                 
                 // Transform delta range.
                 var oDelta = oAction.oData.oDelta;
-                oDelta.oRange = this._tranformRangeToCurState(oClient, oDelta.oRange, oAction.oData.iState);
+                this._tranformToCurState(oClient, oDelta, oAction.oData.iState, 'delta');
                 
                 // Transform client selections.
                 for (var i in this._aClients)
                 {
-                    var oRange = this._aClients[i].getSelectionRange();
-                    this._aClients[i].setSelectionRange(oOT.transformRange(oDelta, oRange));
+                    var bPushEqualPoints = (this._aClients[i] == oClient); // Always push a client's own selection.
+                    oOT.transformRange(oDelta, this._aClients[i].getSelectionRange(), bPushEqualPoints);
                 }
                 
                 // Record in DeltaHistory.
@@ -453,7 +453,7 @@ module.exports = oHelpers.createClass(
         }
     },
     
-    _tranformRangeToCurState: function(oClient, oRange, iState)
+    _tranformToCurState: function(oClient, oObj, iState, sType)
     {
         var iCatchUp = this._iServerState - iState;
         for (var i = this._aDeltaHistory.length - iCatchUp; i < this._aDeltaHistory.length; i++)
@@ -466,10 +466,14 @@ module.exports = oHelpers.createClass(
             // since the range already reflects those.
             if (oOtherClient != oClient)
             {
-                oRange = oOT.transformRange(oOtherDelta, oRange);                    
+                switch(sType)
+                {
+                    case 'range': oOT.transformRange(oOtherDelta, oObj); break;
+                    case 'delta': oOT.transformDelta(oOtherDelta, oObj); break;
+                    default:      oHelpers.assert(false, 'Invalid type.');
+                }
             }
         }
-        return oRange;
     },
     
     _save: function()

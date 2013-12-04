@@ -91,8 +91,7 @@ define(function(require)
             else
             {
                 // Transform deletion range.
-                var oNewRange  = this.getTransformedRange(oDelta1, oRange2);
-                oDelta2.oRange = oNewRange;
+                this.transformRange(oDelta1, oRange2);
                 
                 // Remove the text from delta2 that delta1 already deleted.
                 if (oDelta1.sAction == 'delete')
@@ -131,17 +130,14 @@ define(function(require)
             }
         },
         
-        getTransformedRange: function(oDelta, oRange)
+        transformRange: function(oDelta, oRange, bPushEqualPoints)
         {
             // Note: For collapsed selections, we treat the both points as the "End of Range".
             //       This way, the a delta occuring at the same location as the collapsed range
             //       won't push the range around unnecessarily.
             var bIsCollapsed = oRange.oStart.iRow == oRange.oEnd.iRow && oRange.oStart.iCol == oRange.oEnd.iCol;
-            return (
-            {
-                oStart: this._getTransformedPoint(oDelta, oRange.oStart , bIsCollapsed),
-                oEnd:   this._getTransformedPoint(oDelta, oRange.oEnd   , true)
-            });
+            oRange.oStart = this._getTransformedPoint(oDelta, oRange.oStart , !bPushEqualPoints && bIsCollapsed);
+            oRange.oEnd   = this._getTransformedPoint(oDelta, oRange.oEnd   , !bPushEqualPoints && true);
         },
         
         _getTransformedPoint: function(oDelta, oPoint, bPointIsEndOfRange)
