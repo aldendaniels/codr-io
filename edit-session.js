@@ -309,7 +309,8 @@ module.exports = oHelpers.createClass(
                     oData:
                     {
                         oDelta: oDelta,
-                        iServerState: this._iServerState
+                        iServerState: this._iServerState,
+                        sClientID: oClient.getClientID()
                     }
                 });
 
@@ -385,8 +386,18 @@ module.exports = oHelpers.createClass(
                 this._broadcastAction(oClient,
                 {
                     sType: 'addClient',
-                    oData: {
+                    oData:
+                    {
                         sClientID: oClient.getClientID()
+                    }
+                });
+                this._broadcastAction(oClient,
+                {
+                    sType: 'setRemoteSelection',
+                    oData:
+                    {
+                        sClientID: oClient.getClientID(),
+                        oRange: oClient.getSelectionRange()
                     }
                 });
                 break;

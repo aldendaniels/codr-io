@@ -1,4 +1,3 @@
-
 define(function(require)
 {
     // Dependencies
@@ -27,6 +26,7 @@ define(function(require)
         
         /* Keep from sending too many selection change events. */
         _bApplyingDelta: false,
+        _bSettingSelection: false,
         _iApplyingDeltaTimeoutHandle: null,
         _bDocumentJustChanged: false,
         _iSendSelEventTimeout: null,
@@ -91,9 +91,17 @@ define(function(require)
             this._setApplyingDelta(false);
         },
         
-        moveCursorToPoint: function(oPoint)
+        setSelectionRange: function(oNormRange)
         {
-            this._oAceEditor.navigateTo(oPoint.iRow, oPoint.iCol);
+            this._bSettingSelection = true;
+            var oAceRange = this._denormalizeRange(oNormRange);
+            this._oAceEditor.getSelection().setSelectionRange(oAceRange);
+            this._bSettingSelection = false;
+        },
+        
+        getSelectionRange: function()
+        {
+            return this._normalizeAceRange(this._oAceEditor.getSelectionRange());
         },
         
         setSelectionMarker: function(oRange, sID, sClassName)
@@ -185,10 +193,14 @@ define(function(require)
                         if (bIsDuplicateEvent)
                             return;
                         
+                        // Ignore events caused by a call to setSelectionRange().
+                        if(this._bSettingSelection)
+                            return;
+                        
                         // Don't send selection event immediatly preceding this one.
                         // This is because ace gives us two selection events in a row
                         // for most selection changes . . . a bogus one followed by a
-                        // good noe.
+                        // good one.
                         if (this._iSendSelEventTimeout)
                             clearTimeout(this._iSendSelEventTimeout);
                         

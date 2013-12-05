@@ -84,10 +84,9 @@ define(function(require)
     
         __type__: 'Editor',    
     
-        __init__: function(oSocket, oWorkspace)
+        __init__: function(oSocket)
         {
             this._oSocket = oSocket;
-            this._oWorkspace = oWorkspace;
             this._oRemoteClients = {};
             this._aPastDocChanges = [];
             
@@ -151,9 +150,9 @@ define(function(require)
                         oOT.transformRange(aPendingDocChanges[i].get('oDelta'), oAction.oData.oRange);
                     
                     // Save remote selection range and refresh.
-                    var sClientID = oAction.oData.sClientID;
-                    this._oRemoteClients[sClientID].oLastSelRange = oAction.oData.oRange;
-                    this._refreshRemoteSelections();
+                    var oClient = this._oRemoteClients[oAction.oData.sClientID];
+                    oClient.oLastSelRange = oAction.oData.oRange;
+                    this._refreshRemoteSelection(oClient);
                     break;
                 
                 case 'docChange':
@@ -167,7 +166,7 @@ define(function(require)
                         this._applyDelta(this._getReversedDelta(aPendingDocChanges[i].get('oDelta')));
                     
                     // Apply new delta.
-                    this._applyDelta(oAction.oData.oDelta);
+                    this._applyDelta(oAction.oData.oDelta, oAction.oData.sClientID);
                     this._aPastDocChanges.push(new DocChange(
                     {
                         bIsMe: false,
@@ -183,9 +182,6 @@ define(function(require)
                         this._applyDelta(oDelta);
                         this._aPastDocChanges.push(oPendingDocChange);
                     }
-                    
-                    // Refresh remote cursors.
-                    this._refreshRemoteSelections();
                     break;
                     
                 case 'eventReciept':
@@ -200,6 +196,7 @@ define(function(require)
                     var iNumClients = Object.keys(this._oRemoteClients).length;
                     this._oRemoteClients[oAction.oData.sClientID] =
                     {
+                        sID: oAction.oData.sClientID,
                         sColor: iNumClients <= COLORS.length ? COLORS[iNumClients] : 'black',
                         oLastSelRange: null,
                         aAceMarkersIDs: []
@@ -288,7 +285,6 @@ define(function(require)
                 }
                 
                 // Handle change.
-                oDelta.sClientID = this._oWorkspace.getUserInfo().sClientID;
                 this._oSocket.send('docChange',
                 {
                     oDelta: oDelta,
@@ -306,7 +302,6 @@ define(function(require)
                 }));
                 this._iNumPendingActions++;
             }
-            this._refreshRemoteSelections();
         },
         
         _onUndo: function()
@@ -344,9 +339,6 @@ define(function(require)
                 aReverseDeltas.push(oReverseDelta);
                 this._applyDelta(oReverseDelta);
                 oDocChange.set('bHasBeenUndone', true);
-                
-                // Refresh cursors.
-                this._refreshRemoteSelections();
                 this._moveLocalCursorToDeltaEnd(oReverseDelta);
             }
 
@@ -400,48 +392,56 @@ define(function(require)
                 aReverseDeltas.push(oReverseDelta);
                 this._applyDelta(oReverseDelta);
                 oDocChange.set('bHasBeenRedone', true);
-                
-                // Refresh cursors.
-                this._refreshRemoteSelections();
                 this._moveLocalCursorToDeltaEnd(oReverseDelta);
             }
             
             this._onDocumentChange(aReverseDeltas, 'redo');
         },
         
-        _transformRemoteSelections: function(oDelta)
+        _transformRemoteSelections: function(oDelta, sOptionalClientID)
         {
             for (var sClientID in this._oRemoteClients)
             {
                 var oClient = this._oRemoteClients[sClientID];
                 if (oClient.oLastSelRange)
                 {
-                    var bPushEqualPoints = (sClientID == oDelta.sClientID); // Always push a client's own selection.
-                    oOT.transformRange(oDelta, oClient.oLastSelRange, sClientID == oDelta.sClientID);
+                    var bPushEqualPoints = (sClientID == sOptionalClientID); // Always push a client's own selection.
+                    oOT.transformRange(oDelta, oClient.oLastSelRange, sClientID == sOptionalClientID);
+                    this._refreshRemoteSelection(oClient);
                 }
             }
         },
         
-        _refreshRemoteSelections: function()
+        _refreshRemoteSelection: function(oClient)
         {
-            for (var sClientID in this._oRemoteClients)
-            {
-                var oClient = this._oRemoteClients[sClientID];
-                if (oClient.oLastSelRange)
-                    this._oEditControl.setSelectionMarker(oClient.oLastSelRange, sClientID, oClient.sColor);
-            }
+            if (oClient.oLastSelRange)
+                this._oEditControl.setSelectionMarker(oClient.oLastSelRange, oClient.sID, oClient.sColor);
         },
         
         _moveLocalCursorToDeltaEnd: function(oDelta)
         {
             var oPoint = (oDelta.sAction == 'insert' ? oDelta.oRange.oEnd : oDelta.oRange.oStart);
-            this._oEditControl.moveCursorToPoint(oPoint);
+            this._oEditControl.setSelectionRange(
+            {
+                oStart: oPoint,
+                oEnd: oHelpers.deepCloneObj(oPoint)
+            });
         },
         
-        _applyDelta: function(oDelta)
+        _applyDelta: function(oDelta, sOptionalClientID)
         {
+            // Save local selection range.
+            var oSelRange = this._oEditControl.getSelectionRange();
+            
+            // Apply delta.
             this._oEditControl.applyDelta(oDelta);
-            this._transformRemoteSelections(oDelta);
+            
+            // Transform local selection.
+            oOT.transformRange(oDelta, oSelRange);
+            this._oEditControl.setSelectionRange(oSelRange);
+            
+            // Transform remote selections.
+            this._transformRemoteSelections(oDelta, sOptionalClientID);    
         },
         
         _getReversedDelta: function(oDelta)
