@@ -1,0 +1,159 @@
+#edit-wrap
+{
+    @editStatusBarHeight: 21px;
+    
+    position: absolute;
+    top: @top-toolbar-height + 1px;
+    left: @left-toolbar-width + 1px;
+    right: 0;
+    bottom: 0;
+    
+    #edit
+    {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: @editStatusBarHeight;
+    }
+    
+    #edit-status-bar
+    {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: @editStatusBarHeight - 1px;
+        border-top: 1px #eee solid;
+        background-color: white;
+        
+        .status-right
+        {
+            float: right;
+            .status-item
+            {
+                border-right-width: 0px;
+                border-left: 1px #eee solid;
+            }
+        }
+        
+        .status-item, .ace_gutter
+        {
+            float: left;
+            position: static;
+            height: 100%;
+        }
+        
+        .status-item
+        {
+            border-right: 1px #eee solid;
+            padding-left: 10px;
+            padding-right: 25px;
+            padding-top: 3px;
+            font-size: 8pt;
+            position: relative;
+                            
+            .status-label
+            {
+                color: gray;
+            }
+            
+            .status-value
+            {
+                color: #555;
+                font-weight: bold;
+            }
+            
+            .icon-sort
+            {
+                color: #555;
+                position: absolute;
+                font-size: 12px;
+                right: 6px;
+                top: 5px;
+            }
+        }
+        
+        .status-item.menu-btn
+        {
+            cursor: pointer;
+            transition: background-color 0.2s;
+            &:hover
+            {
+                background-color: #f8f8f8;
+            }
+        }
+        
+        .status-item#cursor-pos
+        {
+            width: 130px;
+        }
+    }
+}
+
+/***************** ACE EDITOR STYLES *********************/
+
+@selectionColor: saturate(darken(@codr-blue, 10%), 50%);
+@collapsedSelectionColor: darken(@codr-blue, 10%);
+
+.remote-sel, .remote-sel-collapsed, .remote-sel-collapsed-hat
+{
+    position: absolute;
+    z-index: 5;    
+}
+
+.remote-sel
+{
+    opacity: 0.2;
+}
+
+.remote-sel-collapsed
+{
+    background-color: transparent !important;
+    border-left: 2px solid;
+    margin-top: -1px;
+}
+
+.remote-sel-collapsed-hat
+{
+    margin-top: -3px;
+    margin-left: -2px;
+    width: 6px !important;
+    height: 6px !important;
+    border-radius: 6px;
+}
+
+/* colors */
+.green     { background-color: green;    border-color: green;    }
+.pink      { background-color: deepPink; border-color: deepPink; }
+.orange    { background-color: orange;   border-color: orange;   }
+.purple    { background-color: purple;   border-color: purple;   }
+.red       { background-color: red;      border-color: red;      }
+.turquoise { background-color: turquise; border-color: turquise; }
+.black     { background-color: black;    border-color: black;    }
+
+.ace_scroller
+{
+   margin-right: -2px;
+}
+
+.ace_gutter
+{
+    width: 49px !important;
+    background-color: white !important;
+    border-right: 1px #eee solid;
+}
+
+.ace_gutter-layer
+{
+    width: 49px !important;
+}
+
+.ace-tm .ace_gutter-active-line,
+.ace-tm .ace_marker-layer .ace_active-line
+{
+    background: rgba(0, 0, 0, 0.03) !important;
+}
+
+/* TO CONTROL SELECTION COLOR:
+.ace-tm .ace_marker-layer .ace_selection { background: ...; }*/
