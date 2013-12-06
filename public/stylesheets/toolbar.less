@@ -232,66 +232,6 @@
             }
         }
     }
-
-    /***************** TITLE OPTION *********************/
-    
-    .toolbar-item#title
-    {
-        width: 250px;
-        &.open
-        {
-            width: 256px;                    
-        }
-    }
-    
-    /***************** MODE OPTION *********************/
-    
-    .toolbar-item#mode
-    {
-        width: 150px;
-        &.open
-        {
-            width: 156px;
-        }
-        
-        .toolbar-dropdown
-        {
-            width: 400px;
-        }
-        
-        #mode-menu
-        {
-            width: 400px;
-            height: 400px;
-            position: relative;
-            border: 1px #ddd solid;
-        }
-    }
-
-    #account
-    {
-        margin-right: 1em;
-        margin-top: 15px;
-    }
-
-    #num-viewing-box
-    {
-        padding-top: 4px;
-        padding-left: 10px;
-        padding-right: 10px;
-         
-        #num-viewing
-        {
-            font-size: 13pt;
-            width: 150px;
-            color: #aaa;
-            
-            &.others-viewing
-            {
-                color: @codr-blue;            
-            }
-        }
-    }
 }
 
 .left-icon
@@ -350,7 +290,7 @@
         {
             display: none;
         }
-
+        
         .toolbar-dropdown
         {
             position: absolute;
@@ -396,7 +336,59 @@
     }
 }
 
-#chat-menu
+/***************** TOOlBAR ITEMS *********************/
+
+#num-viewing-box
+{
+    padding-top: 4px;
+    padding-left: 10px;
+    padding-right: 10px;
+     
+    #num-viewing
+    {
+        font-size: 13pt;
+        width: 150px;
+        color: #aaa;
+        
+        &.others-viewing
+        {
+            color: @codr-blue;            
+        }
+    }
+}
+
+#toolbar-item-title
+{
+    width: 250px;
+    &.open
+    {
+        width: 256px;                    
+    }
+}
+
+#toolbar-item-mode
+{
+    width: 150px;
+    &.open
+    {
+        width: 156px;
+    }
+    
+    .toolbar-dropdown
+    {
+        width: 400px;
+    }
+    
+    #mode-menu
+    {
+        width: 400px;
+        height: 400px;
+        position: relative;
+        border: 1px #ddd solid;
+    }
+}
+
+#toolbar-item-chat
 {
     position: relative;
     #chat-unread-count
@@ -422,70 +414,69 @@
             top: 8px;
         }
     }
-}
 
-#chat
-{
-    #chat-identify-wrapper
+    #chat
     {
-        display: none;
-        #chat-identify-error-message
+        #chat-identify-wrapper
         {
-            font-style: italic;
-            color: red;
-        }
-    }
-
-    &.identify 
-    {
-        #chat-identify-wrapper { display: block; }
-        #chat-main             { display: none;  }
-    }
-
-    #chat-history
-    {
-        margin: 5px;
-        padding: 12px;
-        border: 1px #ccc solid;
-        background-color: white;
-        height: 300px;
-        overflow: auto;
-        
-        .chat-message
-        {
-            margin-bottom: 10px;
-            
-            .chat-message-from
+            display: none;
+            #chat-identify-error-message
             {
-                color: #888;
+                font-style: italic;
+                color: red;
             }
         }
-    }
     
-    #chat-typing
-    {
-        margin-top: 10px;
-        color: #888;
-        font-size: 8pt;
-        font-family: arial;
-        margin-left: 5px;
-    }
+        &.identify 
+        {
+            #chat-identify-wrapper { display: block; }
+            #chat-main             { display: none;  }
+        }
     
-    #chat-box
-    {
-        padding: 12px;
-        width: 362px;
-        margin-left: 5px;
-        margin-top: 10px;
-        border: 1px white solid;
-        box-shadow: 0 0 5px #bbb inset;
-        outline: none;
-        resize: none;
+        #chat-history
+        {
+            margin: 5px;
+            padding: 12px;
+            border: 1px #ccc solid;
+            background-color: white;
+            height: 300px;
+            overflow: auto;
+            
+            .chat-message
+            {
+                margin-bottom: 10px;
+                
+                .chat-message-from
+                {
+                    color: #888;
+                }
+            }
+        }
+        
+        #chat-typing
+        {
+            margin-top: 10px;
+            color: #888;
+            font-size: 8pt;
+            font-family: arial;
+            margin-left: 5px;
+        }
+        
+        #chat-box
+        {
+            padding: 12px;
+            width: 362px;
+            margin-left: 5px;
+            margin-top: 10px;
+            border: 1px white solid;
+            box-shadow: 0 0 5px #bbb inset;
+            outline: none;
+            resize: none;
+        }
     }
 }
 
-
-#link-menu
+#toolbar-item-link
 {
     .link-section-title
     {
@@ -547,7 +538,7 @@
     
 }
 
-#fork-menu
+#toolbar-item-fork
 {
     #fork-desc
     {

@@ -35,10 +35,8 @@ define('workspace', function(require)
             this._oSocket  = new Socket(sSocketURL);
             this._oSocket.bind('message', this, this._handleServerAction);
             
-            // Init Shortcut Handler.
-            var oShortcutHandler = new KeyShortcutHandler();
-            
             // Init objects.
+            var oShortcutHandler = new KeyShortcutHandler();
             this._oToolbar    = new Toolbar(this, this._oSocket, oShortcutHandler);
             this._oEditor     = new Editor(this._oSocket);
             
@@ -46,7 +44,7 @@ define('workspace', function(require)
             window._editor = this._oEditor;
             
             // Init DOM focus.
-            this._aObjects = [this._oToolbar, this._oEditor];
+            this._aObjects = [this._oToolbar, this._oEditor, oShortcutHandler];
             this._aFocusHistory = [];
             
             // On a new document creation, default the title to "Untitled".
@@ -143,7 +141,7 @@ define('workspace', function(require)
                 if (oObject.contains(jElem))
                     return oObject;
             }
-            oHelpers.assert(jElem.is('BODY'), 'Containing object not found this element:', jElem);
+            oHelpers.assert(false, 'Containing object not found this element:', jElem);
             return null;
         },
     

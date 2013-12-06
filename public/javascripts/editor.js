@@ -116,7 +116,7 @@ define(function(require)
         
         contains: function(jElem)
         {
-            return jElem.closest('#' + EDITOR_ID).length > 0;
+            return jElem.closest('#' + EDITOR_ID + ', #edit-status-bar').length > 0;
         },
     
         focus: function()

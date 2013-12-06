@@ -12,93 +12,98 @@ define(function(require)
         __init__: function()
         {
             this._oShortcuts = {};
-    
-            $('body').on('keydown', oHelpers.createCallback(this, this._onKeyDown));
-            $('#shortcut-overlay').on('mousedown', oHelpers.createCallback(this, this._close))
+            
+            // Normally we bind all events in workspace, but here we want to get key
+            // event even when we don't have focus so we bind our own listener.
+            $('body').on('keydown', oHelpers.createCallback(this, this.onEvent));
         },
     
-        registerShortcut: function(sAccel, jElem, sPos, iOptionalOffset)
+        registerShortcut: function(sAccel, jElem, iOptionalOffset)
         {
             oHelpers.assert(sAccel.length == 1, 'A shortcut must be one char long.');
             this._oShortcuts[sAccel.toUpperCase().charCodeAt(0)] = {
                 jElem:   jElem,
                 sAccel:  sAccel.toUpperCase(),
-                sPos:    sPos,
                 iOffset: iOptionalOffset || 0
             };
         },
-    
-        _onKeyDown: function(oEvent)
+        
+        contains: function(jElem)
         {
-            var iKeyCode = oEvent.keyCode || oEvent.which;
-    
-            if (!this._bIsOpen && iKeyCode == 186 && oEvent.ctrlKey) // ctrl-;
+            return jElem.closest('#shortcut-overlay').length > 0;
+        },
+        
+        focus: function()  { oHelpers.assert(false, 'The shortcut handler should never receive focus.') },        
+        onBlur: function() { oHelpers.assert(false, 'The shortcut handler should never receive focus.') },
+        
+        onEvent: function(oEvent)
+        {
+            switch(oEvent.type)
             {
-                this._open();
-                return;
-            }
-            else if (this._bIsOpen && iKeyCode == 27) //esc
-            {
-                this._close();
-            }
-            else if (this._bIsOpen && iKeyCode in this._oShortcuts)
-            {
-                var jElem = this._oShortcuts[iKeyCode]['jElem'];
-                if (jElem.is('button'))
-                {
-                    jElem.click();
-                }
-                else
-                {
-                    oHelpers.findFirstChild(jElem, this, function(eChild)
-                    {
-                        return oHelpers.isFocusable(eChild);
-                    }).focus();
-                }
-                this._close();
+                case 'mousedown':
+                    this._close();
+                    break;
                 
-                oEvent.preventDefault();
+                case 'keydown':
+                    
+                    var iKeyCode = oEvent.which;
+                    if (!this._bIsOpen && iKeyCode == 186 && oEvent.ctrlKey) // CTRL + SEMICOLON
+                    {
+                        this._open();
+                    }
+                    else if (this._bIsOpen && iKeyCode == 27) // ESC
+                    {
+                        this._close();
+                    }
+                    else if (this._bIsOpen && iKeyCode in this._oShortcuts)
+                    {
+                        var jElem = this._oShortcuts[iKeyCode]['jElem'];
+                        if (jElem.is('button'))
+                        {
+                            jElem.click();
+                        }
+                        else
+                        {
+                            oHelpers.findFirstChild(jElem, this, function(eChild)
+                            {
+                                return oHelpers.isFocusable(eChild);
+                            }).focus();
+                        }
+                        this._close();
+                        oEvent.preventDefault();
+                    }
+                    break;
             }
         },
-    
+        
         _open: function()
         {
+            $('#shortcut-overlay').show();
             for (var iShortcut in this._oShortcuts)
             {
+                // Create shortcut indicator.
                 var oShortcut = this._oShortcuts[iShortcut];
                 var jShortcut = $('<div class="shortcut"></div>');
-                jShortcut.text(oShortcut.sAccel);
-    
-                var jElem = oShortcut['jElem'];
-                jElem.prepend(jShortcut);
-    
-                // Center vertically
-                jShortcut.css('margin-top', (jElem.height() - jShortcut.outerHeight()) / 2 + 'px')
-    
-                // Position
-                var iOverExtend = jShortcut.outerWidth() / 2;
-                if (oShortcut['sPos'] == 'left')
+                jShortcut.text(oShortcut.sAccel);                
+                $('#shortcut-overlay').append(jShortcut);
+                
+                // Position shortcut indicator. 
+                var jElem = oShortcut.jElem;
+                var oPos = jElem.offset();
+                jShortcut.css(
                 {
-                    var iPaddingLeft = parseInt(jElem.css('padding-left'));
-                    jShortcut.css('margin-left', -iPaddingLeft - iOverExtend + oShortcut.iOffset + 2 + 'px');
-                }
-                else
-                {
-                    var iPaddingRight = parseInt(jElem.css('padding-right'));
-                    var iWidth = jElem.width();
-                    jShortcut.css('margin-left', iPaddingRight + iWidth - iOverExtend - oShortcut.iOffset - 2 + 'px');
-                }
+                    top:  oPos.top  + (jElem.height() - jShortcut.outerHeight()) / 2,              // Center vertically.,
+                    left: oPos.left +  jElem.width()  - jShortcut.outerWidth() + oShortcut.iOffset // Right align.
+                });
             }
-            $('#shortcut-overlay').show();
             this._bIsOpen = true;
         },
-    
+        
         _close: function()
         {
             $('.shortcut').remove();
             $('#shortcut-overlay').hide();
             this._bIsOpen = false;
         }
-        
     });
 });

@@ -34,14 +34,16 @@
                 
                 <div id="toolbar-top">
                     
+                    <!-- Logo Icon-->
                     <a id="toolbar-logo" href="http://codr.io/">
                         <span class="icon-cloud left-icon"></span>
                         <span class="icon-code left-icon"></span>
                     </a>
                     <div class="divider"></div>
                     
+                    <!-- Title Toolbar Item -->
                     <div id="title-shortcut-wrapper">
-                        <div id="title" class="toolbar-item">
+                        <div id="toolbar-item-title" class="toolbar-item">
                             <div class="toolbar-item-btn">
                                 <div class="toolbar-item-caption">Title</div>
                                 <div class="toolbar-item-selection">Loading...</div>
@@ -62,23 +64,23 @@
                     </div>
                     <div class="divider"></div>
                     
-                    <div id="mode-shortcut-wrapper">
-                        <div id="mode" class="toolbar-item">
-                            <div class="toolbar-item-btn">
-                                <div class="toolbar-item-caption">Language</div>
-                                <div class="toolbar-item-selection">Loading...</div>
+                    <!-- Mode (Language) Toolbar Item -->
+                    <div id="toolbar-item-mode" class="toolbar-item">
+                        <div class="toolbar-item-btn">
+                            <div class="toolbar-item-caption">Language</div>
+                            <div class="toolbar-item-selection">Loading...</div>
+                        </div>
+                        <div class="toolbar-dropdown-top-border"></div>
+                        <div class="toolbar-dropdown">
+                            <div id="mode-message" class="edit-mode-message">
+                                Changes not allowed in read-only files
                             </div>
-                            <div class="toolbar-dropdown-top-border"></div>
-                            <div class="toolbar-dropdown">
-                                <div id="mode-message" class="edit-mode-message">
-                                    Changes not allowed in read-only files
-                                </div>
-                                <div id="mode-menu"></div>
-                            </div>
+                            <div id="mode-menu"></div>
                         </div>
                     </div>
                     <div class="divider"></div>
                     
+                    <!-- Num Viewing Box-->
                     <div id="toolbar-content-right">
                         <div class="divider"></div>
                         <div id="num-viewing-box">
@@ -90,94 +92,84 @@
                 </div>
                 <div id="toolbar-left">
                     
-                    <!-- Chat Menu -->
-                    <div id="chat-menu-shortcut-wrapper">
-                        <div id="chat-menu" class="toolbar-item" title="Chat">
-                            <div class="toolbar-item-btn">
-                                <span class="icon-comments left-icon"></span>
-                                <div id="chat-unread-count" style="display: none;"></div>
+                    <!-- Chat Toolbar Item -->
+                    <div id="toolbar-item-chat" class="toolbar-item" title="Chat">
+                        <div class="toolbar-item-btn">
+                            <span class="icon-comments left-icon"></span>
+                            <div id="chat-unread-count" style="display: none;"></div>
+                        </div>
+                        <div class="toolbar-dropdown-left-border"></div>
+                        <div class="toolbar-dropdown identify" id="chat">
+                            <div id="chat-identify-wrapper">
+                                Please Identify Yourself:
+                                <input class="toolbar-input" type="text" id="chat-identify" />
+                                <button id="chat-identify-ok-button">OK, Enter Chat</button>
+                                <div id="chat-identify-error-message"></div>
                             </div>
-                            <div class="toolbar-dropdown-left-border"></div>
-                            <div class="toolbar-dropdown identify" id="chat">
-                                <div id="chat-identify-wrapper">
-                                    Please Identify Yourself:
-                                    <input class="toolbar-input" type="text" id="chat-identify" />
-                                    <button id="chat-identify-ok-button">OK, Enter Chat</button>
-                                    <div id="chat-identify-error-message"></div>
+                            <div id="chat-main">
+                                <div id="chat-history" class="selectable" tabindex="1"></div>
+                                <div id="chat-typing">
+                                    <b>Typing: </b><span id="chat-typing-names"></span>
                                 </div>
-                                <div id="chat-main">
-                                    <div id="chat-history" class="selectable" tabindex="1"></div>
-                                    <div id="chat-typing">
-                                        <b>Typing: </b><span id="chat-typing-names"></span>
-                                    </div>
-                                    <textarea type="text" id="chat-box"></textarea>
-                                </div>
+                                <textarea type="text" id="chat-box"></textarea>
                             </div>
                         </div>
                     </div>
-                    
                     <div class="divider"></div>
                     
-                    <!-- Link Menu -->
-                    <div id="link-menu-shortcut-wrapper">
-                        <div id="link-menu" class="toolbar-item" title="Link">
-                            <div class="toolbar-item-btn">
-                                <span class="icon-link left-icon"></span>
-                            </div>
-                            <div class="toolbar-dropdown-left-border"></div>
-                            <div class="toolbar-dropdown">
-                                <div class="link-section-title">Editable Link (Collaborative)</div>
-                                <input class="toolbar-input" id="collaborate-url" type="text" placeholder="Result"></input>
-                                <div class="horizontal-divider"></div>
-                                <div class="link-section-title">Readonly Link (Snapshot)</div>
-                                <div id="snapshots">
-                                    <div id="placeholder">
-                                        Use snapshot URLs for forum posts
-                                    </div>
+                    <!-- Link Toolbar Item -->
+                    <div id="toolbar-item-link" class="toolbar-item" title="Link">
+                        <div class="toolbar-item-btn">
+                            <span class="icon-link left-icon"></span>
+                        </div>
+                        <div class="toolbar-dropdown-left-border"></div>
+                        <div class="toolbar-dropdown">
+                            <div class="link-section-title">Editable Link (Collaborative)</div>
+                            <input class="toolbar-input" id="collaborate-url" type="text" placeholder="Result"></input>
+                            <div class="horizontal-divider"></div>
+                            <div class="link-section-title">Readonly Link (Snapshot)</div>
+                            <div id="snapshots">
+                                <div id="placeholder">
+                                    Use snapshot URLs for forum posts
                                 </div>
-                                <div class="horizontal-divider"></div>
-                                <button class="share-button" id="snapshot-button">Create new snapshot</button>
                             </div>
+                            <div class="horizontal-divider"></div>
+                            <button class="share-button" id="snapshot-button">Create new snapshot</button>
                         </div>
                     </div>
-
-                    <!-- Download Menu -->
-                    <div class="divider"></div>
-                    <div id="download-menu-shortcut-wrapper">
-                        <div id="download-menu" class="toolbar-item" title="Download">
-                            <div class="toolbar-item-btn">
-                                <span class="icon-download left-icon"></span>
-                            </div>
-                            <div class="toolbar-dropdown-left-border"></div>
-                            <div class="toolbar-dropdown">
-                                <input class="toolbar-input" type="text" id="download-as" placeholder="File name"></input>
-                                <div class="horizontal-divider"></div>
-                                <button id="download">Download</button>
-                            </div>
-                        </div>
-                    </div>
-                                       
                     <div class="divider"></div>
                     
-                    <!-- Fork Menu -->
-                    <div id="fork-menu-shortcut-wrapper">
-                        <div id="fork-menu" class="toolbar-item" title="Fork">
-                            <div class="toolbar-item-btn">
-                                <span class="icon-code-fork left-icon"></span>
+                    <!-- Download Toolbar Item -->
+                    <div id="toolbar-item-download" class="toolbar-item" title="Download">
+                        <div class="toolbar-item-btn">
+                            <span class="icon-download left-icon"></span>
+                        </div>
+                        <div class="toolbar-dropdown-left-border"></div>
+                        <div class="toolbar-dropdown">
+                            <input class="toolbar-input" type="text" id="download-as" placeholder="File name"></input>
+                            <div class="horizontal-divider"></div>
+                            <button id="download">Download</button>
+                        </div>
+                    </div>                                       
+                    <div class="divider"></div>
+                    
+                    <!-- Fork Toolbar Item -->
+                    <div id="toolbar-item-fork" class="toolbar-item" title="Fork">
+                        <div class="toolbar-item-btn">
+                            <span class="icon-code-fork left-icon"></span>
+                        </div>
+                        <div class="toolbar-dropdown-left-border"></div>
+                        <div class="toolbar-dropdown">
+                            <div id="fork-desc">
+                                Forking a file creates an editable clone of the file.
+                                Chat history will not be cloned, however.
+                                The forked file will not link back to this one.
                             </div>
-                            <div class="toolbar-dropdown-left-border"></div>
-                            <div class="toolbar-dropdown">
-                                <div id="fork-desc">
-                                    Forking a file creates an editable clone of the file.
-                                    Chat history will not be cloned, however.
-                                    The forked file will not link back to this one.
-                                </div>
-                                <div class="horizontal-divider"></div>
-                                <form method="POST" action="/fork">
-                                    <input id="clone-doc-id" type="hidden" name="documentID" />
-                                    <button type="submit">Created Fork</button>
-                                </form>
-                            </div>
+                            <div class="horizontal-divider"></div>
+                            <form method="POST" action="/fork">
+                                <input id="clone-doc-id" type="hidden" name="documentID" />
+                                <button type="submit">Created Fork</button>
+                            </form>
                         </div>
                     </div>
                     <div class="divider"></div>
@@ -215,15 +207,13 @@
             </div>
         </div>
         
-        <div id="shortcut-overlay">
-        </div>
+        <div id="shortcut-overlay"></div>
         
         <script type="text/javascript">
             if (IS_SNAPSHOT)
             {
-                document.getElementById('chat-menu').className  += ' disabled';
-                document.getElementById('link-menu').className  += ' disabled';
-                document.getElementById('mode-menu').className  += ' disabled';
+                document.getElementById('toolbar-item-chat').className  += ' disabled';
+                document.getElementById('toolbar-item-link').className  += ' disabled';
                 document.getElementById('title-input').disabled  = 'disabled';
                 document.getElementById('title-save').disabled   = 'disabled';
             }
