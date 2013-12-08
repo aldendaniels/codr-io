@@ -29,19 +29,17 @@ define(function(require)
             
             // Create the chat object.
             this._oChat = new Chat(oWorkspace, oSocket);
-    
             this._oSocket.bind('message', this, this._handleServerAction);
     
             // Bind shorctut handlers.
-            oShortcutHandler.registerShortcut('T', $('#title-shortcut-wrapper'), 'right', 20)
-            oShortcutHandler.registerShortcut('L', $('#mode-shortcut-wrapper'), 'right', 20)
-            oShortcutHandler.registerShortcut('D', $('#download-menu-shortcut-wrapper'), 'right')
-            oShortcutHandler.registerShortcut('F', $('#fork-menu-shortcut-wrapper'),     'right')
-            oShortcutHandler.registerShortcut('S', $('#settings-menu-shortcut-wrapper'), 'right')
+            oShortcutHandler.registerShortcut('T', $('#toolbar-item-title'),    -15);
+            oShortcutHandler.registerShortcut('L', $('#toolbar-item-mode'),     -15);
+            oShortcutHandler.registerShortcut('D', $('#toolbar-item-download'),  12);
+            oShortcutHandler.registerShortcut('F', $('#toolbar-item-fork'),      12);
             if (!IS_SNAPSHOT)
             {
-                oShortcutHandler.registerShortcut('C', $('#chat-menu-shortcut-wrapper'), 'right')
-                oShortcutHandler.registerShortcut('K', $('#link-menu-shortcut-wrapper'), 'right')
+                oShortcutHandler.registerShortcut('C', $('#toolbar-item-chat'),  12);
+                oShortcutHandler.registerShortcut('K', $('#toolbar-item-link'),  12);
             }
             
             // Make editable for non-snapshoht files.
@@ -61,15 +59,19 @@ define(function(require)
         
         setTitle: function(sTitle)
         {
-            $('#title .toolbar-item-selection').text(sTitle);
+            $('#toolbar-item-title .toolbar-item-selection').text(sTitle);
             $('#title-input').val(sTitle);
             $('#download-as').val(sTitle);
-            $('#title .toolbar-item-btn').attr('title', sTitle);
+            $('#toolbar-item-title .toolbar-item-btn').attr('title', sTitle);
         },
         
         setMode: function(oMode)
         {
-            $('#mode .toolbar-item-selection').text(oMode.getDisplayName());
+            $('#toolbar-item-mode .toolbar-item-selection').text(oMode.getDisplayName());
+            if (oMode.getName == 'html')
+            {
+                
+            }
         },
         
         contains: function(jElem)
@@ -150,7 +152,7 @@ define(function(require)
             if (sEventType == 'keydown')
             {
                 // Set title on ENTER.
-                if (jActiveToolbarItem.is('#title') && oEvent.which == 13 /* ENTER */)
+                if (jActiveToolbarItem.is('#toolbar-item-title') && oEvent.which == 13 /* ENTER */)
                 {
                     this._setTitleToLocal();
                     oEvent.preventDefault();
@@ -158,7 +160,7 @@ define(function(require)
                 }
                 
                 // Download on ENTER.
-                if (jActiveToolbarItem.is('#download-menu') && oEvent.which == 13 /* ENTER */)
+                if (jActiveToolbarItem.is('#toolbar-item-download') && oEvent.which == 13 /* ENTER */)
                 {
                     this._download();
                     return;
@@ -189,14 +191,14 @@ define(function(require)
             }
             
             /* Forward language events to menu. */
-            if (jActiveToolbarItem.is('#mode'))
+            if (jActiveToolbarItem.is('#toolbar-item-mode'))
             {
                 this._oModeMenu.onEvent(oEvent);
                 return;
             }
             
             /* Forward chat events to chat. */
-            if (jActiveToolbarItem.is('#chat-menu'))
+            if (jActiveToolbarItem.is('#toolbar-item-chat'))
             {
                 this._oChat.onEvent(oEvent);
                 return;
@@ -219,7 +221,7 @@ define(function(require)
             }
             
             /* Notify chat. */
-            if (jItem.is('#chat-menu'))
+            if (jItem.is('#toolbar-item-chat'))
                 this._oChat.onOpen();
         },
         
@@ -230,7 +232,7 @@ define(function(require)
             jItem.removeClass('open').scrollTop(0);
             
             /* Notify chat. */
-            if (jItem.is('#chat-menu'))
+            if (jItem.is('#toolbar-item-chat'))
                 this._oChat.onClose();
     
         },
