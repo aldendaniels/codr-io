@@ -68,16 +68,14 @@ define(function(require)
         setMode: function(oMode)
         {
             $('#toolbar-item-mode .toolbar-item-selection').text(oMode.getDisplayName());
-            if (oMode.getName == 'html')
-            {
-                
-            }
+            $('BODY').toggleClass('mode-html',       oMode.getName() == 'html');
+            $('BODY').toggleClass('show-html-tools', oMode.getName() == 'html');
         },
         
         contains: function(jElem)
         {
             // #snapshot-notify-bar is a hack . . . it functions like unused toolbar.
-            return jElem.closest('#toolbar-top,#toolbar-left,#snapshot-notify-bar').length > 0;
+            return jElem.closest('#toolbar-top,#toolbar-left,#snapshot-notify-bar,#html-tools').length > 0;
         },
         
         focus: function()
@@ -123,8 +121,15 @@ define(function(require)
                 if (jActiveToolbarItem.length && !jTargetToolbarItem.length)
                 {
                     this._blur();
-                    return;
                 }
+                
+                // Show/Hide HTML tools.
+                if (jTarget.closest('#html-tools-btn').length)
+                {
+                    $('BODY').toggleClass('show-html-tools');
+                }
+                
+                return;
             }
             
             /* Close dropdown on focus out */

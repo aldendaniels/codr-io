@@ -549,3 +549,59 @@
         line-height: 1.3em;
     }
 }
+
+#html-tools-btn { display: none; }
+#html-tools     { display: none; }
+
+body.mode-html
+{
+    // @bg-color: desaturate(spin(@codr-blue, 270), 25%);
+    @bg-color: darken(desaturate(@codr-blue, 35%), 25%);
+    
+    #html-tools-btn
+    {
+        display: block;
+        background-color: @bg-color;
+        color: white;
+        padding: 5px 35px 5px 10px;
+        margin-top: 25px;
+        margin-left: 20px;
+        position: relative;
+        cursor: pointer;
+                
+        .icon-angle-down,
+        .icon-angle-up
+        {
+            font-size: 24px;
+            position: absolute;
+            right: 10px;
+            top: 1px;
+        }
+    }
+    
+                      #html-tools-btn .icon-angle-down { display: block; }
+                      #html-tools-btn .icon-angle-up   { display: none;  }
+    &.show-html-tools #html-tools-btn .icon-angle-down { display: none;  }
+    &.show-html-tools #html-tools-btn .icon-angle-up   { display: block; }
+    
+    &.show-html-tools
+    {
+        @height:35px;
+        
+        #edit-wrap
+        {
+            top: @top-toolbar-height + 1px + @height;
+        }
+        
+        #html-tools
+        {
+            display: block;
+            background-color: @bg-color;
+            height: @height;
+            position: absolute;
+            left: @left-toolbar-width;
+            top: @top-toolbar-height;
+            right: 0;
+        }
+    }
+}
