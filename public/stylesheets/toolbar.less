@@ -29,7 +29,7 @@
         position: relative;
         z-index: 10;
         overflow: hidden;
-    
+        
         .toolbar-item-btn
         {
             cursor: pointer;
@@ -148,7 +148,7 @@
             color: white;
             position: absolute;
             left: 20px;
-            top: 15px;
+            top: 8px;
             text-shadow: none;
         }
     }
@@ -174,7 +174,6 @@
                             
             .toolbar-item-selection
             {
-                font-family: verdana;
                 color: #333;
                 font-size: 16px;
                 overflow: hidden;
@@ -208,7 +207,7 @@
                 border-top: 2px @codr-blue solid;
                 padding-top: 3px;    
             }
-
+            
             .toolbar-dropdown-top-border
             {
                 position: absolute;
@@ -237,7 +236,7 @@
 .left-icon
 {
     font-size: 36px;
-    margin-top: 3px;
+    line-height: 36px;
     display: block;
     -webkit-text-stroke: 0.2px;
     text-shadow: 1px 2px 3px white;
@@ -359,19 +358,19 @@
 
 #toolbar-item-title
 {
-    width: 250px;
+    width: 210px;
     &.open
     {
-        width: 256px;                    
+        width: 216px;                    
     }
 }
 
 #toolbar-item-mode
 {
-    width: 150px;
+    width: 140px;
     &.open
     {
-        width: 156px;
+        width: 146px;
     }
     
     .toolbar-dropdown
@@ -557,6 +556,7 @@ body.mode-html
 {
     // @bg-color: desaturate(spin(@codr-blue, 270), 25%);
     @bg-color: darken(desaturate(@codr-blue, 35%), 25%);
+    @bg-color-light: lighten(@bg-color, 5%);
     
     #html-tools-btn
     {
@@ -597,11 +597,98 @@ body.mode-html
         {
             display: block;
             background-color: @bg-color;
+            color: white;
             height: @height;
             position: absolute;
             left: @left-toolbar-width;
             top: @top-toolbar-height;
             right: 0;
+            z-index: 18; /* Make dropdown cover editor. */
+            
+            > *
+            {
+                float: left;
+            }
+            
+            .toolbar-item
+            {
+                height: 100%;
+                overflow: hidden;
+                position: relative;
+                
+                .toolbar-item-btn
+                {
+                    height: @height - 10px;
+                    padding-top: 10px;
+                    padding-left: 10px;
+                }
+                
+                .toolbar-dropdown
+                {
+                    background-color: @bg-color-light;
+                    padding: @toolbarDropdownPadding;
+                    border: 1px darken(@bg-color, 15%) solid;
+                    box-shadow: 0 0 3px black;
+                }
+                
+                .toolbar-item-btn
+                {
+                    cursor: pointer;
+                    &:hover
+                    {
+                        background-color: @bg-color-light;
+                        transition: background-color 0.2s;
+                    }
+                }
+                
+                .icon-angle-down
+                {
+                    position: absolute;
+                    right: 10px;
+                    top: 6px;
+                    font-size: 22px;
+                }
+                
+                .toolbar-dropdown-top-border
+                {
+                    height: 6px;
+                    background-color: @bg-color-light;
+                    position: absolute;
+                    bottom: -3px;
+                    left: 1px;
+                    right: 1px;
+                }
+                
+                &.open
+                {
+                    overflow: visible;
+                    .toolbar-item-btn
+                    {
+                        background-color: @bg-color-light;
+                        border: 1px darken(@bg-color, 15%) solid;
+                        box-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+                        height: @height - 12px;
+                        padding-top: 9px;
+                        padding-left: 9px;
+                    }
+                }
+            }
+            
+            .divider
+            {
+                height: @height;
+                width: 0px;
+                border-right: 1px darken(@bg-color, 10%) solid;
+            }
+            
+            .toolbar-item#toolbar-item-html-options
+            {
+                width: 150px;
+                .toolbar-dropdown
+                {
+                    width: 354px;
+                }
+            }
         }
     }
 }
