@@ -1,3 +1,5 @@
+@import "helpers.less";
+
 @toolbarDropdownPadding: 10px;
 
 .hidden-focusable
@@ -557,6 +559,7 @@ body.mode-html
     // @bg-color: desaturate(spin(@codr-blue, 270), 25%);
     @bg-color: darken(desaturate(@codr-blue, 35%), 25%);
     @bg-color-light: lighten(@bg-color, 5%);
+    @border-color: desaturate(lighten(@bg-color, 15%), 5%);
     
     #html-tools-btn
     {
@@ -564,10 +567,13 @@ body.mode-html
         background-color: @bg-color;
         color: white;
         padding: 5px 35px 5px 10px;
-        margin-top: 25px;
+        margin-top: 24px;
         margin-left: 20px;
         position: relative;
         cursor: pointer;
+        border-bottom: 1px @bg-color solid;
+        z-index: 100;
+        height: 15px;
                 
         .icon-angle-down,
         .icon-angle-up
@@ -587,6 +593,11 @@ body.mode-html
     &.show-html-tools
     {
         @height:35px;
+        
+        #html-tools-btn
+        {
+            border-bottom-color: @border-color;
+        }
         
         #edit-wrap
         {
@@ -612,49 +623,78 @@ body.mode-html
             
             .toolbar-item
             {
+                width: 20%;
+                max-width: 230px;
                 height: 100%;
                 overflow: hidden;
                 position: relative;
                 
                 .toolbar-item-btn
                 {
-                    height: @height - 10px;
-                    padding-top: 10px;
+                    height: @height - 8px;
+                    padding-top: 8px;
                     padding-left: 10px;
+                    border-right: 1px @border-color solid;
+                    cursor: pointer;
+                    white-space: nowrap;
+                    position: relative;
+                    overflow: hidden;
+                    transition: background-color 0.2s;
+                    
+                    .toolbar-item-label
+                    {
+                        color: rgba(255, 255, 255, 0.6);
+                    }
+                    
+                    .icon-angle-down
+                    {
+                        position: absolute;
+                        right: 0px;
+                        top: 0px;
+                        bottom: 0px;
+                        padding-top: 6px;
+                        padding-left: 6px;
+                        padding-right: 6px;
+                        font-size: 22px;
+                        transition: background-color 0.2s;
+                        background-color: @bg-color;
+                        
+                        // Looks good, but doesn't transition well in Chrome.
+                        // #gradient > .horizontal(rgba(red(@bg-color), green(@bg-color), blue(@bg-color), 0.6),
+                        //                        rgba(red(@bg-color), green(@bg-color), blue(@bg-color), 1));
+                    }
+                    
+                    &:hover
+                    {
+                        background-color: @bg-color-light;
+                    }
+                    
+                }
+                
+                .toolbar-item-btn:hover .icon-angle-down,
+                &.open .icon-angle-down
+                {
+                    background-color: @bg-color-light;
+                    // Looks good, but doesn't transition well in Chrome.
+                    // #gradient > .horizontal(rgba(red(@bg-color-light), green(@bg-color-light), blue(@bg-color-light), 0.6),
+                    //                         rgba(red(@bg-color-light), green(@bg-color-light), blue(@bg-color-light), 1));
                 }
                 
                 .toolbar-dropdown
                 {
                     background-color: @bg-color-light;
                     padding: @toolbarDropdownPadding;
-                    border: 1px darken(@bg-color, 15%) solid;
-                    box-shadow: 0 0 3px black;
+                    border: 1px darken(@bg-color, 3%) solid;
+                    border-top-color: @border-color;
+                    width: 350px;
                 }
-                
-                .toolbar-item-btn
-                {
-                    cursor: pointer;
-                    &:hover
-                    {
-                        background-color: @bg-color-light;
-                        transition: background-color 0.2s;
-                    }
-                }
-                
-                .icon-angle-down
-                {
-                    position: absolute;
-                    right: 10px;
-                    top: 6px;
-                    font-size: 22px;
-                }
-                
+                                
                 .toolbar-dropdown-top-border
                 {
-                    height: 6px;
+                    height: 1px;
                     background-color: @bg-color-light;
                     position: absolute;
-                    bottom: -3px;
+                    bottom: -1px;
                     left: 1px;
                     right: 1px;
                 }
@@ -665,11 +705,6 @@ body.mode-html
                     .toolbar-item-btn
                     {
                         background-color: @bg-color-light;
-                        border: 1px darken(@bg-color, 15%) solid;
-                        box-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
-                        height: @height - 12px;
-                        padding-top: 9px;
-                        padding-left: 9px;
                     }
                 }
             }
@@ -681,13 +716,8 @@ body.mode-html
                 border-right: 1px darken(@bg-color, 10%) solid;
             }
             
-            .toolbar-item#toolbar-item-html-options
+            .toolbar-item#toolbar-item-doctype
             {
-                width: 150px;
-                .toolbar-dropdown
-                {
-                    width: 354px;
-                }
             }
         }
     }
