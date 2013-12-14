@@ -177,81 +177,99 @@
                 </div>
                 <div id="html-tools">
                    
-                    <!-- DocType -->
-                    <div id="toolbar-item-doctype" class="toolbar-item">
+                    <!-- Template -->
+                    <div id="toolbar-item-template" class="toolbar-item">
                         <div class="toolbar-item-btn">
-                            <span class="toolbar-item-label">Doctype:</span>
-                            <span class="toolbar-item-value">HTML 5</span>
+                            <span class="toolbar-item-label">Insert Template</span>
+                            <!--<span class="toolbar-item-value">HTML 5</span>-->
                             <span class="icon-angle-down"></span>
                         </div>
                         <div class="toolbar-dropdown-top-border"></div>
                         <div class="toolbar-dropdown">
-                            <select>
-                                <option>Option 1</option>
-                            </select>
+                            <table id="template-options">
+                                <tr>
+                                    <td>
+                                        Doctype
+                                    </td>
+                                    <td>
+                                        <select>
+                                            <option>HTML 5</option>
+                                            <option>HTML 4.01 Strict</option>
+                                            <option>HTML 4.01 Transitional</option>
+                                            <option>HTML 4.01 Frameset</option>
+                                            <option>XHTML 1.0 Strict</option>
+                                            <option>XHTML 1.0 Transitional</option>
+                                            <option>XHTML 1.0 Frameset</option>
+                                            <option>XHTML 1.1</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        Script Language
+                                    </td>
+                                    <td>
+                                        <select>
+                                            <option>Javascript</option>
+                                            <option>Coffee Script</option>
+                                            <option>None</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        Style Language
+                                    </td>
+                                    <td>
+                                        <select>
+                                            <option>CSS</option>
+                                            <option>LESS</option>
+                                            <option>None</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        Script Framework
+                                    </td>
+                                    <td>
+                                        <select>
+                                            <option>jQuery</option>
+                                            <option>Prototype</option>
+                                            <option>MooTools</option>
+                                            <option>YUI</option>
+                                            <option>Dojo</option>
+                                            <option>Ext JS</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                    </td>
+                                    <td>
+                                        <select>
+                                            <option>Version 1.1</option>
+                                            <option>etc</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        Auto Insert
+                                        <span id="auto-insert-help" class="icon-help"></span>
+                                    </td>
+                                    <td>
+                                        <select>
+                                            <option>No</option>
+                                            <option>Yes</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                            </table>
+                            <div class="horizontal-divider"></div>
+                            <button id="title-save">Insert Template</button>
                         </div>
-                    </div>
-
-                    <!-- Script -->
-                    <div id="toolbar-item-script" class="toolbar-item">
-                        <div class="toolbar-item-btn">
-                            <span class="toolbar-item-label">Script:</span>
-                            <span class="toolbar-item-value">Javascript</span>
-                            <span class="icon-angle-down"></span>
-                        </div>
-                        <div class="toolbar-dropdown-top-border"></div>
-                        <div class="toolbar-dropdown">
-                            <select>
-                                <option>Option 1</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <!-- Styles -->
-                    <div id="toolbar-item-style" class="toolbar-item">
-                        <div class="toolbar-item-btn">
-                            <span class="toolbar-item-label">Style:</span>
-                            <span class="toolbar-item-value">CSS</span>
-                            <span class="icon-angle-down"></span>
-                        </div>
-                        <div class="toolbar-dropdown-top-border"></div>
-                        <div class="toolbar-dropdown">
-                            <select>
-                                <option>Option 1</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <!--Framework-->
-                    <div id="toolbar-item-framework" class="toolbar-item">
-                        <div class="toolbar-item-btn">
-                            <span class="toolbar-item-label">Framework:</span>
-                            <span class="toolbar-item-value">jQuery</span>
-                            <span class="icon-angle-down"></span>
-                        </div>
-                        <div class="toolbar-dropdown-top-border"></div>
-                        <div class="toolbar-dropdown">
-                            <select>
-                                <option>Option 1</option>
-                            </select>
-                        </div>
-                    </div>
-                
-                    <!--Preview-->
-                    <div id="toolbar-item-preview" class="toolbar-item">
-                        <div class="toolbar-item-btn">
-                            <span class="toolbar-item-label">Preview:</span>
-                            <span class="toolbar-item-value">None</span>
-                            <span class="icon-angle-down"></span>
-                        </div>
-                        <div class="toolbar-dropdown-top-border"></div>
-                        <div class="toolbar-dropdown">
-                            <select>
-                                <option>Option 1</option>
-                            </select>
-                        </div>
-                    </div>
-                    
+                    </div>                    
                     
                     <div id="tools-content-right">                        
                     </div>

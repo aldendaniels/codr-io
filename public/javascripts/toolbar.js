@@ -54,7 +54,7 @@ define(function(require)
                 
                 // Show the "edit mode required" message.
                 $('.edit-mode-message').show();
-            }
+            }            
         },
         
         setTitle: function(sTitle)

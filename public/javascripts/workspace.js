@@ -8,6 +8,7 @@ define('workspace', function(require)
         oModes                = require('edit-control/modes'),
         Editor                = require('editor'),
         Toolbar               = require('toolbar');
+                                require('lib/tooltip');
     
     // Constants.
     var _sUNTITLED = 'Untitled';
@@ -94,6 +95,16 @@ define('workspace', function(require)
             // Attach DOM events.
             this._oEditor.focus();
             this._attachDOMEvents();
+            
+            // Init tooltips.
+            $('#auto-insert-help').tooltip(
+            {
+                html: true,
+                title: "<div style=\"padding: 5px;\">\
+                            Automatically insert this <br/>\
+                            template into  new HTML<br/>\
+                            documents you create?</div>"
+            });
         },
         
         blurFocusedObject: function()
@@ -228,7 +239,7 @@ define('workspace', function(require)
                     
                     case 'mousedown':
                         // Focus should always be in a text-entry box.
-                        if (!jTarget.is('input, textarea') || jTarget.prop('disabled'))
+                        if (!jTarget.is('input, textarea, select, option') || jTarget.prop('disabled'))
                             oEvent.preventDefault();
                         
                     // Forward non-keyboard events.

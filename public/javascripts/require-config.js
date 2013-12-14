@@ -14,6 +14,11 @@ requirejs.config(
         {
             exports: 'ace'
         },
+
+        'lib/tooltip':
+        {
+            exports: '$'
+        },
         
         'lib/jquery':
         {
