@@ -1,10 +1,11 @@
 define(function(require)
 {
     // Dependencies.
-    var $        = require('lib/jquery'),
-        oHelpers = require('helpers/helpers-web'),
-        oModes   = require('edit-control/modes'),
-        Chat     = require('chat');
+    var $                  = require('lib/jquery'),
+        oHelpers           = require('helpers/helpers-web'),
+        oModes             = require('edit-control/modes'),
+        Chat               = require('chat'),
+        HtmlTemplateDialog = require('html-template-dialog');
 
     return oHelpers.createClass(
     {
@@ -27,10 +28,13 @@ define(function(require)
             // Create the mode menu.
             this._oModeMenu = oModes.createModeMenu('#mode-menu', this, this._setModeToLocal);
             
+            // Create the HTML Insert Dialog.
+            this._oHtmlTemplateDialog = new HtmlTemplateDialog(oWorkspace);
+            
             // Create the chat object.
             this._oChat = new Chat(oWorkspace, oSocket);
             this._oSocket.bind('message', this, this._handleServerAction);
-    
+            
             // Bind shorctut handlers.
             oShortcutHandler.registerShortcut('T', $('#toolbar-item-title'),    -15);
             oShortcutHandler.registerShortcut('L', $('#toolbar-item-mode'),     -15);
