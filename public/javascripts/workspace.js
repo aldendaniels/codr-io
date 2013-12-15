@@ -133,9 +133,9 @@ define('workspace', function(require)
             this._oEditor.setMode(oMode);
         },
         
-        replaceEditorContent: function(aLines)
+        insertLines: function(aLines)
         {
-            this._oEditor.replaceContent(aLines);
+            this._oEditor.insertLines(aLines);
         },
         
         getUserInfo: function()

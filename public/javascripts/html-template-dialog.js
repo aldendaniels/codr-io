@@ -140,7 +140,7 @@ define(function(require)
         
         _insertTemplate: function()
         {
-            this._oWorkspace.replaceEditorContent(['Line 1', 'Line 2']);
+            this._oWorkspace.insertLines(['Line 1', 'Line 2']);
             this._oWorkspace.blurFocusedObject(this._oToolbar);
         }
     });
