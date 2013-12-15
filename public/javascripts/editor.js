@@ -127,12 +127,51 @@ define(function(require)
         // Called by workspace, but not needed.
         onBlur: function()  {},
         onEvent: function() {},
-    
+        
         setContent: function(aLines)
         {
             this._oEditControl.setContent(aLines);
         },
-    
+        
+        replaceContent: function(aInsertLines) // Like setContent, but is undoable.
+        {
+            // Clear current document.
+            var aDeleteLines    = this._oEditControl.getLines();
+            var iDeleteLastRow  = aDeleteLines.length - 1;
+            var iDeleteLastCol  = aDeleteLines[iDeleteLastRow].length;
+            if (iDeleteLastRow || iDeleteLastCol)
+            {
+                var oDeleteDelta =
+                {
+                    sAction: 'delete',
+                    oRange:
+                    {
+                        oStart: { iRow: 0,              iCol: 0              },
+                        oEnd:   { iRow: iDeleteLastRow, iCol: iDeleteLastCol }
+                    },
+                    aLines: aDeleteLines
+                };
+                this._applyDelta(oDeleteDelta);
+                this._onDocumentChange([oDeleteDelta]);                
+            }
+            
+            // Create insert lines.
+            var iInsertLastRow  = aInsertLines.length - 1;
+            var iInsertLastCol  = aInsertLines[iInsertLastRow].length;
+            var oInsertDelta =
+            {
+                sAction: 'insert',
+                oRange:
+                {
+                    oStart: { iRow: 0,              iCol: 0              },
+                    oEnd:   { iRow: iInsertLastRow, iCol: iInsertLastCol }
+                },
+                aLines: aInsertLines
+            };
+            this._applyDelta(oInsertDelta);
+            this._onDocumentChange([oInsertDelta]);
+        },
+        
         _handleServerAction: function(oAction)
         {
             switch(oAction.sType)

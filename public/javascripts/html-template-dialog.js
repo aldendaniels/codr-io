@@ -78,11 +78,13 @@ define(function(require)
     return oHelpers.createClass(
     {
         _oWorkspace: null,
+        _oToolbar: null,
         
-        __init__: function(oWorkspace)
+        __init__: function(oWorkspace, oToolbar)
         {
             // Save State.
             this._oWorkspace = oWorkspace;
+            this._oToolbar = oToolbar;
             
             // Populate Dropdowns.
             for (sID in oPrimaryOptions)
@@ -93,18 +95,21 @@ define(function(require)
         
         onEvent: function(oEvent)
         {
-            switch(oEvent.type)
+            var sEventType = oEvent.type;
+            var jTarget = $(oEvent.target);
+            
+            // Update Framework Versions.
+            if (sEventType == 'change')
             {
-                case 'change':
-                    this._updateFrameworkVersions();
-                    break;
-                
-                case 'click':
-                    console.log('click!');
-                    break;
-                
-                default:
-                    console.log('Unhandled: ' + oEvent.type);
+                this._updateFrameworkVersions();
+                return;
+            }
+            
+            // Insert template.
+            if (sEventType == 'click' && jTarget.is('button#insert-template'))
+            {
+                this._insertTemplate();
+                return;
             }
         },
         
@@ -131,6 +136,12 @@ define(function(require)
             var sPrefix = sOptionalsPrefix || '';
             for (var i in aOptions)
                 $('<option></option>').text(sPrefix + aOptions[i]).appendTo(jSelect);
+        },
+        
+        _insertTemplate: function()
+        {
+            this._oWorkspace.replaceEditorContent(['Line 1', 'Line 2']);
+            this._oWorkspace.blurFocusedObject(this._oToolbar);
         }
     });
 });

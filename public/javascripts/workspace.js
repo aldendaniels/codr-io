@@ -133,6 +133,11 @@ define('workspace', function(require)
             this._oEditor.setMode(oMode);
         },
         
+        replaceEditorContent: function(aLines)
+        {
+            this._oEditor.replaceContent(aLines);
+        },
+        
         getUserInfo: function()
         {
             return this._oUserInfo;

@@ -104,6 +104,11 @@ define(function(require)
             return this._normalizeAceRange(this._oAceEditor.getSelectionRange());
         },
         
+        getLines: function()
+        {
+            return this._oAceDocument.getAllLines();
+        },
+        
         setSelectionMarker: function(oRange, sID, sClassName)
         {
             // Remove existing ranges (if exists)
