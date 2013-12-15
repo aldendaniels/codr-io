@@ -163,7 +163,7 @@ define('workspace', function(require)
                 oObject.onEvent(oEvent);
             }
                     
-            oHelpers.on('BODY', 'mousedown click focusin keydown keyup keypress', this, function(oEvent)
+            oHelpers.on('BODY', 'mousedown click focusin keydown keyup keypress change', this, function(oEvent)
             {
                 var jTarget = $(oEvent.target);
                 var oTargetObject = this._getContainingObj(jTarget);

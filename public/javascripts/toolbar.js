@@ -191,7 +191,7 @@ define(function(require)
                     this._download();
                     return;
                 }       
-    
+                
                 // Create snapshot
                 if (jTarget.is('#snapshot-button'))
                 {
@@ -199,20 +199,26 @@ define(function(require)
                 }
             }
             
-            /* Forward language events to menu. */
+            /* Forward Language Menu events. */
             if (jActiveToolbarItem.is('#toolbar-item-mode'))
             {
                 this._oModeMenu.onEvent(oEvent);
                 return;
             }
             
-            /* Forward chat events to chat. */
+            /* Forward Chat events. */
             if (jActiveToolbarItem.is('#toolbar-item-chat'))
             {
                 this._oChat.onEvent(oEvent);
                 return;
-            }        
-    
+            }
+            
+            /* Forward Template Dialog Events. */
+            if (jActiveToolbarItem.is('#toolbar-item-template'))
+            {
+                this._oHtmlTemplateDialog.onEvent(oEvent);
+                return;
+            }
         },
         
         //////////////// HELPERS //////////////// 
