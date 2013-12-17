@@ -7,25 +7,44 @@ define(function(require)
         
     var sTemplate =
     [
-        '<!DOCTYPE [[sDoctype]]>',
+        '<!DOCTYPE [! sDoctypeText !]>',
         '<html>',
-        '   <head>',
-        '       <title>[[sTitle]]</title>',
-        '       <style type="text/[[sStyleLanguage.toLowerCase()]]">',
-        '           /* Your [[sStyleLanguage]] code here. */',
-        '       </style>',
-        '       <script type="text/[[sScriptLanguage.toLowerCase()]]">',
-        '           [% if sScriptLanguage == "CoffeeScript" %]#[% else %]//[% end %] Your [[sScriptLanguage]] code here.',
-        '       </script>',
-        '   </head>',
-        '   <body>',
-        '   </body>',
+        '    <head>',
+        '        <title>[[sTitle]]</title>',
+        '        <style type="text/[[sStyleLanguage.toLowerCase()]]">',
+        '            ',
+        '            /* Your [[sStyleLanguage]] code here. */',
+        '            ',
+        '        </style>',
+        '        <script type="text/[[sScriptLanguage.toLowerCase()]]">',
+        '            ',
+        '            [% if sScriptLanguage == "CoffeeScript" %]#[% else %]//[% end %] Your [[sScriptLanguage]] code here.',
+        '            ',
+        '        </script>' +
+        '[% if sFrameworkUrl %]',
+        '        <script type="text/javascript" src="[! sFrameworkUrl !]"></script>' +
+        '[% end %] ' +
+        '[% if sStyleLanguage == "LESS" %]',
+        '        <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/less.js/1.5.0/less.min.js"></script>' +
+        '[% end %] ' +
+        '[% if sScriptLanguage == "CoffeeScript" %]',
+        '        <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>' +
+        '[% end %] ',
+        '    </head>',
+        '    <body>',
+        '        ',
+        '        <!-- Your HTML code here. --> ',
+        '        ',
+        '    </body>',
         '</html>'
     ].join('\n');
+    
+    //        <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/less.js/1.5.0/less.min.js"></script>
+
  
     var oPrimaryOptions = (
     {
-        'doctypes': 
+        'doctype': 
         [
             'HTML 5',
             'HTML 4.01 Strict',
@@ -37,19 +56,19 @@ define(function(require)
             'XHTML 1.1'
         ],
         
-        'script-languages':
+        'script-language':
         [
             'Javascript',
             'CoffeeScript'
         ],
         
-        'style-languages':
+        'style-language':
         [
             'CSS',
             'LESS'
         ],
         
-        'script-frameworks':
+        'script-framework':
         [
             'jQuery',
             'Mootools',
@@ -94,6 +113,28 @@ define(function(require)
         ]
     });
     
+    var oDoctypes =
+    {
+        'HTML 5':                 'html',
+        'HTML 4.01 Strict':       'HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd"',
+        'HTML 4.01 Transitional': 'HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd"',
+        'HTML 4.01 Frameset':     'HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN" "http://www.w3.org/TR/html4/frameset.dtd"',
+        'XHTML 1.0 Strict':       'html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"',
+        'XHTML 1.0 Transitional': 'html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"',
+        'XHTML 1.0 Frameset':     'html PUBLIC "-//W3C//DTD XHTML 1.0 Frameset//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd"',
+        'XHTML 1.1':              'html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"'
+    };
+    
+    var oFrameworkUrls =
+    {
+        'jQuery':           '//ajax.googleapis.com/ajax/libs/jquery/__version__/jquery.min.js',
+        'Mootools':         '//ajax.googleapis.com/ajax/libs/mootools/__version__/mootools-yui-compressed.js',
+        'Prototype':        '//ajax.googleapis.com/ajax/libs/prototype/__version__/prototype.js',
+        'Dojo':             '//ajax.googleapis.com/ajax/libs/dojo/__version__/dojo/dojo.js"',
+        'Ext JS':           '//ajax.googleapis.com/ajax/libs/ext-core/__version__/ext-core.js',
+        'None (Native JS)': ''
+    };
+    
     return oHelpers.createClass(
     {
         _oWorkspace: null,
@@ -136,8 +177,8 @@ define(function(require)
         
         _updateFrameworkVersions: function()
         {
-            var sSelectedFramework = $('select#script-frameworks').val();
-            var jVersions = $('#framework-versions');
+            var sSelectedFramework = $('select#script-framework').val();
+            var jVersions = $('#framework-version');
             if (jVersions.data('sFrameworkName') != sSelectedFramework)
             {
                 jVersions.data('sFrameworkName', sSelectedFramework);
@@ -161,15 +202,37 @@ define(function(require)
         
         _insertTemplate: function()
         {
-            var sText = oTemplatizer.render('html-insert',
-            {
-                sDoctype:        'html',
-                sTitle:          'Test Title',
-                sStyleLanguage:  'CSS',
-                sScriptLanguage: 'Javascript',
-            });
+            var oData = this._serializeOptions();
+            oData.sTitle = 'TODO: Get title!';
+            var sText = oTemplatizer.render('html-insert', oData);
             this._oWorkspace.insertLines(sText.split('\n'));
             this._oWorkspace.blurFocusedObject(this._oToolbar);
-        }
+        },
+        
+        _serializeOptions: function()
+        {
+            var sFrameworkVersion = ($('#framework-version').val() + '').replace('Version ', '');
+            return(
+            {
+                sDoctypeName:      $('#doctype').val(),
+                sDoctypeText:      oDoctypes[$('#doctype').val()],
+                sScriptLanguage:   $('#script-language').val(),
+                sStyleLanguage:    $('#style-language').val(),
+                sScriptFramework:  $('#script-framework').val(),
+                sFrameworkVersion: sFrameworkVersion,
+                sFrameworkUrl:     oFrameworkUrls[$('#script-framework').val()].replace('__version__', sFrameworkVersion),
+                bAutoInsert:       $('#auto-insert').val() == 'Yes'
+            });
+        },
+        
+        _loadSerializedOptions: function(oOptions)
+        {
+            $('#doctype').val(           oOptions.sDoctype                               );
+            $('#script-language').val(   oOptions.sScriptLanguage                        );
+            $('#style-languages').val(   oOptions.sStyleLanguage                         );
+            $('#script-framework').val(  oOptions.sScriptFramework || 'None (Native JS)' );
+            $('#framework-version').val( oOptions.sFrameworkVersion                      );
+            $('#auto-insert').val(      (oOptions.bAutoInsert ? 'Yes' : 'No')            );
+        },
     });
 });

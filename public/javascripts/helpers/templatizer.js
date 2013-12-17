@@ -47,10 +47,12 @@ define(function(require)
         _compileTemplate: function(sName, sTemplate)
         {
             // Break the template into its raw text and evaluable commands.
-            var aParts = this._splitOnCommands(sTemplate, [
+            var aParts = this._splitOnCommands(sTemplate,
+            [
                 {sName: 'jsEvalEscaped',        re: /\[\[([\s\S]+?)\]\]/g}, // Dynamic Javascript resulting in HTML-escaped text
+                {sName: 'jsEvalRaw',            re: /\[!([\s\S]+?)!\]/g},   // Dynamic Javascript resulting in non-HTML-escaped text
                 {sName: 'jsInvoke',             re: /\[%([\s\S]+?)%\]/g},   // Dynamic Javascript invocation
-                {sName: 'templateInvoke',       re: /\[!([\s\S]+?)!\]/g}    // Dynamic Template invocation
+                {sName: 'templateInvoke',       re: /\[~([\s\S]+?)~\]/g}    // Dynamic Template invocation
             ]);
             
             // Compile template into a Javascript string.
@@ -65,6 +67,10 @@ define(function(require)
                 else if (oPart.sType == 'jsEvalEscaped')
                 {
                     sTemplate += " + __escapeHtml('' + " + oPart.sText + ")";
+                }
+                else if (oPart.sType == 'jsEvalRaw')
+                {
+                    sTemplate += " + '' + " + oPart.sText;
                 }
                 else if (oPart.sType == 'jsInvoke')
                 {
