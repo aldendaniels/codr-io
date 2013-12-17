@@ -1,8 +1,27 @@
 define(function(require)
 {
     // Dependencies.
-    var $        = require('lib/jquery'),
-        oHelpers = require('helpers/helpers-web');
+    var $            = require('lib/jquery'),
+        oHelpers     = require('helpers/helpers-web'),
+        oTemplatizer = require('helpers/templatizer');
+        
+    var sTemplate =
+    [
+        '<!DOCTYPE [[sDoctype]]>',
+        '<html>',
+        '   <head>',
+        '       <title>[[sTitle]]</title>',
+        '       <style type="text/[[sStyleLanguage.toLowerCase()]]">',
+        '           /* Your [[sStyleLanguage]] code here. */',
+        '       </style>',
+        '       <script type="text/[[sScriptLanguage.toLowerCase()]]">',
+        '           [% if sScriptLanguage == "CoffeeScript" %]#[% else %]//[% end %] Your [[sScriptLanguage]] code here.',
+        '       </script>',
+        '   </head>',
+        '   <body>',
+        '   </body>',
+        '</html>'
+    ].join('\n');
  
     var oPrimaryOptions = (
     {
@@ -21,7 +40,7 @@ define(function(require)
         'script-languages':
         [
             'Javascript',
-            'Coffeescript'
+            'CoffeeScript'
         ],
         
         'style-languages':
@@ -89,8 +108,10 @@ define(function(require)
             // Populate Dropdowns.
             for (sID in oPrimaryOptions)
                 this._addOptions($('select#' + sID), oPrimaryOptions[sID]);
-            
             this._updateFrameworkVersions();
+            
+            // Prep Templatizer.
+            oTemplatizer.compileTemplate('html-insert', sTemplate);
         },
         
         onEvent: function(oEvent)
@@ -140,7 +161,14 @@ define(function(require)
         
         _insertTemplate: function()
         {
-            this._oWorkspace.insertLines(['Line 1', 'Line 2']);
+            var sText = oTemplatizer.render('html-insert',
+            {
+                sDoctype:        'html',
+                sTitle:          'Test Title',
+                sStyleLanguage:  'CSS',
+                sScriptLanguage: 'Javascript',
+            });
+            this._oWorkspace.insertLines(sText.split('\n'));
             this._oWorkspace.blurFocusedObject(this._oToolbar);
         }
     });
