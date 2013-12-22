@@ -11,25 +11,29 @@ define(function(require)
         '<html>',
         '    <head>',
         '        <title>[[sTitle]]</title>',
+        '[% if sStyleLanguage != "None" %]' + 
         '        <style type="text/[[sStyleLanguage.toLowerCase()]]">',
         '            ',
         '            /* Your [[sStyleLanguage]] code here. */',
         '            ',
         '        </style>',
+        '[% end %]' +
+        '[% if sStyleLanguage == "LESS" %]' +
+        '        <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/less.js/1.5.0/less.min.js"></script>',
+        '[% end %]' +
+        '[% if sScriptLanguage == "CoffeeScript" %]' +
+        '        <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>',
+        '[% end %]' +
+        '[% if sFrameworkUrl %]' + 
+        '        <script type="text/javascript" src="[! sFrameworkUrl !]"></script>',
+        '[% end %]' +
+        '[% if sScriptLanguage != "None" %]' + 
         '        <script type="text/[[sScriptLanguage.toLowerCase()]]">',
         '            ',
         '            [% if sScriptLanguage == "CoffeeScript" %]#[% else %]//[% end %] Your [[sScriptLanguage]] code here.',
         '            ',
-        '        </script>' +
-        '[% if sFrameworkUrl %]',
-        '        <script type="text/javascript" src="[! sFrameworkUrl !]"></script>' +
-        '[% end %] ' +
-        '[% if sStyleLanguage == "LESS" %]',
-        '        <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/less.js/1.5.0/less.min.js"></script>' +
-        '[% end %] ' +
-        '[% if sScriptLanguage == "CoffeeScript" %]',
-        '        <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>' +
-        '[% end %] ',
+        '        </script>',
+        '[% end %]' +
         '    </head>',
         '    <body>',
         '        ',
@@ -59,13 +63,15 @@ define(function(require)
         'script-language':
         [
             'Javascript',
-            'CoffeeScript'
+        //  'CoffeeScript',
+            'None'
         ],
         
         'style-language':
         [
             'CSS',
-            'LESS'
+            'LESS',
+            'None'
         ],
         
         'script-framework':
@@ -75,7 +81,7 @@ define(function(require)
             'Prototype',
             'Dojo',
             'Ext JS',
-            'None (Native JS)'
+            'None'
         ],
     });
     
@@ -132,7 +138,7 @@ define(function(require)
         'Prototype':        '//ajax.googleapis.com/ajax/libs/prototype/__version__/prototype.js',
         'Dojo':             '//ajax.googleapis.com/ajax/libs/dojo/__version__/dojo/dojo.js"',
         'Ext JS':           '//ajax.googleapis.com/ajax/libs/ext-core/__version__/ext-core.js',
-        'None (Native JS)': ''
+        'None':             ''
     };
     
     return oHelpers.createClass(
@@ -149,7 +155,7 @@ define(function(require)
             // Populate Dropdowns.
             for (sID in oPrimaryOptions)
                 this._addOptions($('select#' + sID), oPrimaryOptions[sID]);
-            this._updateFrameworkVersions();
+            this._updateMenuItems();
             
             // Prep Templatizer.
             oTemplatizer.compileTemplate('html-insert', sTemplate);
@@ -163,7 +169,7 @@ define(function(require)
             // Update Framework Versions.
             if (sEventType == 'change')
             {
-                this._updateFrameworkVersions();
+                this._updateMenuItems();
                 return;
             }
             
@@ -175,8 +181,13 @@ define(function(require)
             }
         },
         
-        _updateFrameworkVersions: function()
+        _updateMenuItems: function()
         {
+            // Enable/Disable framework options.
+            if ($('select#script-language').val() == 'None')
+                $('select#script-framework').val('None').prop('disabled', true);
+            
+            // Update framework versions dropdown.
             var sSelectedFramework = $('select#script-framework').val();
             var jVersions = $('#framework-version');
             if (jVersions.data('sFrameworkName') != sSelectedFramework)
@@ -227,12 +238,12 @@ define(function(require)
         
         _loadSerializedOptions: function(oOptions)
         {
-            $('#doctype').val(           oOptions.sDoctype                               );
-            $('#script-language').val(   oOptions.sScriptLanguage                        );
-            $('#style-languages').val(   oOptions.sStyleLanguage                         );
-            $('#script-framework').val(  oOptions.sScriptFramework || 'None (Native JS)' );
-            $('#framework-version').val( oOptions.sFrameworkVersion                      );
-            $('#auto-insert').val(      (oOptions.bAutoInsert ? 'Yes' : 'No')            );
+            $('#doctype').val(           oOptions.sDoctype                    );
+            $('#script-language').val(   oOptions.sScriptLanguage             );
+            $('#style-languages').val(   oOptions.sStyleLanguage              );
+            $('#script-framework').val(  oOptions.sScriptFramework || 'None'  );
+            $('#framework-version').val( oOptions.sFrameworkVersion           );
+            $('#auto-insert').val(      (oOptions.bAutoInsert ? 'Yes' : 'No') );
         },
     });
 });
