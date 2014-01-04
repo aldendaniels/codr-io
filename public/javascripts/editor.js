@@ -185,6 +185,7 @@ define(function(require)
                     this._iServerState = oAction.oData.iServerState;
                     this.setContent(oAction.oData.aLines);
                     this._setUseSoftTabs(oAction.oData.bUseSoftTabs);
+                    this._setTabSize(oAction.oData.iTabSize);
                     break;
                 
                 case 'setRemoteSelection':
@@ -259,6 +260,10 @@ define(function(require)
 
                 case 'setUseSoftTabs':
                     this._setUseSoftTabs(oAction.oData.bUseSoftTabs);
+                    break;
+
+                case 'setTabSize':
+                    this._setTabSize(oAction.oData.iTabSize);
                     break;
                 
                 default:
@@ -527,6 +532,13 @@ define(function(require)
             this._oEditControl.setUseSoftTabs(bUseSoftTabs);
         },
 
+        _setTabSize: function(iTabSize)
+        {
+            $('#tab-size .status-value').text(iTabSize);
+
+            this._oEditControl.setTabSize(iTabSize);
+        },
+
         _onStatusBarChange: function(jItem, sValue)
         {
             switch (jItem.attr('id'))
@@ -536,6 +548,13 @@ define(function(require)
                     this._setUseSoftTabs(bUseSoftTabs);
 
                     this._oSocket.send('setUseSoftTabs', {bUseSoftTabs: bUseSoftTabs});
+                    break;
+
+                case 'tab-size': 
+                    var iTabSize = parseInt(sValue);
+                    this._setTabSize(iTabSize);
+
+                    this._oSocket.send('setTabSize', {iTabSize: iTabSize});
                     break;
 
                 default:

@@ -155,6 +155,11 @@ define(function(require)
             this._oAceEditSession.setUseSoftTabs(bUseSoftTabs);
         },
 
+        setTabSize: function(iTabSize)
+        {
+            this._oAceEditSession.setTabSize(iTabSize);
+        },
+
         on: function(sEventType, oScope, fnCallback)
         {
             fnCallback = oHelpers.createCallback(oScope, fnCallback);
