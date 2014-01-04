@@ -84,8 +84,9 @@ define(function(require)
     
         __type__: 'Editor',    
     
-        __init__: function(oSocket)
+        __init__: function(oWorkspace, oSocket)
         {
+            this._oWorkspace = oWorkspace;
             this._oSocket = oSocket;
             this._oRemoteClients = {};
             this._aPastDocChanges = [];
@@ -126,7 +127,31 @@ define(function(require)
         
         // Called by workspace, but not needed.
         onBlur: function()  {},
-        onEvent: function() {},
+
+        onEvent: function(oEvent)
+        {
+            var jTarget = $(oEvent.target);
+            var jStatusItem = jTarget.closest('.status-item');
+            var jStatusOption = jTarget.is('.status-item-option') ? jTarget : null;
+
+            switch (oEvent.type)
+            {
+                case 'click':
+                    if (jStatusItem && !jStatusOption)
+                    {
+                        jStatusItem.toggleClass('open');
+                    }
+                    else if (jStatusOption)
+                    {
+                        jStatusItem.removeClass('open');
+                        this._onStatusBarChange(jStatusItem, jTarget.text());
+                    }
+
+                default:
+                    return false;
+            }
+
+        },
         
         setContent: function(aLines)
         {
@@ -159,6 +184,7 @@ define(function(require)
                 case 'setDocumentData': // Fired after opening an existing document.
                     this._iServerState = oAction.oData.iServerState;
                     this.setContent(oAction.oData.aLines);
+                    this._setUseSoftTabs(oAction.oData.bUseSoftTabs);
                     break;
                 
                 case 'setRemoteSelection':
@@ -229,6 +255,10 @@ define(function(require)
                     this._oEditControl.removeSelectionMarker(oAction.oData.sClientID);
                     delete this._oRemoteClients[oAction.oData.sClientID];
                     this._setPeopleViewing();
+                    break;
+
+                case 'setUseSoftTabs':
+                    this._setUseSoftTabs(oAction.oData.bUseSoftTabs);
                     break;
                 
                 default:
@@ -485,6 +515,32 @@ define(function(require)
             }
             oHelpers.assert(aPending.length == this._iNumPendingActions, 'Pending change not found.');
             return aPending;
+        },
+
+        _setUseSoftTabs: function(bUseSoftTabs)
+        {
+            if (bUseSoftTabs)
+                $('#indent-mode .status-value').text('Soft');
+            else
+                $('#indent-mode .status-value').text('Hard');
+
+            this._oEditControl.setUseSoftTabs(bUseSoftTabs);
+        },
+
+        _onStatusBarChange: function(jItem, sValue)
+        {
+            switch (jItem.attr('id'))
+            {
+                case 'indent-mode':
+                    var bUseSoftTabs = sValue == 'Soft';
+                    this._setUseSoftTabs(bUseSoftTabs);
+
+                    this._oSocket.send('setUseSoftTabs', {bUseSoftTabs: bUseSoftTabs});
+                    break;
+
+                default:
+                    oHelpers.assert(false, 'Could not apply the change for the status bar item "' + jItem.attr('id') + '".');
+            }
         }
     });
 });

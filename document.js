@@ -21,7 +21,8 @@ module.exports = oHelpers.createClass(
             aLines: [''],
             aChatHistory: [],
             bIsSnapshot: false,
-            oDateCreated: new Date()
+            oDateCreated: new Date(),
+            bUseSoftTabs: true
         }
         if (optionalJSONorObj)
             this._load(optionalJSONorObj);

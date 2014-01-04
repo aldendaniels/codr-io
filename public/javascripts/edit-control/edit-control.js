@@ -149,7 +149,12 @@ define(function(require)
         {
             this._oAceEditor.focus();
         },
-        
+
+        setUseSoftTabs: function (bUseSoftTabs)
+        {
+            this._oAceEditSession.setUseSoftTabs(bUseSoftTabs);
+        },
+
         on: function(sEventType, oScope, fnCallback)
         {
             fnCallback = oHelpers.createCallback(oScope, fnCallback);

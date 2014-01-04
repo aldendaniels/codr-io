@@ -39,7 +39,7 @@ define('workspace', function(require)
             // Init objects.
             var oShortcutHandler = new KeyShortcutHandler();
             this._oToolbar    = new Toolbar(this, this._oSocket, oShortcutHandler);
-            this._oEditor     = new Editor(this._oSocket);
+            this._oEditor     = new Editor(this, this._oSocket);
             
             // Development Hack: Expose the editor object.
             window._editor = this._oEditor;

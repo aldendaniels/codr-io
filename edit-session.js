@@ -174,7 +174,8 @@ module.exports = oHelpers.createClass(
             oClient.sendAction('setDocumentData',
             {
                 aLines: this._oDocument.get('aLines'),
-                iServerState: this._iServerState
+                iServerState: this._iServerState,
+                bUseSoftTabs: this._oDocument.get('bUseSoftTabs')
             });
 
             // Set mode (language.)
@@ -447,6 +448,12 @@ module.exports = oHelpers.createClass(
                 });
                 
                 break;
+
+            case 'setUseSoftTabs':
+                this._oDocument.set('bUseSoftTabs', oAction.oData.bUseSoftTabs);
+                this._broadcastAction(oClient, oAction);
+                break;
+
             default:
                 oHelpers.assert(false, 'Unrecognized event type: "' + oAction.sType + '"');
         }

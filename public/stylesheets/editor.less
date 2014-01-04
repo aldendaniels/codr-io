@@ -72,7 +72,46 @@
                 right: 6px;
                 top: 5px;
             }
-        }
+
+            .status-item-options
+            {
+                display: none;
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background-color: white;
+                
+                border: 1px solid #DDD;
+                bottom: 23px;
+                right: -1px;
+                left: -1px;
+                z-index: 100;
+
+
+                .status-item-option
+                {
+                    height: 20px;
+                    text-align: center;
+                    padding-top: 3px;
+                }
+
+                .status-item-option:hover
+                {
+                    background-color: #EEE;
+                }
+            }
+
+            &.open
+            {
+                background-color: #f8f8f8;
+
+                .status-item-options
+                {
+                    display: block;
+                }
+            }
+       }
         
         .status-item.menu-btn
         {
@@ -88,6 +127,7 @@
         {
             width: 130px;
         }
+
     }
 }
 
