@@ -100,6 +100,8 @@ define(function(require)
             this._oEditControl.on('selChange', this, this._onSelectionChange);
             this._oEditControl.on('undo',      this, this._onUndo);
             this._oEditControl.on('redo',      this, this._onRedo);
+
+            $('.status-item').on('blur', oHelpers.createCallback(this, this.onEvent));
             
             // Update status bar.
             this._setPeopleViewing();
@@ -137,15 +139,42 @@ define(function(require)
             switch (oEvent.type)
             {
                 case 'click':
-                    if (jStatusItem && !jStatusOption)
+                    if (jStatusItem && !jStatusOption) // Click on the menu title
                     {
-                        jStatusItem.toggleClass('open');
+                        if (jStatusItem.hasClass('open'))
+                        {
+                            jStatusItem.removeClass('open');
+                            this._oEditControl.focus();
+                        }
+                        else
+                        {
+                            jStatusItem.addClass('open');
+                            jStatusItem.focus();
+                        }
                     }
-                    else if (jStatusOption)
+                    else if (jStatusOption && jStatusOption) // Click on a menu option
                     {
                         jStatusItem.removeClass('open');
                         this._onStatusBarChange(jStatusItem, jTarget.text());
                     }
+                    break;
+
+                case 'blur':
+                    if (jStatusItem && jStatusItem.hasClass('open'))
+                    {
+                        jStatusItem.removeClass('open');
+                    }
+
+                    break;
+
+                case 'keydown':
+
+                    if (oEvent.which == 27) // ESC
+                    {
+                        jStatusItem.removeClass('open');
+                        this._oEditControl.focus();
+                    }
+                    break;
 
                 default:
                     return false;

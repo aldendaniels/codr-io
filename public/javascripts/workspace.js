@@ -119,7 +119,10 @@ define('workspace', function(require)
                 {
                     this._oEditor.focus();
                 }
+
+                return true;
             }
+            return false;
         },
         
         focusEditor: function()
@@ -176,11 +179,8 @@ define('workspace', function(require)
                 {
                     // Foward keyboard events.
                     case 'keydown':
-                        if (oEvent.which == 27) // ESC
-                        {
-                            this.blurFocusedObject();
+                        if (oEvent.which == 27 && this.blurFocusedObject()) // ESC
                             break;
-                        }
                         
                         // Disable native browser handling for saving/searching.
                         // TODO: Think through keyboard controls for a mac.
@@ -188,7 +188,7 @@ define('workspace', function(require)
                         {
                             oEvent.preventDefault();
                         }
-                        
+
                     case 'keypress':
                     case 'keyup':
                         if (this._oFocusedObject)
