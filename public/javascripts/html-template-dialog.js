@@ -21,6 +21,11 @@ define(function(require)
         '[% if sStyleLanguage == "LESS" %]' +
         '        <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/less.js/1.5.0/less.min.js"></script>',
         '[% end %]' +
+        '    </head>',
+        '    <body>',
+        '        ',
+        '        <!-- Your HTML code here. --> ',
+        '        ',
         '[% if sScriptLanguage == "CoffeeScript" %]' +
         '        <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>',
         '[% end %]' +
@@ -34,11 +39,6 @@ define(function(require)
         '            ',
         '        </script>',
         '[% end %]' +
-        '    </head>',
-        '    <body>',
-        '        ',
-        '        <!-- Your HTML code here. --> ',
-        '        ',
         '    </body>',
         '</html>'
     ].join('\n');
@@ -186,6 +186,8 @@ define(function(require)
             // Enable/Disable framework options.
             if ($('select#script-language').val() == 'None')
                 $('select#script-framework').val('None').prop('disabled', true);
+            else
+                $('select#script-framework').val('jQuery').prop('disabled', false);
             
             // Update framework versions dropdown.
             var sSelectedFramework = $('select#script-framework').val();
