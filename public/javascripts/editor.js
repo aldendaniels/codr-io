@@ -216,6 +216,7 @@ define(function(require)
                     this._setUseSoftTabs(oAction.oData.bUseSoftTabs);
                     this._setTabSize(oAction.oData.iTabSize);
                     this._setShowInvisibles(oAction.oData.bShowInvisibles);
+                    this._setUseWordWrap(oAction.oData.bUseWordWrap);
                     break;
                 
                 case 'setRemoteSelection':
@@ -298,6 +299,10 @@ define(function(require)
 
                 case 'setShowInvisibles':
                     this._setShowInvisibles(oAction.oData.bShowInvisibles);
+                    break;
+
+                case 'setUseWordWrap':
+                    this._setUseWordWrap(oAction.oData.bUseWordWrap);
                     break;
                 
                 default:
@@ -579,6 +584,12 @@ define(function(require)
             this._oEditControl.setShowInvisibles(bShowInvisibles);
         },
 
+        _setUseWordWrap: function(bUseWordWrap)
+        {
+            $('#use-word-wrap .status-value').text(bUseWordWrap ? 'On' : 'Off');
+            this._oEditControl.setUseWordWrap(bUseWordWrap);
+        },
+
         _onStatusBarChange: function(jItem, sValue)
         {
             switch (jItem.attr('id'))
@@ -602,6 +613,13 @@ define(function(require)
                     this._setShowInvisibles(bShowInvisibles);
 
                     this._oSocket.send('setShowInvisibles', {bShowInvisibles: bShowInvisibles});
+                    break;
+
+                case 'use-word-wrap':
+                    var bUseWordWrap = sValue == 'On';
+                    this._setUseWordWrap(bUseWordWrap);
+
+                    this._oSocket.send('setUseWordWrap', {bUseWordWrap: bUseWordWrap});
                     break;
 
                 default:

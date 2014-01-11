@@ -165,6 +165,11 @@ define(function(require)
             this._oAceEditor.setShowInvisibles(bShowInvisibles);
         },
 
+        setUseWordWrap: function(bUseWordWrap)
+        {
+            this._oAceEditSession.setUseWrapMode(bUseWordWrap);
+        },
+
         on: function(sEventType, oScope, fnCallback)
         {
             fnCallback = oHelpers.createCallback(oScope, fnCallback);

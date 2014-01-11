@@ -177,7 +177,8 @@ module.exports = oHelpers.createClass(
                 iServerState: this._iServerState,
                 bUseSoftTabs: this._oDocument.get('bUseSoftTabs'),
                 iTabSize: this._oDocument.get('iTabSize'),
-                bShowInvisibles: this._oDocument.get('bShowInvisibles')
+                bShowInvisibles: this._oDocument.get('bShowInvisibles'),
+                bUseWordWrap: this._oDocument.get('bUseWordWrap')
             });
 
             // Set mode (language.)
@@ -463,6 +464,11 @@ module.exports = oHelpers.createClass(
 
             case 'setShowInvisibles':
                 this._oDocument.set('bShowInvisibles', oAction.oData.bShowInvisibles);
+                this._broadcastAction(oClient, oAction);
+                break;
+
+            case 'setUseWordWrap':
+                this._oDocument.set('bUseWordWrap', oAction.oData.bUseWordWrap);
                 this._broadcastAction(oClient, oAction);
                 break;
 
