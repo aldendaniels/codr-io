@@ -160,6 +160,11 @@ define(function(require)
             this._oAceEditSession.setTabSize(iTabSize);
         },
 
+        setShowInvisibles: function(bShowInvisibles)
+        {
+            this._oAceEditor.setShowInvisibles(bShowInvisibles);
+        },
+
         on: function(sEventType, oScope, fnCallback)
         {
             fnCallback = oHelpers.createCallback(oScope, fnCallback);

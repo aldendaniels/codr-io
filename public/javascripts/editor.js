@@ -146,7 +146,7 @@ define(function(require)
                             jStatusItem.removeClass('open');
                             this._oEditControl.focus();
                         }
-                        else
+                        else if (jStatusItem.attr('tabindex') == "0")
                         {
                             jStatusItem.addClass('open');
                             jStatusItem.focus();
@@ -215,6 +215,7 @@ define(function(require)
                     this.setContent(oAction.oData.aLines);
                     this._setUseSoftTabs(oAction.oData.bUseSoftTabs);
                     this._setTabSize(oAction.oData.iTabSize);
+                    this._setShowInvisibles(oAction.oData.bShowInvisibles);
                     break;
                 
                 case 'setRemoteSelection':
@@ -293,6 +294,10 @@ define(function(require)
 
                 case 'setTabSize':
                     this._setTabSize(oAction.oData.iTabSize);
+                    break;
+
+                case 'setShowInvisibles':
+                    this._setShowInvisibles(oAction.oData.bShowInvisibles);
                     break;
                 
                 default:
@@ -568,6 +573,12 @@ define(function(require)
             this._oEditControl.setTabSize(iTabSize);
         },
 
+        _setShowInvisibles: function(bShowInvisibles)
+        {
+            $('#show-invisibles .status-value').text(bShowInvisibles ? 'Yes' : 'No');
+            this._oEditControl.setShowInvisibles(bShowInvisibles);
+        },
+
         _onStatusBarChange: function(jItem, sValue)
         {
             switch (jItem.attr('id'))
@@ -584,6 +595,13 @@ define(function(require)
                     this._setTabSize(iTabSize);
 
                     this._oSocket.send('setTabSize', {iTabSize: iTabSize});
+                    break;
+
+                case 'show-invisibles':
+                    var bShowInvisibles = sValue == 'Yes';
+                    this._setShowInvisibles(bShowInvisibles);
+
+                    this._oSocket.send('setShowInvisibles', {bShowInvisibles: bShowInvisibles});
                     break;
 
                 default:

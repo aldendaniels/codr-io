@@ -23,7 +23,8 @@ module.exports = oHelpers.createClass(
             bIsSnapshot: false,
             oDateCreated: new Date(),
             bUseSoftTabs: true,
-            iTabSize: 4
+            iTabSize: 4,
+            bShowInvisibles: false
         }
         if (optionalJSONorObj)
             this._load(optionalJSONorObj);
