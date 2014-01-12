@@ -67,6 +67,8 @@ oApp.configure(function()
         res.sendfile(sPublicDir + '/index.html');
     });
 
+    oApp.get('^/tests/?$', function(req, res) { res.sendfile(sPublicDir + '/tests.html'); });
+
     oApp.get('^/ajax/:DocumentID([a-z0-9]+)/?$', function(req, res) {
 
         function send(oDocument)

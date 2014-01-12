@@ -6,7 +6,7 @@ requirejs.config(
     // check.
     enforceDefine: true,
     
-    baseUrl: 'javascripts/',
+    baseUrl: '/javascripts/',
     
     shim: // Used for scripts that have no define()
     {
