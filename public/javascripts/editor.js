@@ -374,12 +374,12 @@ define(function(require)
                     oRange: this._oCurSelectionRange,
                     iState: this._iServerState /*, TOOD:
                     sFocusEnd: 'start' or 'end'*/
-                });
-                
-                // Update current col and row (1-based).
-                $('#line-num').text(oRange.oStart.iRow + 1);
-                $('#col-num').text(oRange.oStart.iCol + 1);
+                });                
             }
+            
+            // Update current col and row (1-based).
+            $('#line-num').text(oRange.oStart.iRow + 1);
+            $('#col-num').text(oRange.oStart.iCol + 1);
         },
         
         _onDocumentChange: function(aDeltas, sType)
