@@ -16,6 +16,7 @@ define(function(require)
         /* Internal state */
         _oModeMenu: null,
         _oChat: null,
+        _oCurrentMode: null,
         
         __type__: 'Toolbar',    
     
@@ -29,7 +30,7 @@ define(function(require)
             this._oModeMenu = oModes.createModeMenu('#mode-menu', this, this._setModeToLocal);
             
             // Create the HTML Insert Dialog.
-            this._oHtmlTemplateDialog = new HtmlTemplateDialog(oWorkspace);
+            this._oHtmlTemplateDialog = new HtmlTemplateDialog(oWorkspace, this);
             
             // Create the chat object.
             this._oChat = new Chat(oWorkspace, oSocket);
@@ -69,11 +70,17 @@ define(function(require)
             $('#toolbar-item-title .toolbar-item-btn').attr('title', sTitle);
         },
         
+        getTitle: function()
+        {
+            return $('#title-input').val();
+        },
+        
         setMode: function(oMode)
         {
             $('#toolbar-item-mode .toolbar-item-selection').text(oMode.getDisplayName());
             $('BODY').toggleClass('mode-html',       oMode.getName() == 'html');
             $('BODY').toggleClass('show-html-tools', oMode.getName() == 'html');
+            this._oCurrentMode = oMode;
         },
         
         contains: function(jElem)
@@ -271,6 +278,10 @@ define(function(require)
             this._oSocket.send('setDocumentTitle', { 'sTitle': sTitle });
             this.setTitle(sTitle);
             this._blur();    
+            
+            // Set HTML title.
+            if (this._oCurrentMode.getName() == 'html')
+                this._oWorkspace.replaceRegex(/<title>.*<\/title>/, '<title>' + sTitle + '</title>');
         },
         
         _download: function()

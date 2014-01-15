@@ -21,10 +21,11 @@ module.exports = oHelpers.createClass(
         this._oSocket = oSocket;
         
         // Initial selection at start of document.
-        this._oLastSelRange = {
+        this._oLastSelRange = (
+        {
             oStart: {iRow: 0, iCol: 0},
             oEnd:   {iRow: 0, iCol: 0}
-        };
+        });
         
         // Attach socket events.
         oSocket.on('message', oHelpers.createCallback(this, this._onClientAction));

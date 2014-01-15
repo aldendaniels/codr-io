@@ -81,6 +81,9 @@ define(function(require)
         _iServerState: 0,
         _iNumPendingActions: 0,
         _aPastDocChanges: null, // Also used for undo/redo.
+        
+        // Other
+        _oCurSelectionRange: null,
     
         __type__: 'Editor',    
     
@@ -105,6 +108,13 @@ define(function(require)
             
             // Update status bar.
             this._setPeopleViewing();
+            
+            // Set initial selection.
+            this._oCurSelectionRange = (
+            {
+                oStart: {iRow: 0, iCol: 0},
+                oEnd:   {iRow: 0, iCol: 0}
+            });
         },
         
         setMode: function(oMode)
@@ -129,13 +139,13 @@ define(function(require)
         
         // Called by workspace, but not needed.
         onBlur: function()  {},
-
+        
         onEvent: function(oEvent)
         {
             var jTarget = $(oEvent.target);
             var jStatusItem = jTarget.closest('.status-item');
             var jStatusOption = jTarget.is('.status-item-option') ? jTarget : null;
-
+            
             switch (oEvent.type)
             {
                 case 'click':
@@ -158,28 +168,23 @@ define(function(require)
                         this._onStatusBarChange(jStatusItem, jTarget.text());
                     }
                     break;
-
+                    
                 case 'blur':
                     if (jStatusItem && jStatusItem.hasClass('open'))
                     {
                         jStatusItem.removeClass('open');
                     }
-
                     break;
-
+                    
                 case 'keydown':
-
+                    
                     if (oEvent.which == 27) // ESC
                     {
                         jStatusItem.removeClass('open');
                         this._oEditControl.focus();
                     }
                     break;
-
-                default:
-                    return false;
             }
-
         },
         
         setContent: function(aLines)
@@ -202,8 +207,45 @@ define(function(require)
                 aLines: aInsertLines
             };
             this._applyDelta(oInsertDelta);
-            this._moveLocalCursorToDeltaEnd(oInsertDelta);
             this._onDocumentChange([oInsertDelta]);
+            this._moveLocalCursorToDeltaEnd(oInsertDelta);
+        },
+        
+        replaceRegex: function(oRegex, sLine)
+        {
+            var oReplaceRange = this._oEditControl.findRegex(oRegex);
+            oHelpers.assert(sLine.indexOf('\n') == -1, 'sLine should not contain a new line.');
+            if (oReplaceRange)
+            {
+                oHelpers.assert(oReplaceRange.oStart.iRow == oReplaceRange.oEnd.iRow);
+                var oDeleteDelta =
+                {
+                    sAction: 'delete',
+                    oRange: oReplaceRange,
+                    aLines: this._oEditControl.getLinesForRange(oReplaceRange)
+                };
+                var oInsertDelta =
+                {
+                    sAction: 'insert',
+                    oRange:
+                    {
+                        oStart:
+                        {
+                            iRow: oReplaceRange.oStart.iRow,
+                            iCol: oReplaceRange.oStart.iCol
+                        },
+                        oEnd:
+                        {
+                            iRow: oReplaceRange.oStart.iRow,
+                            iCol: oReplaceRange.oStart.iCol + sLine.length
+                        },
+                    },
+                    aLines: [sLine]
+                }
+                this._applyDelta(oDeleteDelta);
+                this._applyDelta(oInsertDelta);
+                this._onDocumentChange([oDeleteDelta, oInsertDelta]);                
+            }
         },
         
         _handleServerAction: function(oAction)
@@ -288,30 +330,29 @@ define(function(require)
                     delete this._oRemoteClients[oAction.oData.sClientID];
                     this._setPeopleViewing();
                     break;
-
+                    
                 case 'setUseSoftTabs':
                     this._setUseSoftTabs(oAction.oData.bUseSoftTabs);
                     break;
-
+                    
                 case 'setTabSize':
                     this._setTabSize(oAction.oData.iTabSize);
                     break;
-
+                    
                 case 'setShowInvisibles':
                     this._setShowInvisibles(oAction.oData.bShowInvisibles);
                     break;
-
+                    
                 case 'setUseWordWrap':
                     this._setUseWordWrap(oAction.oData.bUseWordWrap);
                     break;
-                
+                    
                 default:
                     return false;
             }
-    
             return true;
         },
-    
+        
         _setPeopleViewing: function()
         {
             var iNumViewers = Object.keys(this._oRemoteClients).length;
@@ -320,21 +361,25 @@ define(function(require)
                              .toggleClass('others-viewing', iNumViewers > 0);
         },
         
-        _onSelectionChange: function(oRange, bCausedByDocChange)
+        _onSelectionChange: function(oRange)
         {
-            if (!bCausedByDocChange)
+            if (!oHelpers.objDeepEquals(this._oCurSelectionRange, oRange))
             {
+                // Update stored selection.
+                this._oCurSelectionRange = oRange;
+                
+                // Broadcast change to other clients.
                 this._oSocket.send('setSelection',
                 {
-                    oRange: oRange,
+                    oRange: this._oCurSelectionRange,
                     iState: this._iServerState /*, TOOD:
                     sFocusEnd: 'start' or 'end'*/
-                });            
+                });
+                
+                // Update current col and row (1-based).
+                $('#line-num').text(oRange.oStart.iRow + 1);
+                $('#col-num').text(oRange.oStart.iCol + 1);
             }
-            
-            // Update current col and row (1-based).
-            $('#line-num').text(oRange.oStart.iRow + 1);
-            $('#col-num').text(oRange.oStart.iCol + 1);
         },
         
         _onDocumentChange: function(aDeltas, sType)
@@ -394,6 +439,11 @@ define(function(require)
                     bMergeWithPrevChange: bMergeWithPrevChange,
                 }));
                 this._iNumPendingActions++;
+                
+                // Transform locally stored range.
+                // If we didn't do this, _onSelectionChange would unnecessarily
+                // send selection change events after normal actions.
+                oOT.transformRange(oDelta, this._oCurSelectionRange, true);
             }
         },
         
@@ -434,7 +484,7 @@ define(function(require)
                 oDocChange.set('bHasBeenUndone', true);
                 this._moveLocalCursorToDeltaEnd(oReverseDelta);
             }
-
+            
             this._onDocumentChange(aReverseDeltas, 'undo');
         },
         
@@ -513,12 +563,14 @@ define(function(require)
         
         _moveLocalCursorToDeltaEnd: function(oDelta)
         {
+            // Move cursor.
             var oPoint = (oDelta.sAction == 'insert' ? oDelta.oRange.oEnd : oDelta.oRange.oStart);
-            this._oEditControl.setSelectionRange(
+            var oSelRange =
             {
                 oStart: oPoint,
                 oEnd: oHelpers.deepCloneObj(oPoint)
-            });
+            }
+            this._oEditControl.setSelectionRange(oSelRange);
         },
         
         _applyDelta: function(oDelta, sOptionalClientID)
@@ -526,7 +578,18 @@ define(function(require)
             // Save local selection range.
             var oSelRange = this._oEditControl.getSelectionRange();
             
-            // Apply delta.
+            /* Apply delta.
+             * NOTE: _applyDelta does NOT trigger a `change` event since we don't
+             *       want to re-broadcast changes resulting from a remote client's
+             *       change.
+             *
+             *       If you need to broadcast changes after applying a local change,
+             *       call _onDocumentChange manually after calling _applyDelta.
+             *
+             *       This differs from setSelectionRange, which does trigger the 'selChange'
+             *       event. setSelectionRange is different because we don't share a selection
+             *       with remote clients.
+             **/
             this._oEditControl.applyDelta(oDelta);
             
             // Transform local selection.
@@ -567,29 +630,29 @@ define(function(require)
                 $('#indent-mode .status-value').text('Soft');
             else
                 $('#indent-mode .status-value').text('Hard');
-
+                
             this._oEditControl.setUseSoftTabs(bUseSoftTabs);
         },
-
+        
         _setTabSize: function(iTabSize)
         {
             $('#tab-size .status-value').text(iTabSize);
-
+            
             this._oEditControl.setTabSize(iTabSize);
         },
-
+        
         _setShowInvisibles: function(bShowInvisibles)
         {
             $('#show-invisibles .status-value').text(bShowInvisibles ? 'Yes' : 'No');
             this._oEditControl.setShowInvisibles(bShowInvisibles);
         },
-
+        
         _setUseWordWrap: function(bUseWordWrap)
         {
             $('#use-word-wrap .status-value').text(bUseWordWrap ? 'On' : 'Off');
             this._oEditControl.setUseWordWrap(bUseWordWrap);
         },
-
+        
         _onStatusBarChange: function(jItem, sValue)
         {
             switch (jItem.attr('id'))
@@ -597,31 +660,31 @@ define(function(require)
                 case 'indent-mode':
                     var bUseSoftTabs = sValue == 'Soft';
                     this._setUseSoftTabs(bUseSoftTabs);
-
+                
                     this._oSocket.send('setUseSoftTabs', {bUseSoftTabs: bUseSoftTabs});
                     break;
-
+                
                 case 'tab-size': 
                     var iTabSize = parseInt(sValue);
                     this._setTabSize(iTabSize);
-
+                    
                     this._oSocket.send('setTabSize', {iTabSize: iTabSize});
                     break;
-
+                    
                 case 'show-invisibles':
                     var bShowInvisibles = sValue == 'Yes';
                     this._setShowInvisibles(bShowInvisibles);
-
+                    
                     this._oSocket.send('setShowInvisibles', {bShowInvisibles: bShowInvisibles});
                     break;
-
+                    
                 case 'use-word-wrap':
                     var bUseWordWrap = sValue == 'On';
                     this._setUseWordWrap(bUseWordWrap);
-
+                    
                     this._oSocket.send('setUseWordWrap', {bUseWordWrap: bUseWordWrap});
                     break;
-
+                    
                 default:
                     oHelpers.assert(false, 'Could not apply the change for the status bar item "' + jItem.attr('id') + '".');
             }

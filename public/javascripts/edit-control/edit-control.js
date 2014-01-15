@@ -15,6 +15,7 @@ define(function(require)
     }
     
     var AceRange  = oAce.require('ace/range').Range;
+    var AceSearch = oAce.require('ace/search').Search;
     
     return oHelpers.createClass(
     {
@@ -26,9 +27,7 @@ define(function(require)
         
         /* Keep from sending too many selection change events. */
         _bApplyingDelta: false,
-        _bSettingSelection: false,
-        _iApplyingDeltaTimeoutHandle: null,
-        _bDocumentJustChanged: false,
+        _iNumDeltasBeingApplied: 0,
         _iSendSelEventTimeout: null,
         
         // State
@@ -91,12 +90,27 @@ define(function(require)
             this._setApplyingDelta(false);
         },
         
+        findRegex: function(oRegex)
+        {
+            var oSearch = new AceSearch();
+            oSearch.set({needle: oRegex});
+            var oAceRange = oSearch.find(this._oAceEditSession);
+            if (oAceRange)
+                return this._normalizeAceRange(oAceRange);
+            else
+                return null;
+        },
+        
+        getLinesForRange: function(oNormRange)
+        {
+            var oAceRange = this._denormalizeRange(oNormRange);
+            return this._oAceEditSession.getTextRange(oAceRange).split(this._sNewLineChar);
+        },
+        
         setSelectionRange: function(oNormRange)
         {
-            this._bSettingSelection = true;
             var oAceRange = this._denormalizeRange(oNormRange);
             this._oAceEditor.getSelection().setSelectionRange(oAceRange);
-            this._bSettingSelection = false;
         },
         
         getSelectionRange: function()
@@ -133,7 +147,7 @@ define(function(require)
         {
             if (!sID in this._oAceMarkerIDMap)
                 return;
-    
+            
             var aAceMarkerIDs = this._oAceMarkerIDMap[sID];
             for (var i in aAceMarkerIDs)
                 this._oAceEditSession.removeMarker(aAceMarkerIDs[i]);
@@ -197,42 +211,34 @@ define(function(require)
                     // We don't want to send any selection event in this case.
                     this._oAceEditor.on('change', oHelpers.createCallback(this, function(oEvent)
                     {
-                        this._bDocumentJustChanged = true;
-                        clearTimeout(this._iSendSelEventTimeout);
-                        
+                        clearTimeout(this._iSendSelEventTimeout);                        
                     }));
                     break;
                 
                 case 'selChange':
                     this._oAceEditor.on('changeSelection', oHelpers.createCallback(this, function(oEvent)
                     {
-                        // Ignore duplicate event.
                         var oAceSelectionRange = this._oAceEditor.getSelectionRange();
+                        
+                        // Ignore duplicate event.
                         var bIsDuplicateEvent = this._oLastAceSelectionRange.isEqual(oAceSelectionRange);
                         this._oLastAceSelectionRange = oAceSelectionRange;
                         if (bIsDuplicateEvent)
                             return;
                         
-                        // Ignore events caused by a call to setSelectionRange().
-                        if(this._bSettingSelection)
-                            return;
-                        
                         // Don't send selection event immediatly preceding this one.
-                        // This is because ace gives us two selection events in a row
-                        // for most selection changes . . . a bogus one followed by a
+                        // This is because ace gives us mulitple selection events in a row
+                        // for most selection changes . . . one or more bogus ones followed by a
                         // good one.
                         if (this._iSendSelEventTimeout)
                             clearTimeout(this._iSendSelEventTimeout);
                         
                         // Send event.
                         var oNormRange = this._normalizeAceRange(oAceSelectionRange);
-                        this._iSendSelEventTimeout = window.setTimeout(
-                            oHelpers.createCallback(this, function()
-                            {
-                                fnCallback(oNormRange, this._bDocumentJustChanged);
-                                this._bDocumentJustChanged = false;
-                            }), 1
-                        );
+                        this._iSendSelEventTimeout = window.setTimeout(function()
+                        {
+                           fnCallback(oNormRange);
+                        }, 1);
                     }));
                     break;
                 
@@ -282,11 +288,12 @@ define(function(require)
                     };
                     
                 case 'removeLines':
-                    return {
+                    return (
+                    {
                         sAction: 'delete',
                         oRange: oNormRange,
                         aLines: oAceDelta.lines.concat([''])
-                    };
+                    });
                     
                 default:
                     oHelpers.assert(false, 'Invalid AceDelta type: ' + oAceDelta.action);
@@ -336,16 +343,14 @@ define(function(require)
             if (bApplyingDelta)
             {
                 this._bApplyingDelta = true;
+                this._iNumDeltasBeingApplied++;
             }
             else
             {
-                if (this._iApplyingDeltaTimeoutHandle)
-                    window.clearTimeout(this._iApplyingDeltaTimeoutHandle);
-
-                this._iApplyingDeltaTimeoutHandle = window.setTimeout(oHelpers.createCallback(this, function()
+                window.setTimeout(oHelpers.createCallback(this, function()
                 {
-                    this._bApplyingDelta = false;
-                    this._iApplyingDeltaTimeoutHandle = null;
+                    this._iNumDeltasBeingApplied--;
+                    this._bApplyingDelta = (this._iNumDeltasBeingApplied > 0);
                 }), 0);
             }
         }

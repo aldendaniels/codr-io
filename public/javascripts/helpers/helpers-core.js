@@ -32,12 +32,12 @@ define(function()
          * Internet Explorer memory leaks.
          */
         _aClosureCache: [],
-    
+        
         create: function(/*oObject, fnCallback, aArgumentsOverride*/)
         {
             // "this" will return the global object
             function getClosureCache() { return oCallback._aClosureCache; }
-    
+            
             // cache the parameters in the member variable
             var iID = getClosureCache().push(arguments)-1;
             return function()
@@ -55,7 +55,7 @@ define(function()
                         for (var i = 0; i < arguments.length; i++)
                             aArgumentsOverride.push(arguments[i]);
                     }
-    
+                    
                     return fnCallback.apply(oObject, aArgumentsOverride || arguments);
                 };
         }
@@ -176,6 +176,11 @@ define(function()
             var oRet = {};
             this.extendObj(oRet, oObj);
             return oRet;
+        },
+        
+        objDeepEquals: function(oObj1, oObj2)
+        {
+            return this.toJSON(oObj1) == this.toJSON(oObj2);
         },
         
         formatDateTime: function(d)

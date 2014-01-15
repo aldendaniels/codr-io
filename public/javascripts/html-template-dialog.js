@@ -216,10 +216,10 @@ define(function(require)
         _insertTemplate: function()
         {
             var oData = this._serializeOptions();
-            oData.sTitle = 'TODO: Get title!';
+            oData.sTitle = this._oToolbar.getTitle();
             var sText = oTemplatizer.render('html-insert', oData);
             this._oWorkspace.insertLines(sText.split('\n'));
-            this._oWorkspace.blurFocusedObject(this._oToolbar);
+            this._oWorkspace.blurFocusedObject();
         },
         
         _serializeOptions: function()

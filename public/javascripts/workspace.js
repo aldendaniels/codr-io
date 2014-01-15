@@ -136,6 +136,11 @@ define('workspace', function(require)
             this._oEditor.setMode(oMode);
         },
         
+        replaceRegex: function(oRegex, sText)
+        {
+            this._oEditor.replaceRegex(oRegex, sText);
+        },
+        
         insertLines: function(aLines)
         {
             this._oEditor.insertLines(aLines);
