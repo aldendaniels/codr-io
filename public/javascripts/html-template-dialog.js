@@ -146,6 +146,11 @@ define(function(require)
         _oWorkspace: null,
         _oToolbar: null,
         
+        // Used to restore prov framework selection when the script language
+        // is set back to "Javascript" from "None". 
+        _sLastFrameworkName: '',
+        _sLastFrameworkVersion: '',
+        
         __init__: function(oWorkspace, oToolbar)
         {
             // Save State.
@@ -184,26 +189,50 @@ define(function(require)
         _updateMenuItems: function()
         {
             // Enable/Disable framework options.
+            var jFramework = $('select#script-framework');
+            var jFrameworkVersion = $('select#framework-version');
+            var sSelectedFramework = $('select#script-framework').val();
+            
             if ($('select#script-language').val() == 'None')
-                $('select#script-framework').val('None').prop('disabled', true);
+            {
+                if (sSelectedFramework != 'None')
+                {
+                    this._sLastFrameworkName    = sSelectedFramework;
+                    this._sLastFrameworkVersion = jFrameworkVersion.val();
+                    jFramework.val('None');
+                }
+                jFramework.prop('disabled', true);
+            }
             else
-                $('select#script-framework').val('jQuery').prop('disabled', false);
+            {
+                $('select#script-framework').prop('disabled', false);
+                if (this._sLastFrameworkName)
+                {
+                    jFramework.val(this._sLastFrameworkName);
+                    this._sLastFrameworkName = '';
+                }
+            }
             
             // Update framework versions dropdown.
             var sSelectedFramework = $('select#script-framework').val();
-            var jVersions = $('#framework-version');
-            if (jVersions.data('sFrameworkName') != sSelectedFramework)
+            if (jFrameworkVersion.data('sFrameworkName') != sSelectedFramework)
             {
-                jVersions.data('sFrameworkName', sSelectedFramework);
-                jVersions.empty();
+                jFrameworkVersion.data('sFrameworkName', sSelectedFramework);
+                jFrameworkVersion.empty();
                 if (sSelectedFramework in oFrameworkVersions)
                 {
-                    this._addOptions(jVersions, oFrameworkVersions[sSelectedFramework], 'Version ');
-                    jVersions.prop('disabled', false);
+                    this._addOptions(jFrameworkVersion, oFrameworkVersions[sSelectedFramework], 'Version ');
+                    jFrameworkVersion.prop('disabled', false);
+                    
+                    if (this._sLastFrameworkVersion)
+                    {
+                        jFrameworkVersion.val(this._sLastFrameworkVersion);
+                        this._sLastFrameworkVersion = '';
+                    }
                 }
                 else
-                    jVersions.prop('disabled', true);
-            }
+                    jFrameworkVersion.prop('disabled', true);
+            }            
         },
         
         _addOptions: function(jSelect, aOptions, sOptionalsPrefix)
