@@ -61,6 +61,12 @@ compileJS('workspace',
     exclude: ['init-app'],
 });
 
+// Tests.
+compileJS('tests/index',
+{
+    include: ['lib/require', 'require-config']
+});
+
 // Ace.
 requirejs.optimize({
     
@@ -114,16 +120,22 @@ complileLESS('./public/stylesheets', 'index.less');
 
 ////////////// HTML COMPILATION /////////////////
 
-var aFileNames = ['index.html'];
+var aFileNames = ['index.html', 'tests.html'];
 for(var i in aFileNames)
 {
     var sFileName = aFileNames[i];
-    if (sFileName.slice(-5) == '.html')
-    {
-        r = /<!--START_DEV_ONLY-->(.|\n|\r)*<!--END_DEV_ONLY-->/g;
-        var sFileContent = String(oFS.readFileSync('./public/' + sFileName)).replace(r, '');
-        oFS.writeFileSync(sOutputDir + '/' + sFileName, sFileContent, {}, handleError);
-    }
+    r = /<!--START_DEV_ONLY-->(.|\n|\r)*<!--END_DEV_ONLY-->/g;
+    var sFileContent = String(oFS.readFileSync('./public/' + sFileName)).replace(r, '');
+    oFS.writeFileSync(sOutputDir + '/' + sFileName, sFileContent, {}, handleError);
+}
+
+////////////// OTHER FILES /////////////////
+aFileNames = ['stylesheets/qunit.css'];
+for(var i in aFileNames)
+{
+    var sFileName = aFileNames[i];
+    var sFileContent = String(oFS.readFileSync('./public/' + sFileName));
+    oFS.writeFileSync(sOutputDir + '/' + sFileName, sFileContent, {}, handleError);
 }
 
 ////////////////////// COMPRESS /////////////////////
