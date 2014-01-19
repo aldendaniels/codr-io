@@ -68,6 +68,7 @@ define(function(require)
             $('#title-input').val(sTitle);
             $('#download-as').val(sTitle);
             $('#toolbar-item-title .toolbar-item-btn').attr('title', sTitle);
+            document.title = sTitle;
         },
         
         getTitle: function()
