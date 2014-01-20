@@ -57,6 +57,16 @@ define('init-app', function(require)
         
     return function()
     {
+        // Reload whever the url changes.
+        // TODO: Ideally we wouldn't reload when clicking "back"
+        //       after creating a document. We could just hide the document
+        //       and show the landing page. This takes some work, however,
+        //       so for now we just reload.
+        oHelpers.on(window, 'popstate', this, function(e)
+        {
+            window.location.reload();
+        });
+        
         // Store DocReady State.
         $(document).ready(function()
         {

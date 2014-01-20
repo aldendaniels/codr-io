@@ -119,7 +119,7 @@ define('workspace', function(require)
                 {
                     this._oEditor.focus();
                 }
-
+                
                 return true;
             }
             return false;
@@ -175,7 +175,7 @@ define('workspace', function(require)
             {
                 oObject.onEvent(oEvent);
             }
-                    
+            
             oHelpers.on('BODY', 'mousedown click focusin keydown keyup keypress change', this, function(oEvent)
             {
                 var jTarget = $(oEvent.target);
@@ -193,13 +193,13 @@ define('workspace', function(require)
                         {
                             oEvent.preventDefault();
                         }
-
+                        
                     case 'keypress':
                     case 'keyup':
                         if (this._oFocusedObject)
                             _sendEvent(this._oFocusedObject, oEvent);                        
                         break;
-                    
+                        
                     // Blur elem that last had focus.
                     case 'focusin':
                         if (this._oFocusedObject != oTargetObject)
@@ -246,7 +246,7 @@ define('workspace', function(require)
                             // Remember focused object.
                             this._oFocusedObject = oTargetObject;
                         }
-                    
+                        
                     case 'mousedown':
                         // Focus should always be in a text-entry box.
                         if (!jTarget.is('input, textarea, select, option') || jTarget.prop('disabled'))
@@ -258,7 +258,7 @@ define('workspace', function(require)
                 }
             });
         },
-    
+        
         _handleServerAction: function(oAction)
         {
             switch(oAction.sType)
@@ -277,11 +277,11 @@ define('workspace', function(require)
                     break;
                                     
                 case 'setDocumentID': // Fired after creating a new document.
-                    window.history.replaceState(null, '', '/' + oAction.oData.sDocumentID);
-                    this._setUrls()
+                    window.history.pushState(null, '', '/' + oAction.oData.sDocumentID);
+                    this._setUrls();
                     $('#clone-doc-id').val(oAction.oData.sDocumentID);
                     break;
-    
+                    
                 case 'error':
                     document.write(oAction.oData.sMessage);
                     break;

@@ -29,13 +29,7 @@ module.exports = oHelpers.createClass(
         
         // Attach socket events.
         oSocket.on('message', oHelpers.createCallback(this, this._onClientAction));
-        oSocket.on('close', oHelpers.createCallback(this, function()
-        {
-            if (this._oEditSession)
-                this._oEditSession.removeClient(this);
-            else
-                this._bClosed = true;
-        }));        
+        oSocket.on('close', oHelpers.createCallback(this, this._onSocketClose));
     },
     
     setClientID: function(sClientID)
@@ -76,19 +70,21 @@ module.exports = oHelpers.createClass(
     
     sendAction: function(param1, param2) /* either sendAction(sType, oData) or sendAction(oAction)*/
     {
+        var sData;
         if (typeof(param1) == 'string')
         {
-            this._oSocket.send(oHelpers.toJSON(
+            sData = oHelpers.toJSON(
             {
                 sType: param1,
                 oData: param2
-            }));     
+            });
         }
         else
         {
             oHelpers.assert(typeof(param1) == 'object', 'Invalid parameter type');
-            this._oSocket.send(oHelpers.toJSON(param1));
+            sData = oHelpers.toJSON(param1);
         }
+        this._oSocket.send(sData, oHelpers.createCallback(this, this._onSocketError));                
     },
 
     abort: function(sMessage)
@@ -114,7 +110,11 @@ module.exports = oHelpers.createClass(
             case 'openDocument':
                 this._addToEditSession(oAction.oData.sDocumentID);
                 break;
-            
+                
+            case 'close':
+                this._closeSocket();
+                break;
+                
             default:
                 if (this._bInitialized )
                     this._oEditSession.onClientAction(this, oAction);
@@ -141,6 +141,38 @@ module.exports = oHelpers.createClass(
             // TODO (AldenD 06-29-2013): On document creation we could tell the workspace
             // not to go to the database and directly give it the mode.
             this._oEditSession = new EditSession(sDocumentID, this);
+        }
+    },
+    
+    _closeSocket: function()
+    {
+        // the .close() socket method does not trigger the "close" event.
+        // as a result, we have to manually all the close handler.
+        this._oSocket.close(); 
+        this._onSocketClose();
+    },
+    
+    _onSocketClose: function()
+    {
+        // WARNING: In IE, a closed socket sometimes gets resurrected by magic
+        // when the user navigates away from the page via the back button and then
+        // returns with the forward button. To handle this, we need to blank out
+        // the edit session data so the client gets correctly added back to the
+        // edit session.
+        if (this._oEditSession)
+        {
+            this._oEditSession.removeClient(this);
+            this._oEditSession = null;
+        }
+        this._bClosed = true;
+    },
+    
+    _onSocketError: function(oError)
+    {
+        if (oError)
+        {
+            console.log('Socket Error: ', oError.message);
+            this._closeSocket();                    
         }
     }
 });

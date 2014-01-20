@@ -138,7 +138,7 @@ define(function()
             {
                 for (var sKey in oSrcObj)
                 {
-                    var C = (typeof oSrcObj[sKey] == 'undefined' ? '' : oSrcObj[sKey].constructor);
+                    var C = (!oSrcObj[sKey] ? '' : oSrcObj[sKey].constructor);
                     if (C == Array || C == Object) // Recurse
                     {
                         oTgtObj[sKey] = new oSrcObj[sKey].constructor();
@@ -149,7 +149,7 @@ define(function()
                 }            
             }
             
-            var C = (typeof oObj == 'undefined' ? '' : oObj.constructor);
+            var C = (!oObj ? '' : oObj.constructor);
             if (C == Array || C == Object)
             {
                 var oClone = new oObj.constructor();

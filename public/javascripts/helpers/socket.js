@@ -42,6 +42,17 @@ define(function(require)
             {
                 this._dispatch('close', null);
             });
+            
+            // Fixes pernicious IE bug. IE does not correctly close
+            // the socket when the window is refreshed or left via the
+            // back butotn. As a result, we need to manually close
+            // the socket. socket.close() does not appear to work,
+            // so we send down our own "close" event instead that we
+            // handle server-side.
+            oHelpers.on(window, 'beforeunload', this, function()
+            {
+                this.send('close', null);
+            });
         },
         
         bind: function(sEventName, oScope, fnCallback)
@@ -60,16 +71,16 @@ define(function(require)
             {
                 window.setTimeout(oHelpers.createCallback(this, function()
                 {
-                    this._send(sEventType, sMessage);
+                    this._send(sMessage);
                 }), fg_iSendMsDelay);
             }
             else
             {
-                this._send(sEventType, sMessage);
+                this._send(sMessage);
             }
         },
-    
-        _send: function(sEventType, sMessage)
+        
+        _send: function(sMessage)
         {
             if (this._bIsOpen)
                 this._oSocket.send(sMessage);
@@ -84,17 +95,17 @@ define(function(require)
                 if (sEventName in this._oCallbacks)
                 {
                     var bHandled = false;
-    
+                    
                     for (var i in this._oCallbacks[sEventName])
                     {
                         if (this._oCallbacks[sEventName][i](oOptionalData))
                             bHandled = true;
                     }
-    
+                
                     oHelpers.assert(bHandled, 'The event had no listener: ' + sEventName)
                 }
             });
-    
+            
             if (fg_iReceiveMsDelay > 0)
                 window.setTimeout(_doIt, fg_iReceiveMsDelay)
             else
