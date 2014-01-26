@@ -62,13 +62,21 @@ define(function(require)
             }            
         },
         
-        setTitle: function(sTitle)
+        setTitle: function(sTitle, bDoNotUpdateTabTitle)
         {
             $('#toolbar-item-title .toolbar-item-selection').text(sTitle);
             $('#title-input').val(sTitle);
             $('#download-as').val(sTitle);
             $('#toolbar-item-title .toolbar-item-btn').attr('title', sTitle);
-            document.title = sTitle;
+            
+            if (!bDoNotUpdateTabTitle)
+            {
+                // HACK: In order for GC to notice that we've updated the title in history,
+                //       the title has to be set after a replaceState call.
+                window.history.replaceState(null, '', window.location.pathname);
+                
+                document.title = sTitle;
+            }
         },
         
         getTitle: function()

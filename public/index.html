@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>Codr.io</title>
+        <title>codr.io</title>
         <link rel=StyleSheet href="/stylesheets/index.css" type="text/css" />        
         <link href='http://fonts.googleapis.com/css?family=Sanchez' rel='stylesheet' type='text/css'>
     </head>
@@ -17,7 +17,11 @@
             }
             else
             {
-                document.title = 'Loading...';
+                // We wait till load so IE won't record 'Loading...' in history.
+                window.addEventListener('load', function()
+                {
+                    document.title = 'Loading...';   
+                });
             }
             if (IS_SNAPSHOT)
             {

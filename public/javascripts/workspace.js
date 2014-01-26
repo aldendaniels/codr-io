@@ -51,7 +51,12 @@ define('workspace', function(require)
             // On a new document creation, default the title to "Untitled".
             if (bIsNewDocument)
             {
-                this._oToolbar.setTitle(_sUNTITLED);
+                // Note: We do not set the tab title because FF remembers the first title set
+                //       post load for a given URL in history and I can't find a way to change that.
+                //       We want FF to store "codr.io" for the home page, not Untitled. Untitled
+                //       gets set, therefore, with the new URL.
+                this._oToolbar.setTitle(_sUNTITLED, true /* bDoNotUpdateTabTitle */);
+                
                 this._setMode(oNewDocumentMode);
                 this._oSocket.send('createDocument',
                 {
@@ -277,7 +282,15 @@ define('workspace', function(require)
                     break;
                                     
                 case 'setDocumentID': // Fired after creating a new document.
-                    window.history.pushState(null, '', '/' + oAction.oData.sDocumentID);
+                    
+                    // Push the new URL.
+                    window.history.pushState(   null, '', '/' + oAction.oData.sDocumentID);
+                    
+                    // Set title to "Untitled". We wait to do this till now because FF
+                    // remembers the first title set post load for a given URL in history.
+                    // Thus we needed to wait for the new URL.
+                    this._oToolbar.setTitle(_sUNTITLED);
+                    
                     this._setUrls();
                     $('#clone-doc-id').val(oAction.oData.sDocumentID);
                     break;
@@ -295,8 +308,6 @@ define('workspace', function(require)
         _setUrls: function()
         {
             $('#collaborate-url').val(document.location.href.slice(7));
-            $('#workspace-logout').attr('href', '/logout?next=' + document.location.pathname);
-            $('#workspace-login').attr('href', '/login?next=' + document.location.pathname);
         }
     });
 });
