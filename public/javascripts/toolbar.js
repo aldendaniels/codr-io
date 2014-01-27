@@ -62,21 +62,16 @@ define(function(require)
             }            
         },
         
-        setTitle: function(sTitle, bDoNotUpdateTabTitle)
+        setTitle: function(sTitle, bDoNotSetWithHistory)
         {
             $('#toolbar-item-title .toolbar-item-selection').text(sTitle);
             $('#title-input').val(sTitle);
             $('#download-as').val(sTitle);
             $('#toolbar-item-title .toolbar-item-btn').attr('title', sTitle);
-            
-            if (!bDoNotUpdateTabTitle)
-            {
-                // HACK: In order for GC to notice that we've updated the title in history,
-                //       the title has to be set after a replaceState call.
-                window.history.replaceState(null, '', window.location.pathname);
-                
+            if (bDoNotSetWithHistory)
                 document.title = sTitle;
-            }
+            else
+                oHelpers.setTitleWithHistory(sTitle);
         },
         
         getTitle: function()

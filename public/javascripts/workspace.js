@@ -51,12 +51,7 @@ define('workspace', function(require)
             // On a new document creation, default the title to "Untitled".
             if (bIsNewDocument)
             {
-                // Note: We do not set the tab title because FF remembers the first title set
-                //       post load for a given URL in history and I can't find a way to change that.
-                //       We want FF to store "codr.io" for the home page, not Untitled. Untitled
-                //       gets set, therefore, with the new URL.
-                this._oToolbar.setTitle(_sUNTITLED, true /* bDoNotUpdateTabTitle */);
-                
+                this._oToolbar.setTitle(_sUNTITLED, true);                
                 this._setMode(oNewDocumentMode);
                 this._oSocket.send('createDocument',
                 {
@@ -284,12 +279,23 @@ define('workspace', function(require)
                 case 'setDocumentID': // Fired after creating a new document.
                     
                     // Push the new URL.
-                    window.history.pushState(   null, '', '/' + oAction.oData.sDocumentID);
-                    
-                    // Set title to "Untitled". We wait to do this till now because FF
-                    // remembers the first title set post load for a given URL in history.
-                    // Thus we needed to wait for the new URL.
-                    this._oToolbar.setTitle(_sUNTITLED);
+                    // HACK: In order for the first history entry to have a title of "codr.io"
+                    //       and the second to have a title of "Untitled", we set
+                    //       the title back to "codr.io" right before pushing the new state.                    
+                    if (oHelpers.isFF())
+                    {
+                        oHelpers.setTitleWithHistory('codr.io');
+                        window.setTimeout(oHelpers.createCallback(this, function()
+                        {
+                            window.history.pushState(   null, '', '/' + oAction.oData.sDocumentID);
+                            document.title = _sUNTITLED;
+                        }), 0);                        
+                    }
+                    else
+                    {
+                        window.history.pushState(   null, '', '/' + oAction.oData.sDocumentID);
+                        oHelpers.setTitleWithHistory(_sUNTITLED);
+                    }
                     
                     this._setUrls();
                     $('#clone-doc-id').val(oAction.oData.sDocumentID);
