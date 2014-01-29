@@ -46,16 +46,10 @@ define(function(require)
                             oStart: this._getDecrementedPoint(oRange2.oStart, oIntersectStartPoint),
                             oEnd:   this._getDecrementedPoint(oRange2.oStart, oIntersectEndPoint)
                         }
-                    });
-                    
-                    // Transform deletion range.
-                    this.transformRange(oDelta1, oRange2);
+                    });                    
                 }
                 else
                 {
-                    // Transform deletion range.
-                    this.transformRange(oDelta1, oRange2);
-                    
                     // Add text that delta1 inserted into delta2's deleted text.
                     if (this._pointsInOrder(oRange2.oStart, oRange1.oStart, false) &&
                         this._pointsInOrder(oRange1.oStart, oRange2.oEnd  , false))
@@ -72,6 +66,9 @@ define(function(require)
                         });
                     }
                 }
+                
+                // Transform deletion range.
+                this.transformRange(oDelta1, oRange2);
             }
         },
         
