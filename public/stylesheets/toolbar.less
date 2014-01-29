@@ -615,9 +615,13 @@ body.mode-html
                 float: left;
             }
             
+            #tools-content-right
+            {
+                float: right;
+            }
+            
             .toolbar-item
             {
-                width: 50%;
                 max-width: 200px;
                 height: 100%;
                 overflow: hidden;
@@ -787,6 +791,37 @@ body.mode-html
                         border: 1px rgba(0, 0, 0, 0.6) solid;
                     }
                 }                
+            }
+            
+            #tools-content-right
+            {
+                #preview-label
+                {
+                    float: left;
+                    padding-top: 8px;
+                    padding-right: 10px;
+                    color: rgba(255, 255, 255, 0.6);
+                }
+                
+                .toolbar-item
+                {
+                    width: 130px;
+                    border-left: 1px @border-color solid;
+                    float: left;
+                    
+                    .toolbar-item-btn
+                    {
+                        position: relative;
+                        border-right-width: 0 !important;
+                        .icon
+                        {
+                            position: absolute;
+                            right: 10px;
+                            top: 9px;
+                            font-size: 14px;                        
+                        }                    
+                    }                    
+                }
             }
         }
     }
