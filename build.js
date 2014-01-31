@@ -61,6 +61,12 @@ compileJS('workspace',
     exclude: ['init-app'],
 });
 
+// Preview.
+compileJS('preview',
+{
+    include: ['lib/require', 'require-config']
+});
+
 // Tests.
 compileJS('tests/index',
 {
@@ -120,7 +126,7 @@ complileLESS('./public/stylesheets', 'index.less');
 
 ////////////// HTML COMPILATION /////////////////
 
-var aFileNames = ['index.html', 'tests.html'];
+var aFileNames = ['index.html', 'tests.html', 'preview.html'];
 for(var i in aFileNames)
 {
     var sFileName = aFileNames[i];

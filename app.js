@@ -130,24 +130,7 @@ oApp.configure(function()
     /* Preview files as HTML. */
     oApp.get('/:DocumentID([a-z0-9]+)/preview/?$', function(req, res)
     {
-        // Set response headers for HTML preview.
-        res.set('Content-Type', 'text/html');
-
-        // Send document text.
-        var oDocument = null;
-        var sDocumentID = req.params['DocumentID'];
-        if (sDocumentID in g_oEditSessions)
-        {
-            oDocument = g_oEditSessions[sDocumentID].getDocument();
-            res.send(oDocument.get('aLines').join('\n'));
-        }
-        else
-        {
-            oDatabase.getDocument(sDocumentID, this, function(sDocumentJSON)
-            {
-                res.send((new Document(sDocumentJSON)).get('aLines').join('\n'));
-            });
-        }
+        res.sendfile(sPublicDir + '/preview.html');
     });
 
     /* Download file */

@@ -6,7 +6,7 @@ var fg_iReceiveMsDelay = 0;
 define(function(require)
 {
     // Dependencies.
-    var oHelpers = require('helpers/helpers-web');
+    var oHelpers = require('helpers/helpers-core');
     
     return oHelpers.createClass(
     {
@@ -49,10 +49,10 @@ define(function(require)
             // the socket. socket.close() does not appear to work,
             // so we send down our own "close" event instead that we
             // handle server-side.
-            oHelpers.on(window, 'beforeunload', this, function()
+            window.addEventListener('beforeunload', oHelpers.createCallback(this, function()
             {
                 this.send('close', null);
-            });
+            }));
         },
         
         bind: function(sEventName, oScope, fnCallback)
