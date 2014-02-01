@@ -41,24 +41,6 @@ var oFileDatabase =
     documentExists: function(sID, oScope, fnOnResponse)
     {
         oFS.exists(oPath.join(g_oConfig.sDataPath, sID), oHelpers.createCallback(oScope, fnOnResponse))
-    },
-
-    saveUser: function(sUsername, sData, oScope, fnOnResponse)
-    {
-        oFS.writeFile(oPath.join(sUserDataPath, sUsername), sData, oHelpers.createCallback(oScope, fnOnResponse));
-    },
-
-    getUser: function(sUsername, oScope, fnOnResponse)
-    {
-        oFS.readFile(oPath.join(sUserDataPath, sUsername), function(sIgnoredErr, oFileData)
-        {
-            oHelpers.createCallback(oScope, fnOnResponse)(oFileData);
-        });
-    },
-
-    userExists: function(sUsername, oScope, fnOnResponse)
-    {
-        oFS.exists(oPath.join(sUserDataPath, sUsername), oHelpers.createCallback(oScope, fnOnResponse));
     }
 };
 
