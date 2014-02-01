@@ -47,16 +47,16 @@ module.exports = oHelpers.createClass(
             // Save pointer to document.
             this._oDocument = new Document(sDocumentJSON);
             this._bDocumentLoaded = true;
-
+        
             if (this._oDocument.get('bIsSnapshot'))
             {
                 var sErrorMessage = 'This document has been published and can not be edited.' +
                                     'To see the published version click <a href="/v/' + sDocumentID + '">here</a>.';
                 for (var i = 0; i < this._aClients.length; i++)
                     this._aClients[i].abort(sErrorMessage);
-
+                
                 delete g_oEditSessions[this._sDocumentID];
-
+                
                 return;
             }
             
@@ -159,7 +159,7 @@ module.exports = oHelpers.createClass(
         });
         
         // Send documentID on document creation.
-        if (oClient.clientCreatedDocument())
+        if (oClient.createdDocument())
         {
             oClient.sendAction('setDocumentID',
             {
@@ -180,24 +180,24 @@ module.exports = oHelpers.createClass(
                 bShowInvisibles: this._oDocument.get('bShowInvisibles'),
                 bUseWordWrap: this._oDocument.get('bUseWordWrap')
             });
-
+            
             // Set mode (language.)
             oClient.sendAction('setMode',
             {
                 sMode: this._oDocument.get('sMode')
             });
-    
+            
             // Set title.
             oClient.sendAction('setDocumentTitle', 
             {
                 sTitle: this._oDocument.get('sTitle')
             });
-
+            
             // Set currently viewing.
             for (var iClientIndex in this._aClients)
             {
                 var oOtherClient = this._aClients[iClientIndex];
-                if (oOtherClient != oClient)
+                if (oOtherClient != oClient && !oOtherClient.isPreview()) // Skip previewing clients.
                 {
                     oClient.sendAction('addClient',
                     {
@@ -233,7 +233,7 @@ module.exports = oHelpers.createClass(
                 });
             }
         }
-
+        
         for (var i = 0; i < this._oDocument.get('aSnapshots').length; i++)
         {
             var oSnapshot = this._oDocument.get('aSnapshots')[i];
@@ -250,7 +250,7 @@ module.exports = oHelpers.createClass(
     onClientAction: function(oClient, oAction)
     {
         oHelpers.assert(!this._oDocument.get('bIsSnapshot'), 'Clients can\'t send actions to a published document.');
-
+        
         this._assertDocumentLoaded();
 		
 		switch(oAction.sType)
@@ -305,7 +305,7 @@ module.exports = oHelpers.createClass(
                     oDelta: oDelta
                 });
                 this._iServerState++;
-
+                
                 // Brodcast.
                 this._broadcastAction(oClient,
                 {
@@ -317,7 +317,7 @@ module.exports = oHelpers.createClass(
                         sClientID: oClient.getClientID()
                     }
                 });
-
+                
                 // Notify send of receipt.
                 oClient.sendAction('eventReciept',
                 {
@@ -342,22 +342,22 @@ module.exports = oHelpers.createClass(
                 this._oDocument.get('aChatHistory').push(oNewAction.oData);
                 this._setAutoSaveTimeout();
                 break;
-
+                
             case 'changeClientID':
                 
                 var sNewClientID = oAction.oData.sClientID;
-
+                
                 // Check for errors
                 var sError = '';
                 if (!sNewClientID)
                     sError = 'ClientID may not be blank.';
-
+                
                 for (var i = 0; i < this._aClients.length; i++)
                 {
                     if (this._aClients[i] != oClient && this._aClients[i].getClientID() == sNewClientID)
                         sError = 'This username has already been taken.';
                 }
-
+                
                 // Handle errors
                 if (sError)
                 {
@@ -367,7 +367,7 @@ module.exports = oHelpers.createClass(
                     });
                     break;
                 }
-
+                
                 // Remove old user
                 // TODO: This is a bit of a hack.
                 this._broadcastAction(oClient,
@@ -378,14 +378,14 @@ module.exports = oHelpers.createClass(
                         sClientID: oClient.getClientID()
                     }
                 });
-
+                
                 // Tell client his new name.
                 oClient.sendAction('newClientIDAccepted', 
                 {
                     'sClientID': sNewClientID
                 });                
                 oClient.setClientID(sNewClientID);
-
+                
                 // Add the new client to the list of viewing people.
                 this._broadcastAction(oClient,
                 {
@@ -405,7 +405,7 @@ module.exports = oHelpers.createClass(
                     }
                 });
                 break;
-
+                
             case 'startTyping':
                 this._aCurrentlyTyping.push(oClient);
                 this._broadcastAction(oClient,
@@ -451,27 +451,27 @@ module.exports = oHelpers.createClass(
                 });
                 
                 break;
-
+                
             case 'setUseSoftTabs':
                 this._oDocument.set('bUseSoftTabs', oAction.oData.bUseSoftTabs);
                 this._broadcastAction(oClient, oAction);
                 break;
-
+                
             case 'setTabSize':
                 this._oDocument.set('iTabSize', oAction.oData.iTabSize);
                 this._broadcastAction(oClient, oAction);
                 break;
-
+                
             case 'setShowInvisibles':
                 this._oDocument.set('bShowInvisibles', oAction.oData.bShowInvisibles);
                 this._broadcastAction(oClient, oAction);
                 break;
-
+            
             case 'setUseWordWrap':
                 this._oDocument.set('bUseWordWrap', oAction.oData.bUseWordWrap);
                 this._broadcastAction(oClient, oAction);
                 break;
-
+                
             default:
                 oHelpers.assert(false, 'Unrecognized event type: "' + oAction.sType + '"');
         }
@@ -483,8 +483,10 @@ module.exports = oHelpers.createClass(
         this._assertDocumentLoaded();
         for (var i = 0; i < this._aClients.length; i++)
         {
+            // Don't broadcast events back to the sending clients.
+            // Don't boradcast events from "preview" clients.
             var oClient = this._aClients[i];
-            if(oClient != oSendingClient)
+            if(!oSendingClient || (oClient != oSendingClient && !oSendingClient.isPreview()))
                 oClient.sendAction(oAction)
         }
     },
@@ -519,7 +521,7 @@ module.exports = oHelpers.createClass(
         
         this._assertDocumentLoaded();
         this._clearAutoSaveTimeout();
-
+        
         oDatabase.saveDocument(this._sDocumentID, this._oDocument.toJSON(), this, function(sError)
         {
             // TODO: Handle save errors.

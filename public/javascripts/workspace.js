@@ -65,9 +65,10 @@ define('workspace', function(require)
                 var sDocumentID = /^(\/v)?\/([a-z0-9]+)\/?$/.exec(document.location.pathname)[2];
                 this._oSocket.send('openDocument',
                 {
-                    sDocumentID: sDocumentID
+                    sDocumentID: sDocumentID,
+                    bIsPreview: false
                 });            
-    
+                
                 this._setUrls()
                 $('#clone-doc-id').val(sDocumentID);
             }

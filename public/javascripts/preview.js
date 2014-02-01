@@ -17,7 +17,8 @@ define('preview', function(require)
     var sDocumentID = /^(\/v)?\/([a-z0-9]+)\/preview\/?$/.exec(document.location.pathname)[2];
     oSocket.send('openDocument',
     {
-        sDocumentID: sDocumentID
+        sDocumentID: sDocumentID,
+        bIsPreview: true
     });            
     
     function handleServerAction(oAction)

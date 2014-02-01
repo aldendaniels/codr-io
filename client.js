@@ -8,6 +8,7 @@ module.exports = oHelpers.createClass(
     _oSocket: null,
     _oEditSession: null,
     _bCreatedDocument: false,
+    _bIsPreview: false,
     _aPreInitActionQueue: null,
     _bInitialized: false,
     _bClosed: false,
@@ -53,9 +54,14 @@ module.exports = oHelpers.createClass(
         this._oLastSelRange = oRange;
     },
     
-    clientCreatedDocument: function()
+    createdDocument: function()
     {
         return this._bCreatedDocument;
+    },
+    
+    isPreview: function()
+    {
+        return this._bIsPreview;
     },
     
     onDocumentLoad: function()
@@ -108,6 +114,7 @@ module.exports = oHelpers.createClass(
                 break;
             
             case 'openDocument':
+                this._bIsPreview = oAction.oData.bIsPreview || false;
                 this._addToEditSession(oAction.oData.sDocumentID);
                 break;
                 
