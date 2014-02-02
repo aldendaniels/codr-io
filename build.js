@@ -136,12 +136,15 @@ for(var i in aFileNames)
 }
 
 ////////////// OTHER FILES /////////////////
-aFileNames = ['stylesheets/qunit.css'];
+oFS.mkdir(sOutputDir + '/images', function(e){});
+oFS.mkdir(sOutputDir + '/stylesheets', function(e){});
+aFileNames = ['stylesheets/qunit.css', 'images/favicon.ico'];
 for(var i in aFileNames)
 {
     var sFileName = aFileNames[i];
-    var sFileContent = String(oFS.readFileSync('./public/' + sFileName));
-    oFS.writeFileSync(sOutputDir + '/' + sFileName, sFileContent, {}, handleError);
+    oFS.createReadStream('./public/' + sFileName).pipe(oFS.createWriteStream(sOutputDir + '/' + sFileName));
+    //var sFileContent = String(oFS.readFileSync('./public/' + sFileName));
+    //oFS.writeFileSync(sOutputDir + '/' + sFileName, sFileContent, {}, handleError);
 }
 
 ////////////////////// COMPRESS /////////////////////
