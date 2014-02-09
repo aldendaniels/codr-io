@@ -14,7 +14,7 @@
         // Non-constant members.
         _bAttached: false,
         _jKeyables: null,
-        _jSelected: null,
+        _jCurrent: null,
     
         __init__: function(jParent, sIDAttr, sKeyableSelector)
         {
@@ -26,62 +26,62 @@
         
         attach: function()
         {
-            this._jSelected.addClass('current');
+            this._jCurrent.addClass('current');
             this._bAttached = true;
         },
         
         detach: function()
         {
-            this._jSelected.removeClass('current');
+            this._jCurrent.removeClass('current');
             this._bAttached = false;        
         },
         
         update: function(bMaintainSel)
         {
-            // Maintain selection.
+            // Maintain current option.
             this._jKeyables = this._jParent.find(this._sKeyableSelector);
-            if (bMaintainSel && this._jSelected)
+            if (bMaintainSel && this._jCurrent)
             {
-                var sSelID = this._jSelected.attr(this._sIDAttr);
-                var jSelected = this._jKeyables.filter('[' + this._sIDAttr + '="' + sSelID + '"]');
-                if (jSelected)
+                var sSelID = this._jCurrent.attr(this._sIDAttr);
+                var jCurrent = this._jKeyables.filter('[' + this._sIDAttr + '="' + sSelID + '"]');
+                if (jCurrent)
                 {
-                    this.select(jSelected);
+                    this.setCurrent(jCurrent);
                     return;
                 }
             }
             
-            // Select the first item.
-            this.select($(this._jKeyables[0]));
+            // Set the first item as the current item.
+            this.setCurrent($(this._jKeyables[0]));
         },
         
-        select: function(jElem)
+        setCurrent: function(jElem)
         {
-            this._jSelected = $(jElem);
+            this._jCurrent = $(jElem);
             if (this._bAttached)
             {
                 this._jKeyables.removeClass('current');
-                this._jSelected.addClass('current');
+                this._jCurrent.addClass('current');
             }
         },
         
         moveDown: function()
         {
-            var iCurIndex = this._jKeyables.index(this._jSelected);
+            var iCurIndex = this._jKeyables.index(this._jCurrent);
             if (iCurIndex < this._jKeyables.length - 1)
-                this.select(this._jKeyables[iCurIndex + 1], true);
+                this.setCurrent(this._jKeyables[iCurIndex + 1], true);
         },
         
         moveUp: function()
         {
-            var iCurIndex = this._jKeyables.index(this._jSelected);
+            var iCurIndex = this._jKeyables.index(this._jCurrent);
             if (iCurIndex > 0)
-                this.select(this._jKeyables[iCurIndex - 1], true);        
+                this.setCurrent(this._jKeyables[iCurIndex - 1], true);        
         },
         
-        getSelected: function()
+        getCurrent: function()
         {
-            return this._jSelected;
+            return this._jCurrent;
         }
     });
 });

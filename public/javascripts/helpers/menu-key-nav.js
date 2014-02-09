@@ -37,9 +37,9 @@ define(function(require)
             {
                 case 'click':
                     var jOption = jTarget.closest('.option');
-                    if (jOption.length && !this._bIsDisabled)
+                    if (jOption.length)
                     {
-                        this._oKeyable.select(jOption);
+                        this._oKeyable.setCurrent(jOption);
                         this._selectCur();
                     }
                     break;
@@ -48,22 +48,19 @@ define(function(require)
                     
                     switch (oEvent.which)
                     {
-                        // Select next down div
-                        case 40: // Down arrow
+                        case 40: // DOWN ARROW
                             this._oKeyable.moveDown();
                             this._scrollIntoView();
                             oEvent.preventDefault();
                             break;
                         
-                        // Select next up div
-                        case 38: // Up arrow
+                        case 38: // UP ARROW
                             this._oKeyable.moveUp();
                             this._scrollIntoView();
                             oEvent.preventDefault();
                             break;
                             
-                        // On choice
-                        case 13:
+                        case 13: // ENTER
                             if(!this._bIsDisabled)
                             {
                                 this._selectCur();
@@ -77,13 +74,16 @@ define(function(require)
         
         _selectCur: function()
         {
-            this._fnOnSelect(this._oKeyable.getSelected().attr('id'));
+            if (!this._bIsDisabled)
+            {
+                this._fnOnSelect(this._oKeyable.getCurrent().attr('id'));
+            }
         },
         
         _scrollIntoView: function()
         {            
             // Get Elems.
-            var jElem = this._oKeyable.getSelected();
+            var jElem = this._oKeyable.getCurrent();
             var jViewport = this._jParent;
             
             // Calculate the element's position.
