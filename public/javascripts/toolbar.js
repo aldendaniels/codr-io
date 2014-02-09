@@ -260,7 +260,10 @@ define(function(require)
             /* Notify chat. */
             if (jItem.is('#toolbar-item-chat'))
                 this._oChat.onClose();
-    
+            
+            /* Reset Mode Menu */
+            if (jItem.is('#toolbar-item-mode'))
+                this._oModeMenu.reset();
         },
         
         _blur: function()
