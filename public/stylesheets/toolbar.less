@@ -684,7 +684,6 @@ body.mode-html
                     padding: @toolbarDropdownPadding;
                     border: 1px darken(@bg-color, 3%) solid;
                     border-top-color: @border-color;
-                    width: 350px;
                     
                     button
                     {
@@ -714,8 +713,8 @@ body.mode-html
                     background-color: @bg-color-light;
                     position: absolute;
                     bottom: -1px;
-                    left: 1px;
-                    right: 1px;
+                    left: 0;
+                    right: 0;
                 }
                 
                 &.open
@@ -749,6 +748,11 @@ body.mode-html
                     {
                         width: 100%;
                     }
+                }
+                
+                .toolbar-dropdown
+                {
+                    width: 350px;
                 }
                 
                 .icon-help
@@ -785,25 +789,62 @@ body.mode-html
                 
                 .toolbar-item
                 {
-                    border-left: 1px @border-color solid;
                     float: left;                    
                     .toolbar-item-btn
                     {
                         position: relative;
                         border-right-width: 0 !important;
+                        border-left: 1px @border-color solid;
                     }
                 }
                 
                 .toolbar-item:not(.icon-only)
                 {
                     width: 200px;
+                    
                     .icon
                     {
                         position: absolute;
                         right: 10px;
                         top: 9px;
                         font-size: 14px;                        
-                    }                    
+                    }
+                    
+                    .toolbar-dropdown
+                    {
+                        margin-left: 0px;
+                        margin-right: -1px;
+                        padding: 0;
+                        
+                        .option:first-child
+                        {
+                            border-top: 1px rgba(255, 255, 255, 0.1) solid;                 
+                        }
+                        
+                        .option
+                        {
+                            padding: 8px;
+                            border-bottom: 1px rgba(255, 255, 255, 0.1) solid;
+                            cursor: pointer;
+                            transition: background-color 0.1s;
+                            
+                            &:hover
+                            {
+                                background-color: rgba(255, 255, 255, 0.1);
+                            }
+                            .icon-check
+                            {
+                                float: right;
+                                -webkit-text-stroke: 0.2px;
+                                color: rgba(255, 255, 255, 0.2);
+                            }
+                        }
+                        
+                        .option.selected .icon-check
+                        {
+                            color: white;                            
+                        }
+                    }
                 }
                 
                 .toolbar-item.icon-only
