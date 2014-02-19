@@ -55,8 +55,8 @@ compileJS('init-app',
     include: ['lib/require', 'require-config']
 });
 
-// Workspace.
-compileJS('workspace',
+// App Main.
+compileJS('app-main',
 {
     exclude: ['init-app'],
 });

@@ -36,10 +36,10 @@ define('init-app', function(require)
     {
         var fnLoadWorkspace = function()
         {
-            require(['workspace'], function(Workspace, Socket)
+            require(['app-main'], function(fnAppMain, Socket)
             {
-                // Instantiate Worksapce.
-                var oWorkspace = new Workspace(bIsNewDocument, bIsSnapshot, oNewDocumentMode);
+                // Instantiate main app.
+                fnAppMain(bIsNewDocument, bIsSnapshot, oNewDocumentMode);
                 
                 // Hide mode chooser.
                 if (bIsNewDocument)

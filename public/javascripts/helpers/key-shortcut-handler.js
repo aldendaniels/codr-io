@@ -5,14 +5,13 @@ define(function(require)
         oHelpers    = require('helpers/helpers-web'),
         oUIDispatch = require('helpers/ui-dispatch');
         
-    return oHelpers.createClass({
-        
-        _oShortcuts: null,
+    return (
+    {    
+        _oShortcuts: {},
         _bIsOpen: false,
         
-        __init__: function()
+        init: function()
         {
-            this._oShortcuts = {};
             oUIDispatch.registerUIHandler(this);
             
             // Normally we bind all events in workspace, but here we want to get key

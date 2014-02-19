@@ -70,14 +70,14 @@ define(function(require)
     });
     
     // Editor object.
-    return oHelpers.createClass(
+    return (
     {
         _oSocket: null,
         _oEditControl: null,
-    
+        
         // Remote users.
         _oRemoteClients: null, // { userID: { sColor: '', oLastSelRange: null }, ...}    
-    
+        
         // OT Transform state.
         _iServerState: 0,
         _iNumPendingActions: 0,
@@ -88,10 +88,8 @@ define(function(require)
         
         // Other
         _oCurSelectionRange: null,
-    
-        __type__: 'Editor',    
-    
-        __init__: function(oSocket)
+        
+        init: function(oSocket)
         {
             this._oSocket = oSocket;
             this._oRemoteClients = {};
@@ -108,7 +106,7 @@ define(function(require)
             this._oEditControl.on('selChange', this, this._onSelectionChange);
             this._oEditControl.on('undo',      this, this._onUndo);
             this._oEditControl.on('redo',      this, this._onRedo);
-
+            
             $('.status-item').on('blur', oHelpers.createCallback(this, this.onEvent));
             
             // Update status bar.

@@ -5,10 +5,10 @@ define(function(require)
     var $        = require('lib/jquery'),
         oHelpers = require('helpers/helpers-web');
 
-    return oHelpers.createClass(
+    return (
     {
         _oSocket: null,
-        _oWorkspace: null,
+        _fnGetUserInfo: null,
         _aHistory: null,
         _aTypingUsers: null,
         _bTyping: false,
@@ -18,11 +18,11 @@ define(function(require)
         
         __type__: 'PeoplePane',    
         
-        __init__: function(oWorkspace, oSocket)
+        init: function(oSocket, fnGetUserInfo)
         {
             // Save data.
             this._oSocket = oSocket;
-            this._oWorkspace = oWorkspace;
+            this._fnGetUserInfo = fnGetUserInfo;
             this._aCurUsers = [];
             this._aHistory = [];
             this._aTypingUsers = [];
@@ -144,7 +144,7 @@ define(function(require)
                 case 'newClientIDAccepted':
                     
                     // Save username.
-                    this._oWorkspace.getUserInfo()['sClientID'] = oAction.oData.sClientID;
+                    this._fnGetUserInfo()['sClientID'] = oAction.oData.sClientID;
                     
                     // Show chat box.
                     this._showChatBox();
@@ -190,7 +190,7 @@ define(function(require)
             });
             this._aHistory.push(
             {
-                'sClientID': this._oWorkspace.getUserInfo()['sClientID'],
+                'sClientID': this._fnGetUserInfo()['sClientID'],
                 'sMessage': sMessage
             });
     

@@ -101,6 +101,11 @@ define(function()
             return false
         },
         
+        inString: function(sSub, sStr)
+        {
+            return sStr.indexOf(sSub) != -1;
+        },
+        
         fromJSON: function(sJSON)  // Wrap JSON.parse for better date handling.
         {
             var oData = JSON.parse(sJSON);

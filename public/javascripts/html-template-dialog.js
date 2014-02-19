@@ -142,21 +142,21 @@ define(function(require)
         'None':             ''
     };
     
-    return oHelpers.createClass(
+    return (
     {
-        _oWorkspace: null,
-        _oToolbar: null,
+        _oEditor: null,
+        _oTitleUIHandler: null,
         
         // Used to restore prov framework selection when the script language
         // is set back to "Javascript" from "None". 
         _sLastFrameworkName: '',
         _sLastFrameworkVersion: '',
         
-        __init__: function(oWorkspace, oToolbar)
+        init: function(oEditor, oTitleUIHandler)
         {
             // Save State.
-            this._oWorkspace = oWorkspace;
-            this._oToolbar = oToolbar;
+            this._oEditor = oEditor;
+            this._oTitleUIHandler = oTitleUIHandler;
             
             // Populate Dropdowns.
             for (sID in oPrimaryOptions)
@@ -246,9 +246,9 @@ define(function(require)
         _insertTemplate: function()
         {
             var oData = this._serializeOptions();
-            oData.sTitle = this._oToolbar.getTitle();
+            oData.sTitle = this._oTitleUIHandler.getTitle();
             var sText = oTemplatizer.render('html-insert', oData);
-            this._oWorkspace.insertLines(sText.split('\n'));
+            this._oEditor.insertLines(sText.split('\n'));
             oUIDispatch.blurFocusedUIHandler();
         },
         

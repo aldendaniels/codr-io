@@ -9,7 +9,7 @@ define(function(require)
         _bIsInitialized: false,
         _aUIHandlers: [],
         _aFocusHistory: [],
-        _oFocusedUIHandler: [],
+        _oFocusedUIHandler: null,
         
         registerUIHandler: function(oUIHandler)
         {
@@ -92,14 +92,7 @@ define(function(require)
                             this.blurFocusedUIHandler();
                             break;
                         }
-                        
-                        // Disable native browser handling for saving/searching.
-                        // TODO: Think through keyboard controls for a mac.
-                        if (oEvent.ctrlKey && oHelpers.inArray(oEvent.which, [83, 70, 71]))
-                        {
-                            oEvent.preventDefault();
-                        }
-                        
+                                            
                     case 'keypress':
                     case 'keyup':
                         if (this._oFocusedUIHandler)
