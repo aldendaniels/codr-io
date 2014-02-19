@@ -57,12 +57,6 @@ define(function(require)
             // Do not include white space in selection
             this._oAceEditor.setSelectionStyle('text');
             
-            // Prevent bluring.
-            this._oAceEditor.on('blur', function(oEvent)
-            {
-                oEvent.preventDefault();
-            });
-            
             this._oLastAceSelectionRange = new AceRange(0, 0, 0, 0);
             
             // Init marker ID map (maps specified marker ID to ace Marker ID).

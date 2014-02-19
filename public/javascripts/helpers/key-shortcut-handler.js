@@ -9,9 +9,10 @@ define(function(require)
         _oShortcuts: null,
         _bIsOpen: false,
         
-        __init__: function()
+        __init__: function(oWorkspace)
         {
             this._oShortcuts = {};
+            oWorkspace.registerUIHandler(this);
             
             // Normally we bind all events in workspace, but here we want to get key
             // event even when we don't have focus so we bind our own listener.

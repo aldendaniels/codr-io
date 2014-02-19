@@ -62,10 +62,6 @@ define(function(require)
         
         onEvent: function(oEvent)
         {
-            // Verify search input focus.
-            if (document.activeElement != this._jMenu.find('.menu-search input')[0])
-                oHelpers.assert(false, 'The menu input does not have focus.');
-            
             // Filter on key up.
             if (oEvent.type == 'keyup')
             {

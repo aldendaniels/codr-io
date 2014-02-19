@@ -23,12 +23,12 @@ define('workspace', function(require)
         
         _oUserInfo: null,
         
-        _aObjects: null,
-        _oFocusedObject: null,
-        _oLastFocusedObject: null,
-    
+        _aUIHandlers: null,
+        _aFocusHistory: null,
+        _oFocusedUIHandler: null,
+        
         __type__: 'Workspace',    
-    
+        
         __init__: function(bIsNewDocument, bIsSnapshot, oNewDocumentMode)
         {
             // Init Socket.
@@ -36,17 +36,17 @@ define('workspace', function(require)
             this._oSocket  = new Socket(sSocketURL);
             this._oSocket.bind('message', this, this._handleServerAction);
             
-            // Init objects.
-            var oShortcutHandler = new KeyShortcutHandler();
-            this._oToolbar    = new Toolbar(this, this._oSocket, oShortcutHandler);
-            this._oEditor     = new Editor(this, this._oSocket);
-            
-            // Development Hack: Expose the editor object.
-            window._editor = this._oEditor;
-            
-            // Init DOM focus.
-            this._aObjects = [this._oToolbar, this._oEditor, oShortcutHandler];
+            this._aUIHandlers = [];
             this._aFocusHistory = [];
+            
+            // Init objects.
+            var oShortcutHandler = new KeyShortcutHandler(this);
+            this._oToolbar       = new Toolbar(this, this._oSocket, oShortcutHandler);
+            this._oEditor        = new Editor(this, this._oSocket);
+            
+            // Development Hack: Expose the objects.
+            window._editor = this._oEditor;
+            window._workspace = this;
             
             // On a new document creation, default the title to "Untitled".
             if (bIsNewDocument)
@@ -58,7 +58,6 @@ define('workspace', function(require)
                     sMode:  oNewDocumentMode.getName(),
                     sTitle: _sUNTITLED
                 });
-                this.focusEditor();
             }
             else // Open existing document.
             {
@@ -72,6 +71,9 @@ define('workspace', function(require)
                 this._setUrls()
                 $('#clone-doc-id').val(sDocumentID);
             }
+            
+            // Initialize editor focus.
+            this._aFocusHistory.push(this._oEditor);
             
             // Load snpashot data.
             if (bIsSnapshot)
@@ -108,28 +110,15 @@ define('workspace', function(require)
             });
         },
         
-        blurFocusedObject: function()
+        registerUIHandler: function(oUIHandler)
         {
-            if (this._oFocusedObject && this._oFocusedObject != this._oEditor)
-            {            
-                if (this._oLastFocusedObject) // Focus last focused object.
-                {
-                    this._oLastFocusedObject.focus();
-                }
-                else // Focus editor.
-                {
-                    this._oEditor.focus();
-                }
-                
-                return true;
-            }
-            return false;
+            this._aUIHandlers.push(oUIHandler)
         },
         
-        focusEditor: function()
+        blurFocusedObject: function()
         {
-            this.blurFocusedObject();
-            this._oEditor.focus();  
+            if (this._aFocusHistory.length)
+                this._aFocusHistory.pop().focus();
         },
         
         setEditorMode: function(oMode)
@@ -158,35 +147,39 @@ define('workspace', function(require)
             this._oToolbar.setMode(oMode);
         },
         
-        _getContainingObj: function(jElem)
+        _getUIHandler: function(jElem)
         {
-            for (var i in this._aObjects)
+            for (var i in this._aUIHandlers)
             {
-                var oObject = this._aObjects[i];
+                var oObject = this._aUIHandlers[i];
                 if (oObject.contains(jElem))
                     return oObject;
             }
-            oHelpers.assert(false, 'Containing object not found this element:', jElem);
             return null;
         },
     
         _attachDOMEvents: function()
         {
-            function _sendEvent(oObject, oEvent)
+            function _sendEvent(oUIHandler, oEvent)
             {
-                oObject.onEvent(oEvent);
+                oUIHandler.onEvent(oEvent);
             }
             
             oHelpers.on('BODY', 'mousedown click focusin keydown keyup keypress change', this, function(oEvent)
             {
+                // Get UI Handler (If any).
                 var jTarget = $(oEvent.target);
-                var oTargetObject = this._getContainingObj(jTarget);
+                var oUIHandler = this._getUIHandler(jTarget);
+                
+                // Handle event.
                 switch (oEvent.type)
                 {
-                    // Foward keyboard events.
                     case 'keydown':
-                        if (oEvent.which == 27 && this.blurFocusedObject()) // ESC
+                        if (oEvent.which == 27) // ESC
+                        {
+                            this.blurFocusedObject();
                             break;
+                        }
                         
                         // Disable native browser handling for saving/searching.
                         // TODO: Think through keyboard controls for a mac.
@@ -197,65 +190,47 @@ define('workspace', function(require)
                         
                     case 'keypress':
                     case 'keyup':
-                        if (this._oFocusedObject)
-                            _sendEvent(this._oFocusedObject, oEvent);                        
+                        if (this._oFocusedUIHandler)
+                            _sendEvent(this._oFocusedUIHandler, oEvent);               
                         break;
                         
-                    // Blur elem that last had focus.
                     case 'focusin':
-                        if (this._oFocusedObject != oTargetObject)
+                        oHelpers.assert(oUIHandler, 'Focusable object should have a UI handler.');
+                        if (this._oFocusedUIHandler != oUIHandler)
                         {
-                            if (this._oFocusedObject)
+                            if (this._oFocusedUIHandler)
                             {
-                                // Blur focused object.
-                                this._oFocusedObject.onBlur();
+                                // Update the UIHandler focus should revert to when ESC is pressed.
+                                if (this._oFocusedUIHandler.bEscTo)
+                                    this._aFocusHistory.push(this._oFocusedUIHandler)
                                 
-                                /********************************************************************************
-                                 * Update the "Last Focused" member
-                                 ********************************************************************************
-                                 *
-                                 * When an ephemeral UI object loses focus (as when ESC is pressed), we revert
-                                 * focus back to the subtantial UI object (if any) which had focus immediately
-                                 * before the active ephemeral UI object.
-                                 *
-                                 * Below, we update the "_oLastFocusedObject" member to point to the "substantial"
-                                 * UI object (if any) which, in this scenario, focus should revert to.
-                                 *
-                                 * DEFINITIONS:
-                                 *
-                                 *  - Ephemeral IU Object:  UI object users don't "live" in.
-                                 *                          Example: toolbar.
-                                 *
-                                 *  - Subtantial UI Object: UI object users do "live" in (excluding editor *)
-                                 *
-                                 *  * If "_olastFocusedObject" is null, focus reverts to the editor. Focus never
-                                 *    reverts away from the editor. ESC does nothing if the editor is focused.
-                                 *    
-                                 *******************************************************************************/ 
-                                
-                                var oEphemeralObjects   = [this._oToolbar   ];
-                                var aSubstantialObjects = [];                            
-                                if (oHelpers.inArray(oTargetObject, oEphemeralObjects) &&
-                                    oHelpers.inArray(this._oFocusedObject, aSubstantialObjects))
-                                {
-                                    this._oLastFocusedObject = this._oFocusedObject;
-                                }
-                                else
-                                    this._oLastFocusedObject = null;                                
+                                // Blur old focused object.
+                                if (this._oFocusedUIHandler.onFocusOut)
+                                    this._oFocusedUIHandler.onFocusOut();                          
                             }
                             
-                            // Remember focused object.
-                            this._oFocusedObject = oTargetObject;
+                            this._oFocusedUIHandler = oUIHandler;
+                            if (oUIHandler.onFocusIn)
+                                oUIHandler.onFocusIn();
                         }
                         
                     case 'mousedown':
+                        
                         // Focus should always be in a text-entry box.
                         if (!jTarget.is('input, textarea, select, option') || jTarget.prop('disabled'))
                             oEvent.preventDefault();
                         
+                        // Blur focused object on click off if bAutoBlur is true.
+                        if (this._oFocusedUIHandler && this._oFocusedUIHandler.bAutoBlur &&
+                           (oUIHandler === null || oUIHandler !== this._oFocusedUIHandler))
+                        {
+                            this.blurFocusedObject();
+                        }
+                        
                     // Forward non-keyboard events.
                     default:
-                        _sendEvent(oTargetObject, oEvent);                    
+                        if (oUIHandler)
+                            _sendEvent(oUIHandler, oEvent);                    
                 }
             });
         },
@@ -300,6 +275,10 @@ define('workspace', function(require)
                     
                     this._setUrls();
                     $('#clone-doc-id').val(oAction.oData.sDocumentID);
+                    break;
+                    
+                case 'addSnapshot':
+                    this._oToolbar.addSnapshot(oAction.oData);
                     break;
                     
                 case 'error':

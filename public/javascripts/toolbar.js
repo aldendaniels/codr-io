@@ -1,65 +1,40 @@
 define(function(require)
 {
     // Dependencies.
-    var $                  = require('lib/jquery'),
-        oHelpers           = require('helpers/helpers-web'),
-        oModes             = require('edit-control/modes'),
-        Chat               = require('chat'),
-        HtmlTemplateDialog = require('html-template-dialog');
-
-    return oHelpers.createClass(
-    {
-        /* External dependencies */
-        _oSocket: null,
-        _oWorkspace: null,
-        
-        /* Internal state */
-        _oModeMenu: null,
-        _oChat: null,
-        _oCurrentMode: null,
-        
-        __type__: 'Toolbar',    
-    
-        __init__: function(oWorkspace, oSocket, oShortcutHandler)
+    var $                           = require('lib/jquery'),
+        oHelpers                    = require('helpers/helpers-web'),
+        Dropdown                    = require('helpers/dropdown'),
+        oModes                      = require('edit-control/modes'),
+        ChatUIHandler               = require('chat'),
+        HtmlTemplateInsertUIHandler = require('html-template-dialog');
+            
+    var TitleUIHandler = oHelpers.createClass(
+    {   
+        __init__: function(oSocket, oWorkspace, oModeHandler)
         {
-            // Save dependencies.
             this._oSocket = oSocket;
             this._oWorkspace = oWorkspace;
+            this._oModeHandler = oModeHandler;
             
-            // Create the mode menu.
-            this._oModeMenu = oModes.createModeMenu('#mode-menu', this, this._setModeToLocal);
-            
-            // Create the HTML Insert Dialog.
-            this._oHtmlTemplateDialog = new HtmlTemplateDialog(oWorkspace, this);
-            
-            // Create the chat object.
-            this._oChat = new Chat(oWorkspace, oSocket);
-            this._oSocket.bind('message', this, this._handleServerAction);
-            
-            // Bind shorctut handlers.
-            oShortcutHandler.registerShortcut('T', $('#toolbar-item-title'),    -15);
-            oShortcutHandler.registerShortcut('L', $('#toolbar-item-mode'),     -15);
-            oShortcutHandler.registerShortcut('D', $('#toolbar-item-download'),  12);
-            oShortcutHandler.registerShortcut('F', $('#toolbar-item-fork'),      12);
-            if (!IS_SNAPSHOT)
-            {
-                oShortcutHandler.registerShortcut('C', $('#toolbar-item-chat'),  12);
-                oShortcutHandler.registerShortcut('K', $('#toolbar-item-link'),  12);
-            }
-            
-            // Make editable for non-snapshoht files.
+            // Toggle title editability.
             if (IS_SNAPSHOT)
-            {    
-                // Toggle mode menu editability.
-                $('.menu').addClass('disabled');
-                
-                // Toggle title editability.
+            {                    
                 $('#title-input, #title-save').prop('disabled', true);
                 $('#title .hidden-focusable a').attr('tabIndex', -1);
-                
-                // Show the "edit mode required" message.
-                $('.edit-mode-message').show();
-            }            
+            }
+        },
+        
+        onEvent: function(oEvent)
+        {            
+            // Set title on ENTER / Click.
+            var sEventType = oEvent.type;
+            var jTarget = $(oEvent.target);
+            if ((sEventType == 'keydown' && oEvent.which == 13       ) || 
+                (sEventType == 'click'   && jTarget.is('#title-save')))
+            {
+                this._setTitleToLocal();
+                oEvent.preventDefault();
+            }
         },
         
         setTitle: function(sTitle, bDoNotSetWithHistory)
@@ -79,6 +54,40 @@ define(function(require)
             return $('#title-input').val();
         },
         
+        _setTitleToLocal: function()
+        {
+            var sTitle = $('#title-input').val();
+            this._oSocket.send('setDocumentTitle', { 'sTitle': sTitle });
+            this.setTitle(sTitle);
+            this._oWorkspace.blurFocusedObject();
+            
+            // Set HTML title.
+            if (this._oModeHandler.getMode().getName() == 'html')
+                this._oWorkspace.replaceRegex(/<title>.*<\/title>/, '<title>' + sTitle + '</title>');
+        }
+    });
+    
+    var ModeUIHandler = oHelpers.createClass(
+    {
+        _oModeMenu:    null,
+        _oCurrentMode: null,
+        
+        __init__: function(oSocket, oWorkspace)
+        {
+            this._oSocket = oSocket;
+            this._oWorkspace = oWorkspace;
+            this._oModeMenu = oModes.createModeMenu('#mode-menu', this, this._setModeToLocal);
+            
+            // Toggle mode menu editability.
+            if (IS_SNAPSHOT)
+                $('.menu').addClass('disabled');
+        },
+        
+        onEvent: function(oEvent)
+        {
+            this._oModeMenu.onEvent(oEvent);
+        },
+        
         setMode: function(oMode)
         {
             $('#toolbar-item-mode .toolbar-item-selection').text(oMode.getDisplayName());
@@ -87,188 +96,9 @@ define(function(require)
             this._oCurrentMode = oMode;
         },
         
-        contains: function(jElem)
+        getMode: function()
         {
-            // #snapshot-notify-bar is a hack . . . it functions like unused toolbar.
-            return jElem.closest('#toolbar-top,#toolbar-left,#snapshot-notify-bar,#html-tools').length > 0;
-        },
-        
-        focus: function()
-        {
-            oHelpers.assert(false, 'The toolbar should only receive focus manually.')
-        },
-        
-        onBlur: function()
-        {
-             this._closeOpenDropdown();
-        },
-            
-        onEvent: function(oEvent)
-        {
-            // Get data.
-            var jTarget = $(oEvent.target);
-            var jActiveElem = $(document.activeElement);
-            var sEventType = oEvent.type;
-            
-            // Get target and active items (if any).
-            var jTargetToolbarItem = jTarget.parents('.toolbar-item');
-            var jActiveToolbarItem = jActiveElem.parents('.toolbar-item');
-            
-            // Toggle dropdowns on click.
-            if (sEventType == 'mousedown')
-            {
-                if (jTarget.closest('.toolbar-item-btn').length)
-                {
-                    if (jTargetToolbarItem[0] == jActiveToolbarItem[0])
-                    {
-                        this._blur();
-                    }
-                    else
-                    {
-                        this._closeOpenDropdown();
-                        if (!jTargetToolbarItem.is('.disabled'))
-                            this._openDropdown(jTargetToolbarItem);
-                    }
-                    return;
-                }
-                
-                // Blur when clicking directly on the toolbar (e.g. not on dropdown).
-                if (jActiveToolbarItem.length && !jTargetToolbarItem.length)
-                {
-                    this._blur();
-                }
-                
-                // Show/Hide HTML tools.
-                if (jTarget.closest('#html-tools-btn').length)
-                {
-                    $('BODY').toggleClass('show-html-tools');
-                }
-                
-                return;
-            }
-            
-            /* Close dropdown on focus out */
-            if (sEventType == 'focusin')
-            {
-                var jOpenDropdown = $('.toolbar-item.open');
-                if (jActiveToolbarItem.length)
-                {
-                    if (jOpenDropdown.length)
-                    {
-                        if (!jOpenDropdown.is(jActiveToolbarItem))
-                        {
-                            this._closeOpenDropdown();
-                            this._openDropdown(jActiveToolbarItem)
-                        }
-                    }
-                    else
-                        this._openDropdown(jActiveToolbarItem)
-                }
-                else
-                    this._closeOpenDropdown();
-                return;
-            }
-    
-            if (sEventType == 'keydown')
-            {
-                // Set title on ENTER.
-                if (jActiveToolbarItem.is('#toolbar-item-title') && oEvent.which == 13 /* ENTER */)
-                {
-                    this._setTitleToLocal();
-                    oEvent.preventDefault();
-                    return;
-                }
-                
-                // Download on ENTER.
-                if (jActiveToolbarItem.is('#toolbar-item-download') && oEvent.which == 13 /* ENTER */)
-                {
-                    this._download();
-                    return;
-                }            
-            }
-            
-            if (sEventType == 'click')
-            {
-                // Set title on button click.
-                if (jTarget.is('#title-save'))
-                {
-                    this._setTitleToLocal();
-                    return;
-                }
-                            
-                // Download document
-                if (jTarget.closest('#download').length)
-                {
-                    this._download();
-                    return;
-                }       
-                
-                // Create snapshot
-                if (jTarget.is('#snapshot-button'))
-                {
-                    this._oSocket.send('snapshotDocument');
-                }
-            }
-            
-            /* Forward Language Menu events. */
-            if (jActiveToolbarItem.is('#toolbar-item-mode'))
-            {
-                this._oModeMenu.onEvent(oEvent);
-                return;
-            }
-            
-            /* Forward Chat events. */
-            if (jActiveToolbarItem.is('#toolbar-item-chat'))
-            {
-                this._oChat.onEvent(oEvent);
-                return;
-            }
-            
-            /* Forward Template Dialog Events. */
-            if (jActiveToolbarItem.is('#toolbar-item-template'))
-            {
-                this._oHtmlTemplateDialog.onEvent(oEvent);
-                return;
-            }
-        },
-        
-        //////////////// HELPERS //////////////// 
-        
-        _openDropdown: function(jItem)
-        {
-            // Open dropdown
-            if (!jItem.hasClass('open'))
-            {
-                jItem.addClass('open');
-                oHelpers.findFirstChild(jItem, this, function(eChild)
-                {
-                    return oHelpers.isFocusable(eChild);
-                }).focus().select();           
-            }
-            
-            /* Notify chat. */
-            if (jItem.is('#toolbar-item-chat'))
-                this._oChat.onOpen();
-        },
-        
-        _closeOpenDropdown: function()
-        {
-            // Close dropdown.
-            var jItem = $('.toolbar-item.open');
-            jItem.removeClass('open').scrollTop(0);
-            
-            /* Notify chat. */
-            if (jItem.is('#toolbar-item-chat'))
-                this._oChat.onClose();
-            
-            /* Reset Mode Menu */
-            if (jItem.is('#toolbar-item-mode'))
-                this._oModeMenu.reset();
-        },
-        
-        _blur: function()
-        {
-            this._oWorkspace.blurFocusedObject(this);    
+            return this._oCurrentMode;
         },
         
         _setModeToLocal: function(oMode)
@@ -276,19 +106,28 @@ define(function(require)
             this._oSocket.send('setMode', { sMode: oMode.getName() });
             this.setMode(oMode);
             this._oWorkspace.setEditorMode(oMode);
-            this._blur();
+            this._oWorkspace.blurFocusedObject();
+        }
+    });
+    
+    var DownloadUIHandler = oHelpers.createClass(
+    {
+        __init__: function(oWorkspace)
+        {
+            this._oWorkspace = oWorkspace;
         },
         
-        _setTitleToLocal: function()
+        onEvent: function(oEvent)
         {
-            var sTitle = $('#title-input').val();
-            this._oSocket.send('setDocumentTitle', { 'sTitle': sTitle });
-            this.setTitle(sTitle);
-            this._blur();    
-            
-            // Set HTML title.
-            if (this._oCurrentMode.getName() == 'html')
-                this._oWorkspace.replaceRegex(/<title>.*<\/title>/, '<title>' + sTitle + '</title>');
+            // Download on ENTER / Click.
+            var sEventType = oEvent.type;
+            var jTarget = $(oEvent.target);
+            if ((sEventType == 'keydown' && oEvent.which == 13       ) || 
+                (sEventType == 'click'   && jTarget.is('#title-save')))
+            {
+                this._download();
+                oEvent.preventDefault();
+            }
         },
         
         _download: function()
@@ -300,27 +139,108 @@ define(function(require)
             }
             var sFilename = $('#download-as').val();
             window.location.href = sHref + 'download?filename=' + sFilename;
-            this._blur();
-        },
+            this._oWorkspace.blurFocusedObject();
+        }
+    });
     
-        _handleServerAction: function(oAction)
+    var LinksUIHandler = oHelpers.createClass(
+    {
+        __init__: function(oSocket)
         {
-            switch(oAction.sType)
+            this._oSocket = oSocket;
+        },
+        
+        onEvent: function(oEvent)
+        {
+            if (oEvent.type == 'click' && $(oEvent.target).is('#snapshot-button'))
+                this._oSocket.send('snapshotDocument');
+        },
+        
+        addSnapshot: function(oSnapshot)
+        {
+            $('#snapshots #placeholder').remove();
+            var sUrl = document.location.origin + '/v/' + oSnapshot.sID;
+            var sDate = oHelpers.formatDateTime(oSnapshot.oDateCreated);
+            var jSnapshot = $('<a class="snapshot-link"><span class="date"></span><span class="url"></span></a>');
+            jSnapshot.find('span.date').text(sDate);
+            jSnapshot.find('span.url').text(sUrl);
+            jSnapshot.attr('href', sUrl).appendTo('#snapshots');
+        },
+    });
+    
+    return oHelpers.createClass(
+    {
+        _oWorkspace: null,
+        _oTitleUIHandler: null,
+        _oModeUIHandler: null,
+        _oDownloadUIHandler: null,
+        _oLinksUIHander: null,
+        _oChatUIHandler: null,
+        
+        __type__: 'Toolbar',    
+        
+        __init__: function(oWorkspace, oSocket, oShortcutHandler)
+        {
+            // Save dependencies.
+            this._oSocket = oSocket;
+            this._oWorkspace = oWorkspace;
+                        
+            // Create the UI Handler objects.
+            this._oModeUIHandler               = new ModeUIHandler(oSocket, oWorkspace);
+            this._oTitleUIHandler              = new TitleUIHandler(oSocket, oWorkspace, this._oModeUIHandler);
+            this._oDownloadUIHandler           = new DownloadUIHandler(oWorkspace);
+            this._oLinksUIHandler              = new LinksUIHandler(oSocket, oWorkspace);
+            this._oChatUIHandler               = new ChatUIHandler(oWorkspace, oSocket);
+            this._oHtmlTemplateInsertUIHandler = new HtmlTemplateInsertUIHandler(oWorkspace, this);
+            
+            // Register dropdowns.
+            new Dropdown('#toolbar-item-mode',     this._oModeUIHandler,               oWorkspace);
+            new Dropdown('#toolbar-item-title',    this._oTitleUIHandler,              oWorkspace);
+            new Dropdown('#toolbar-item-download', this._oDownloadUIHandler,           oWorkspace);
+            new Dropdown('#toolbar-item-link',     this._oLinksUIHandler,              oWorkspace);
+            new Dropdown('#toolbar-item-chat',     this._oChatUIHandler,               oWorkspace);
+            new Dropdown('#toolbar-item-template', this._oHtmlTemplateInsertUIHandler, oWorkspace);
+            new Dropdown('#toolbar-item-fork', null, oWorkspace);
+            
+            // Bind shorctut handlers.
+            oShortcutHandler.registerShortcut('T', $('#toolbar-item-title'),    -15);
+            oShortcutHandler.registerShortcut('L', $('#toolbar-item-mode'),     -15);
+            oShortcutHandler.registerShortcut('D', $('#toolbar-item-download'),  12);
+            oShortcutHandler.registerShortcut('F', $('#toolbar-item-fork'),      12);
+            if (!IS_SNAPSHOT)
             {
-                case 'addSnapshot':
-                    $('#snapshots #placeholder').remove();
-                    var sUrl = document.location.origin + '/v/' + oAction.oData.sID;
-                    var sDate = oHelpers.formatDateTime(oAction.oData.oDateCreated);
-                    var jSnapshot = $('<a class="snapshot-link"><span class="date"></span><span class="url"></span></a>');
-                    jSnapshot.find('span.date').text(sDate);
-                    jSnapshot.find('span.url').text(sUrl);
-                    jSnapshot.attr('href', sUrl).appendTo('#snapshots');
-                    break;
-                    
-                default:
-                    return false;
+                oShortcutHandler.registerShortcut('C', $('#toolbar-item-chat'),  12);
+                oShortcutHandler.registerShortcut('K', $('#toolbar-item-link'),  12);
             }
-            return true;
+            
+            // Show the "edit mode required" message.
+            if (IS_SNAPSHOT)
+                $('.edit-mode-message').show();
+                
+            oHelpers.on('#html-tools-btn', 'click', this, function()
+            {
+                $('BODY').toggleClass('show-html-tools');
+            });
+        },
+        
+        setTitle: function(sTitle, bDoNotSetWithHistory)
+        {
+            this._oTitleUIHandler.setTitle(sTitle, bDoNotSetWithHistory);
+        },
+        
+        getTitle: function()
+        {
+            return this._oTitleUIHandler.getTitle();
+        },
+        
+        setMode: function(oMode)
+        {
+            this._oModeUIHandler.setMode(oMode);
+        },
+        
+        addSnapshot: function(oSnapshot)
+        {
+            return this._oLinksUIHandler.addSnapshot(oSnapshot);
         }
     });
 });

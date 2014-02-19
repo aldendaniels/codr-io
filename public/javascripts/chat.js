@@ -49,7 +49,7 @@ define(function(require)
             var jTarget = $(oEvent.target);
             var jActiveElem = $(document.activeElement);
             var sEventType = oEvent.type;
-    
+            
             if (sEventType == 'click')
             {
                 if (jTarget.is('#chat-identify-ok-button'))
@@ -104,17 +104,17 @@ define(function(require)
         {
             if (this._bChatVisible)
                 return;
-    
+            
+            var bChatIsFocused = $(document.activeElement).parents('#toolbar-item-chat').length;
             $('#chat').removeClass('identify');
             $('#chat-identify').prop('disabled', true);
             $('#chat-identify-ok-button').prop('disabled', true);
             $('#chat-box').prop('disabled', false);
             
             // Focus chat.
-            var jActiveElem = $(document.activeElement);
-            if (jActiveElem.parents('.toolbar-item').is('#chat-menu'))
+            if (bChatIsFocused)
                 $('#chat-box').focus();
-    
+                
             this._bChatVisible = true;
         },
     

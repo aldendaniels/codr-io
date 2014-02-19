@@ -82,6 +82,9 @@ define(function(require)
         _iNumPendingActions: 0,
         _aPastDocChanges: null, // Also used for undo/redo.
         
+        // UI Handerl Property
+        bEscTo: true,
+        
         // Other
         _oCurSelectionRange: null,
     
@@ -96,6 +99,8 @@ define(function(require)
             
             // Attach socket.
             this._oSocket.bind('message', this, this._handleServerAction);
+            
+            this._oWorkspace.registerUIHandler(this);
                     
             // Attach events.
             this._oEditControl = new EditControl(EDITOR_ID);
