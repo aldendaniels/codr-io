@@ -1,14 +1,15 @@
 define(function(require)
 {
     // Dependencies.
-    var $        = require('lib/jquery'),
-        oHelpers = require('helpers/helpers-web');
+    var $           = require('lib/jquery'),
+        oHelpers    = require('helpers/helpers-web'),
+        oUIDispatch = require('helpers/ui-dispatch');
         
     return oHelpers.createClass(
     {
         _jDropdown: null,
         
-        __init__: function(jDropdown, oSubUIHandler, oWorkspace)
+        __init__: function(jDropdown, oSubUIHandler)
         {
             // Validate element.
             this._jDropdown  = $(jDropdown);
@@ -18,8 +19,7 @@ define(function(require)
             this._oSubUIHandler = oSubUIHandler || null;
             
             // Register with UI Root.
-            this._oWorkspace = oWorkspace;
-            this._oWorkspace.registerUIHandler(this, true /* modal */);
+            oUIDispatch.registerUIHandler(this);
         },
         
         // UI HANDLER METHOD
@@ -74,7 +74,7 @@ define(function(require)
                 }).focus().select();
             }
             else
-                this._oWorkspace.blurFocusedObject();
+                oUIDispatch.blurFocusedUIHandler();
         }
     });
 });

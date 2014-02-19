@@ -1,24 +1,25 @@
 define(function(require)
 {
     // Dependencies.
-    var $        = require('lib/jquery'),
-        oHelpers = require('helpers/helpers-web');
+    var $           = require('lib/jquery'),
+        oHelpers    = require('helpers/helpers-web'),
+        oUIDispatch = require('helpers/ui-dispatch');
         
     return oHelpers.createClass({
         
         _oShortcuts: null,
         _bIsOpen: false,
         
-        __init__: function(oWorkspace)
+        __init__: function()
         {
             this._oShortcuts = {};
-            oWorkspace.registerUIHandler(this);
+            oUIDispatch.registerUIHandler(this);
             
             // Normally we bind all events in workspace, but here we want to get key
             // event even when we don't have focus so we bind our own listener.
             $('body').on('keydown', oHelpers.createCallback(this, this.onEvent));
         },
-    
+        
         registerShortcut: function(sAccel, jElem, iOptionalOffset)
         {
             oHelpers.assert(sAccel.length == 1, 'A shortcut must be one char long.');
@@ -34,8 +35,8 @@ define(function(require)
             return jElem.closest('#shortcut-overlay').length > 0;
         },
         
-        focus: function()  { oHelpers.assert(false, 'The shortcut handler should never receive focus.') },        
-        onBlur: function() { oHelpers.assert(false, 'The shortcut handler should never receive focus.') },
+        onFocusIn:  function() { oHelpers.assert(false, 'The shortcut handler should never receive focus.') },        
+        onFocusOut: function() { oHelpers.assert(false, 'The shortcut handler should never receive focus.') },
         
         onEvent: function(oEvent)
         {

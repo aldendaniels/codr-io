@@ -4,6 +4,7 @@ define(function(require)
     var $                           = require('lib/jquery'),
         oHelpers                    = require('helpers/helpers-web'),
         Dropdown                    = require('helpers/dropdown'),
+        oUIDispatch                 = require('helpers/ui-dispatch'),
         oModes                      = require('edit-control/modes'),
         ChatUIHandler               = require('chat'),
         HtmlTemplateInsertUIHandler = require('html-template-dialog');
@@ -59,7 +60,7 @@ define(function(require)
             var sTitle = $('#title-input').val();
             this._oSocket.send('setDocumentTitle', { 'sTitle': sTitle });
             this.setTitle(sTitle);
-            this._oWorkspace.blurFocusedObject();
+            oUIDispatch.blurFocusedUIHandler();
             
             // Set HTML title.
             if (this._oModeHandler.getMode().getName() == 'html')
@@ -106,17 +107,12 @@ define(function(require)
             this._oSocket.send('setMode', { sMode: oMode.getName() });
             this.setMode(oMode);
             this._oWorkspace.setEditorMode(oMode);
-            this._oWorkspace.blurFocusedObject();
+            oUIDispatch.blurFocusedUIHandler();
         }
     });
     
     var DownloadUIHandler = oHelpers.createClass(
     {
-        __init__: function(oWorkspace)
-        {
-            this._oWorkspace = oWorkspace;
-        },
-        
         onEvent: function(oEvent)
         {
             // Download on ENTER / Click.
@@ -139,7 +135,7 @@ define(function(require)
             }
             var sFilename = $('#download-as').val();
             window.location.href = sHref + 'download?filename=' + sFilename;
-            this._oWorkspace.blurFocusedObject();
+            oUIDispatch.blurFocusedUIHandler();
         }
     });
     
@@ -188,7 +184,7 @@ define(function(require)
             // Create the UI Handler objects.
             this._oModeUIHandler               = new ModeUIHandler(oSocket, oWorkspace);
             this._oTitleUIHandler              = new TitleUIHandler(oSocket, oWorkspace, this._oModeUIHandler);
-            this._oDownloadUIHandler           = new DownloadUIHandler(oWorkspace);
+            this._oDownloadUIHandler           = new DownloadUIHandler();
             this._oLinksUIHandler              = new LinksUIHandler(oSocket, oWorkspace);
             this._oChatUIHandler               = new ChatUIHandler(oWorkspace, oSocket);
             this._oHtmlTemplateInsertUIHandler = new HtmlTemplateInsertUIHandler(oWorkspace, this);

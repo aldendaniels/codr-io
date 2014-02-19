@@ -22,11 +22,7 @@ define('workspace', function(require)
         _oToolbar: null,
         
         _oUserInfo: null,
-        
-        _aUIHandlers: null,
-        _aFocusHistory: null,
-        _oFocusedUIHandler: null,
-        
+                
         __type__: 'Workspace',    
         
         __init__: function(bIsNewDocument, bIsSnapshot, oNewDocumentMode)
@@ -36,13 +32,11 @@ define('workspace', function(require)
             this._oSocket  = new Socket(sSocketURL);
             this._oSocket.bind('message', this, this._handleServerAction);
             
-            this._aUIHandlers = [];
-            this._aFocusHistory = [];
-            
             // Init objects.
             var oShortcutHandler = new KeyShortcutHandler(this);
             this._oToolbar       = new Toolbar(this, this._oSocket, oShortcutHandler);
-            this._oEditor        = new Editor(this, this._oSocket);
+            this._oEditor        = new Editor(this._oSocket);
+            this._oEditor.focus();
             
             // Development Hack: Expose the objects.
             window._editor = this._oEditor;
@@ -72,9 +66,6 @@ define('workspace', function(require)
                 $('#clone-doc-id').val(sDocumentID);
             }
             
-            // Initialize editor focus.
-            this._aFocusHistory.push(this._oEditor);
-            
             // Load snpashot data.
             if (bIsSnapshot)
             {
@@ -95,10 +86,6 @@ define('workspace', function(require)
                 }));
             }
             
-            // Attach DOM events.
-            this._oEditor.focus();
-            this._attachDOMEvents();
-            
             // Init tooltips.
             $('#auto-insert-help').tooltip(
             {
@@ -108,17 +95,6 @@ define('workspace', function(require)
                             template into  new HTML<br/>\
                             documents you create?</div>"
             });
-        },
-        
-        registerUIHandler: function(oUIHandler)
-        {
-            this._aUIHandlers.push(oUIHandler)
-        },
-        
-        blurFocusedObject: function()
-        {
-            if (this._aFocusHistory.length)
-                this._aFocusHistory.pop().focus();
         },
         
         setEditorMode: function(oMode)
@@ -145,94 +121,6 @@ define('workspace', function(require)
         {
             this._oEditor.setMode(oMode);
             this._oToolbar.setMode(oMode);
-        },
-        
-        _getUIHandler: function(jElem)
-        {
-            for (var i in this._aUIHandlers)
-            {
-                var oObject = this._aUIHandlers[i];
-                if (oObject.contains(jElem))
-                    return oObject;
-            }
-            return null;
-        },
-    
-        _attachDOMEvents: function()
-        {
-            function _sendEvent(oUIHandler, oEvent)
-            {
-                oUIHandler.onEvent(oEvent);
-            }
-            
-            oHelpers.on('BODY', 'mousedown click focusin keydown keyup keypress change', this, function(oEvent)
-            {
-                // Get UI Handler (If any).
-                var jTarget = $(oEvent.target);
-                var oUIHandler = this._getUIHandler(jTarget);
-                
-                // Handle event.
-                switch (oEvent.type)
-                {
-                    case 'keydown':
-                        if (oEvent.which == 27) // ESC
-                        {
-                            this.blurFocusedObject();
-                            break;
-                        }
-                        
-                        // Disable native browser handling for saving/searching.
-                        // TODO: Think through keyboard controls for a mac.
-                        if (oEvent.ctrlKey && oHelpers.inArray(oEvent.which, [83, 70, 71]))
-                        {
-                            oEvent.preventDefault();
-                        }
-                        
-                    case 'keypress':
-                    case 'keyup':
-                        if (this._oFocusedUIHandler)
-                            _sendEvent(this._oFocusedUIHandler, oEvent);               
-                        break;
-                        
-                    case 'focusin':
-                        oHelpers.assert(oUIHandler, 'Focusable object should have a UI handler.');
-                        if (this._oFocusedUIHandler != oUIHandler)
-                        {
-                            if (this._oFocusedUIHandler)
-                            {
-                                // Update the UIHandler focus should revert to when ESC is pressed.
-                                if (this._oFocusedUIHandler.bEscTo)
-                                    this._aFocusHistory.push(this._oFocusedUIHandler)
-                                
-                                // Blur old focused object.
-                                if (this._oFocusedUIHandler.onFocusOut)
-                                    this._oFocusedUIHandler.onFocusOut();                          
-                            }
-                            
-                            this._oFocusedUIHandler = oUIHandler;
-                            if (oUIHandler.onFocusIn)
-                                oUIHandler.onFocusIn();
-                        }
-                        
-                    case 'mousedown':
-                        
-                        // Focus should always be in a text-entry box.
-                        if (!jTarget.is('input, textarea, select, option') || jTarget.prop('disabled'))
-                            oEvent.preventDefault();
-                        
-                        // Blur focused object on click off if bAutoBlur is true.
-                        if (this._oFocusedUIHandler && this._oFocusedUIHandler.bAutoBlur &&
-                           (oUIHandler === null || oUIHandler !== this._oFocusedUIHandler))
-                        {
-                            this.blurFocusedObject();
-                        }
-                        
-                    // Forward non-keyboard events.
-                    default:
-                        if (oUIHandler)
-                            _sendEvent(oUIHandler, oEvent);                    
-                }
-            });
         },
         
         _handleServerAction: function(oAction)
@@ -290,7 +178,7 @@ define('workspace', function(require)
             }
             return true;
         },
-    
+        
         _setUrls: function()
         {
             $('#collaborate-url').val(document.location.href.slice(7));

@@ -3,6 +3,7 @@ define(function(require)
     // Dependencies.
     var $            = require('lib/jquery'),
         oHelpers     = require('helpers/helpers-web'),
+        oUIDispatch  = require('helpers/ui-dispatch'),
         oTemplatizer = require('helpers/templatizer');
         
     var sTemplate =
@@ -248,7 +249,7 @@ define(function(require)
             oData.sTitle = this._oToolbar.getTitle();
             var sText = oTemplatizer.render('html-insert', oData);
             this._oWorkspace.insertLines(sText.split('\n'));
-            this._oWorkspace.blurFocusedObject();
+            oUIDispatch.blurFocusedUIHandler();
         },
         
         _serializeOptions: function()

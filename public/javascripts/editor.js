@@ -3,6 +3,7 @@ define(function(require)
     // Dependencies.
     var $            = require('lib/jquery'),
         oHelpers     = require('helpers/helpers-web'),
+        oUIDispatch  = require('helpers/ui-dispatch'),
         EditControl  = require('edit-control/edit-control'),
         oOT          = require('OT');
     
@@ -90,9 +91,8 @@ define(function(require)
     
         __type__: 'Editor',    
     
-        __init__: function(oWorkspace, oSocket)
+        __init__: function(oSocket)
         {
-            this._oWorkspace = oWorkspace;
             this._oSocket = oSocket;
             this._oRemoteClients = {};
             this._aPastDocChanges = [];
@@ -100,7 +100,7 @@ define(function(require)
             // Attach socket.
             this._oSocket.bind('message', this, this._handleServerAction);
             
-            this._oWorkspace.registerUIHandler(this);
+            oUIDispatch.registerUIHandler(this);
                     
             // Attach events.
             this._oEditControl = new EditControl(EDITOR_ID);
