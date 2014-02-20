@@ -90,7 +90,7 @@
                         </div>
                     </div>
                     <div class="divider"></div>
-                    <div id="html-tools-btn">
+                    <div id="html-tools-btn" tabindex="0"  style="outline: none;">
                         HTML Tools <span class="icon-angle-down"></span><span class="icon-angle-up"></span>
                     </div>
                     
@@ -102,6 +102,128 @@
                             <div class="horizontal-divider"></div>
                             <div id="num-viewing"></div>
                         </div>
+                    </div>
+                </div>
+                <div id="html-tools">
+                   
+                    <!-- HTML Template Insert-->
+                    <div id="toolbar-item-html-template-insert" class="toolbar-item">
+                        <div class="toolbar-item-btn">
+                            <span class="toolbar-item-label">Insert Template</span>
+                            <!--<span class="toolbar-item-value">HTML 5</span>-->
+                            <span class="icon-angle-down"></span>
+                        </div>
+                        <div class="toolbar-dropdown-top-border"></div>
+                        <div class="toolbar-dropdown">
+                            <table id="template-options">
+                                <tr>
+                                    <td>
+                                        Doctype
+                                    </td>
+                                    <td>
+                                        <select id="doctype"></select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        Style Language
+                                    </td>
+                                    <td>
+                                        <select id="style-language"></select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        Script Language
+                                    </td>
+                                    <td>
+                                        <select id="script-language"></select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        Script Framework
+                                    </td>
+                                    <td>
+                                        <select id="script-framework"></select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                    </td>
+                                    <td>
+                                        <select id="framework-version"></select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        Auto Insert
+                                        <span id="auto-insert-help" class="icon-help"></span>
+                                    </td>
+                                    <td>
+                                        <select id="auto-insert" disabled="disabled">
+                                            <option>No</option>
+                                            <option>Yes</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                            </table>
+                            <div class="horizontal-divider"></div>
+                            <button id="insert-template">Insert Template</button>
+                        </div>
+                    </div>                    
+                    
+                    <div id="tools-content-right">
+                        
+                        <!-- HTML Preview Dock Menu -->
+                        <div id="toolbar-item-html-preview-dock" class="toolbar-item">
+                            <div class="toolbar-item-btn">
+                                <span class="toolbar-item-label">Preview Dock:</span>
+                                <span class="toolbar-item-value">None</span>
+                                <span class="icon-angle-down"></span>
+                            </div>
+                            <div class="toolbar-dropdown-top-border"></div>
+                            <div class="toolbar-dropdown" id="html-preview-dock-menu">
+                                <div id="None"   class="option selected">None   <span class="icon-check"></span></div>
+                                <div id="Right"  class="option">         Right  <span class="icon-check"></span></div>
+                                <div id="Bottom" class="option">         Bottom <span class="icon-check"></span></div>
+                                <div class="hidden-focusable">
+                                    <input type="text"></input>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- HTML Preview Popup Button -->
+                        <div id="toolbar-item-html-preview-popup" class="toolbar-item icon-only">
+                            <div class="toolbar-item-btn" tabindex="0" style="outline: none;">
+                                <span class="icon icon-popup"></span>
+                            </div>
+                        </div>
+                        
+                        <!-- HTML Preview Refresh Frequency Menu-->
+                        <div id="toolbar-item-html-preview-refresh-frequency" class="toolbar-item">
+                            <div class="toolbar-item-btn">
+                                <span class="toolbar-item-label">Preview Refresh:</span>
+                                <span class="toolbar-item-value">Auto</span>
+                                <span class="icon-angle-down"></span>
+                            </div>
+                            <div class="toolbar-dropdown-top-border"></div>
+                            <div class="toolbar-dropdown" id="html-preview-refresh-menu">
+                                <div id="Auto"   class="option selected">Auto   <span class="icon-check"></span></div>
+                                <div id="Manual" class="option">         Manual <span class="icon-check"></span></div>
+                                <div class="hidden-focusable">
+                                    <input type="text" />
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- HTML Preview Refresh Button -->
+                        <div id="toolbar-item-html-preview-refresh" class="toolbar-item icon-only">
+                            <div class="toolbar-item-btn" tabindex="0" style="outline: none;">
+                                <span class="icon icon-refresh"></span>
+                            </div>
+                        </div>
+                        
                     </div>
                 </div>
                 <div id="toolbar-left">
@@ -187,119 +309,6 @@
                         </div>
                     </div>
                     <div class="divider"></div>
-                </div>
-                <div id="html-tools">
-                   
-                    <!-- Template -->
-                    <div id="toolbar-item-html-template-insert" class="toolbar-item">
-                        <div class="toolbar-item-btn">
-                            <span class="toolbar-item-label">Insert Template</span>
-                            <!--<span class="toolbar-item-value">HTML 5</span>-->
-                            <span class="icon-angle-down"></span>
-                        </div>
-                        <div class="toolbar-dropdown-top-border"></div>
-                        <div class="toolbar-dropdown">
-                            <table id="template-options">
-                                <tr>
-                                    <td>
-                                        Doctype
-                                    </td>
-                                    <td>
-                                        <select id="doctype"></select>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        Style Language
-                                    </td>
-                                    <td>
-                                        <select id="style-language"></select>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        Script Language
-                                    </td>
-                                    <td>
-                                        <select id="script-language"></select>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        Script Framework
-                                    </td>
-                                    <td>
-                                        <select id="script-framework"></select>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                    </td>
-                                    <td>
-                                        <select id="framework-version"></select>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        Auto Insert
-                                        <span id="auto-insert-help" class="icon-help"></span>
-                                    </td>
-                                    <td>
-                                        <select id="auto-insert" disabled="disabled">
-                                            <option>No</option>
-                                            <option>Yes</option>
-                                        </select>
-                                    </td>
-                                </tr>
-                            </table>
-                            <div class="horizontal-divider"></div>
-                            <button id="insert-template">Insert Template</button>
-                        </div>
-                    </div>                    
-                    
-                    <div id="tools-content-right">   
-                        <div id="toolbar-item-html-preview-dock" class="toolbar-item">
-                            <div class="toolbar-item-btn">
-                                <span class="toolbar-item-label">Preview Dock:</span>
-                                <span class="toolbar-item-value">None</span>
-                                <span class="icon-angle-down"></span>
-                            </div>
-                            <div class="toolbar-dropdown-top-border"></div>
-                            <div class="toolbar-dropdown" id="html-preview-dock-menu">
-                                <div id="None"   class="option selected">None   <span class="icon-check"></span></div>
-                                <div id="Right"  class="option">         Right  <span class="icon-check"></span></div>
-                                <div id="Bottom" class="option">         Bottom <span class="icon-check"></span></div>
-                                <div class="hidden-focusable">
-                                    <input type="text"></input>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="toolbar-item-preview-right" class="toolbar-item icon-only">
-                            <div class="toolbar-item-btn" tabindex="0" style="outline: none;">
-                                <span class="icon icon-popup"></span>
-                            </div>
-                        </div>
-                        <div id="toolbar-item-html-preview-refresh" class="toolbar-item">
-                            <div class="toolbar-item-btn">
-                                <span class="toolbar-item-label">Preview Refresh:</span>
-                                <span class="toolbar-item-value">Auto</span>
-                                <span class="icon-angle-down"></span>
-                            </div>
-                            <div class="toolbar-dropdown-top-border"></div>
-                            <div class="toolbar-dropdown" id="html-preview-refresh-menu">
-                                <div id="Auto"   class="option selected">Auto   <span class="icon-check"></span></div>
-                                <div id="Manual" class="option">         Manual <span class="icon-check"></span></div>
-                                <div class="hidden-focusable">
-                                    <input type="text" />
-                                </div>
-                            </div>
-                        </div>
-                        <div id="toolbar-item-preview-right" class="toolbar-item icon-only">
-                            <div class="toolbar-item-btn" tabindex="0" style="outline: none;">
-                                <span class="icon icon-refresh"></span>
-                            </div>
-                        </div>
-                    </div>
                 </div>
                 <div id="edit-wrap">
                     <div id="edit"></div>

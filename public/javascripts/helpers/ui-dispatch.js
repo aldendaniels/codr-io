@@ -10,17 +10,11 @@ define(function(require)
         _aUIHandlers: [],
         _aFocusHistory: [],
         _oFocusedUIHandler: null,
+        _oDefaultUIHandler: null,
         
         registerUIHandler: function(oUIHandler)
         {
-            // Attach DOM events if not yet initialized.
-            if (!this._bIsInitialized)
-            {
-                this._bIsInitialized = true;
-                this._attachDOMEvents();                
-            }
-            
-            // Register handler.
+            this._init();
             this._aUIHandlers.push(oUIHandler);
         },
         
@@ -29,6 +23,15 @@ define(function(require)
             this._assertInit();
             if (this._aFocusHistory.length)
                 this._aFocusHistory.pop().focus();
+        },
+        
+        _init: function()
+        {
+            if (!this._bIsInitialized)
+            {
+                this._bIsInitialized = true;
+                this._attachDOMEvents();                
+            }            
         },
         
         _onUIHandlerFocus: function(oUIHandler)

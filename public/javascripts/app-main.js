@@ -197,7 +197,7 @@ define('app-main', function(require)
         }
     });
 
-    var oHtmlPreviewRefreshUIHandler = (
+    var oHtmlPreviewRefreshFrequencyUIHandler = (
     {
         _oMenu: null,
         
@@ -226,6 +226,73 @@ define('app-main', function(require)
                     assert(false, 'Invalid Dock Location: ' + sDockDir);
             }
             oUIDispatch.blurFocusedUIHandler();
+        }
+    });
+    
+    var oHtmlPreviewPopupUIHandler = (
+    {
+        contains: function(jElem)
+        {
+            return jElem.closest('#toolbar-item-html-preview-popup').length;
+        },
+        
+        onEvent: function(oEvent)
+        {
+            // Set title on ENTER / Click.
+            var sEventType = oEvent.type;
+            if ((sEventType == 'keydown' && oEvent.which == 13) || sEventType == 'click')
+            {
+                this._popupPreview();
+                oEvent.preventDefault();
+            }
+        },
+        
+        _popupPreview: function()
+        {
+            alert('Popup is not yet supported.');
+        }
+    });
+
+    var oHtmlPreviewRefreshUIHandler = (
+    {
+        contains: function(jElem)
+        {
+            return jElem.closest('#toolbar-item-html-preview-refresh').length;
+        },
+        
+        onEvent: function(oEvent)
+        {
+            // Set title on ENTER / Click.
+            var sEventType = oEvent.type;
+            if ((sEventType == 'keydown' && oEvent.which == 13) || sEventType == 'click')
+            {
+                this._refreshPreview();
+                oEvent.preventDefault();
+            }
+        },
+        
+        _refreshPreview: function()
+        {
+            alert('Preview refresh is not yet supported.');
+        }
+    });
+    
+    var oToggleHtmlToolsUIHanlder = (
+    {
+        contains: function(jElem)
+        {
+            return jElem.closest('#html-tools-btn').length;
+        },
+        
+        onEvent: function(oEvent)
+        {
+            // Set title on ENTER / Click.
+            var sEventType = oEvent.type;
+            if ((sEventType == 'keydown' && oEvent.which == 13) || sEventType == 'click')
+            {
+                $('BODY').toggleClass('show-html-tools');
+                oEvent.preventDefault();
+            }
         }
     });
     
@@ -304,7 +371,7 @@ define('app-main', function(require)
         oHtmlTemplateInsertUIHandler.init(oEditor, oTitleUIHandler);
         oModeUIHandler.init();
         oHtmlPreviewDockUIHandler.init();
-        oHtmlPreviewRefreshUIHandler.init();
+        oHtmlPreviewRefreshFrequencyUIHandler.init();
         oKeyShortcutHandler.init();
         
         // Set initial DOM focus to editor.
@@ -367,15 +434,20 @@ define('app-main', function(require)
         });
         
         // Register dropdowns.
-        new Dropdown('#toolbar-item-mode',                 oModeUIHandler);
-        new Dropdown('#toolbar-item-title',                oTitleUIHandler);
-        new Dropdown('#toolbar-item-download',             oDownloadUIHandler);
-        new Dropdown('#toolbar-item-link',                 oLinksUIHandler);
-        new Dropdown('#toolbar-item-chat',                 oChatUIHandler);
-        new Dropdown('#toolbar-item-html-template-insert', oHtmlTemplateInsertUIHandler);
-        new Dropdown('#toolbar-item-html-preview-dock',    oHtmlPreviewDockUIHandler);
-        new Dropdown('#toolbar-item-html-preview-refresh', oHtmlPreviewRefreshUIHandler);
+        new Dropdown('#toolbar-item-mode',                           oModeUIHandler);
+        new Dropdown('#toolbar-item-title',                          oTitleUIHandler);
+        new Dropdown('#toolbar-item-download',                       oDownloadUIHandler);
+        new Dropdown('#toolbar-item-link',                           oLinksUIHandler);
+        new Dropdown('#toolbar-item-chat',                           oChatUIHandler);
+        new Dropdown('#toolbar-item-html-template-insert',           oHtmlTemplateInsertUIHandler);
+        new Dropdown('#toolbar-item-html-preview-dock',              oHtmlPreviewDockUIHandler);
+        new Dropdown('#toolbar-item-html-preview-refresh-frequency', oHtmlPreviewRefreshFrequencyUIHandler);
         new Dropdown('#toolbar-item-fork');
+        
+        // Register other UI handlers.
+        oUIDispatch.registerUIHandler(oHtmlPreviewPopupUIHandler);
+        oUIDispatch.registerUIHandler(oHtmlPreviewRefreshUIHandler);
+        oUIDispatch.registerUIHandler(oToggleHtmlToolsUIHanlder);
         
         // Bind shorctut handlers.
         oKeyShortcutHandler.registerShortcut('T', $('#toolbar-item-title'),    -15);
@@ -387,12 +459,6 @@ define('app-main', function(require)
             oKeyShortcutHandler.registerShortcut('C', $('#toolbar-item-chat'),  12);
             oKeyShortcutHandler.registerShortcut('K', $('#toolbar-item-link'),  12);
         }
-         
-        // Show/Hide HTML tools.   
-        oHelpers.on('#html-tools-btn', 'click', this, function()
-        {
-            $('BODY').toggleClass('show-html-tools');
-        });
         
         // Disable native browser handling for saving/searching.
         // TODO: Think through keyboard controls for a mac.
