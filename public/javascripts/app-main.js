@@ -6,6 +6,7 @@ define('app-main', function(require)
         Socket                       = require('helpers/socket'),
         oUIDispatch                  = require('helpers/ui-dispatch'),
         Dropdown                     = require('helpers/dropdown')
+        MenuKeyNav                   = require('helpers/menu-key-nav'),
         oModes                       = require('edit-control/modes');
                                        require('lib/tooltip');
     
@@ -160,6 +161,73 @@ define('app-main', function(require)
             jSnapshot.attr('href', sUrl).appendTo('#snapshots');
         },
     });
+
+    var oHtmlPreviewDockUIHandler = (
+    {
+        _oMenu: null,
+        
+        init: function()
+        {
+            this._oMenu = new MenuKeyNav('#html-preview-dock-menu', this, this._setPreviewDock);
+        },
+        
+        onEvent: function(oEvent)
+        {
+            this._oMenu.onEvent(oEvent);
+        },
+        
+        _setPreviewDock: function(sDockDir)
+        {
+            $('#toolbar-item-html-preview-dock .toolbar-item-value').text(sDockDir);
+            switch(sDockDir)
+            {
+                case 'None':
+                    break;
+                
+                case 'Right':
+                    break
+                
+                case 'Bottom':
+                    break;
+                
+                default:
+                    assert(false, 'Invalid Dock Location: ' + sDockDir);
+            }
+            oUIDispatch.blurFocusedUIHandler();
+        }
+    });
+
+    var oHtmlPreviewRefreshUIHandler = (
+    {
+        _oMenu: null,
+        
+        init: function()
+        {
+            this._oMenu = new MenuKeyNav('#html-preview-refresh-menu', this, this._setPreviewDock);
+        },
+        
+        onEvent: function(oEvent)
+        {
+            this._oMenu.onEvent(oEvent);
+        },
+        
+        _setPreviewDock: function(sDockDir)
+        {
+            $('#toolbar-item-html-preview-refresh .toolbar-item-value').text(sDockDir);
+            switch(sDockDir)
+            {
+                case 'Auto':
+                    break;
+                
+                case 'Manual':
+                    break
+                
+                default:
+                    assert(false, 'Invalid Dock Location: ' + sDockDir);
+            }
+            oUIDispatch.blurFocusedUIHandler();
+        }
+    });
     
     function handleServerAction(oAction)
     {
@@ -235,6 +303,8 @@ define('app-main', function(require)
         oChatUIHandler.init(oSocket, function(){ return oUserInfo });
         oHtmlTemplateInsertUIHandler.init(oEditor, oTitleUIHandler);
         oModeUIHandler.init();
+        oHtmlPreviewDockUIHandler.init();
+        oHtmlPreviewRefreshUIHandler.init();
         oKeyShortcutHandler.init();
         
         // Set initial DOM focus to editor.
@@ -297,12 +367,14 @@ define('app-main', function(require)
         });
         
         // Register dropdowns.
-        new Dropdown('#toolbar-item-mode',       oModeUIHandler);
-        new Dropdown('#toolbar-item-title',      oTitleUIHandler);
-        new Dropdown('#toolbar-item-download',   oDownloadUIHandler);
-        new Dropdown('#toolbar-item-link',       oLinksUIHandler);
-        new Dropdown('#toolbar-item-chat',       oChatUIHandler);
-        new Dropdown('#toolbar-item-template',   oHtmlTemplateInsertUIHandler);
+        new Dropdown('#toolbar-item-mode',                 oModeUIHandler);
+        new Dropdown('#toolbar-item-title',                oTitleUIHandler);
+        new Dropdown('#toolbar-item-download',             oDownloadUIHandler);
+        new Dropdown('#toolbar-item-link',                 oLinksUIHandler);
+        new Dropdown('#toolbar-item-chat',                 oChatUIHandler);
+        new Dropdown('#toolbar-item-html-template-insert', oHtmlTemplateInsertUIHandler);
+        new Dropdown('#toolbar-item-html-preview-dock',    oHtmlPreviewDockUIHandler);
+        new Dropdown('#toolbar-item-html-preview-refresh', oHtmlPreviewRefreshUIHandler);
         new Dropdown('#toolbar-item-fork');
         
         // Bind shorctut handlers.

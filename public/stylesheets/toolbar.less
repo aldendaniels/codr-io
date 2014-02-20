@@ -734,7 +734,7 @@ body.mode-html
                 border-right: 1px darken(@bg-color, 10%) solid;
             }
             
-            .toolbar-item#toolbar-item-template
+            .toolbar-item#toolbar-item-html-template-insert
             {
                 table#template-options
                 {
@@ -828,10 +828,11 @@ body.mode-html
                             cursor: pointer;
                             transition: background-color 0.1s;
                             
-                            &:hover
+                            &.current
                             {
                                 background-color: rgba(255, 255, 255, 0.1);
                             }
+                            
                             .icon-check
                             {
                                 float: right;
@@ -853,6 +854,11 @@ body.mode-html
                     {
                         padding-right: 8px;
                         padding-left: 8px;
+                        
+                        &:focus
+                        {
+                            background-color: @bg-color-light;
+                        }
                     }
                     .icon
                     {

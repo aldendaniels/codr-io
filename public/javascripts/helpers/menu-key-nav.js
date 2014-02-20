@@ -14,7 +14,7 @@ define(function(require)
         
         __init__: function(jParent, oScope, fnOnSelect)
         {
-            this._jParent    = jParent;
+            this._jParent    = $(jParent);
             this._fnOnSelect = oHelpers.createCallback(oScope, fnOnSelect);
             this._oKeyable   = new Keyable(jParent, 'id', '.option');
             this._oKeyable.attach();
@@ -77,6 +77,8 @@ define(function(require)
             if (!this._bIsDisabled)
             {
                 this._fnOnSelect(this._oKeyable.getCurrent().attr('id'));
+                this._jParent.find('.option.selected').removeClass('selected');
+                this._jParent.find('.option.current').addClass('selected');
             }
         },
         
