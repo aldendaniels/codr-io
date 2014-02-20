@@ -57,10 +57,14 @@ define(function(require)
             // Do not include white space in selection
             this._oAceEditor.setSelectionStyle('text');
             
+            // Init stored selection.
             this._oLastAceSelectionRange = new AceRange(0, 0, 0, 0);
             
             // Init marker ID map (maps specified marker ID to ace Marker ID).
             this._oAceMarkerIDMap = {};
+            
+            // Hack: force ace to update size. Large timeout required.
+            window.setTimeout(oHelpers.createCallback(this, this.resize), 1000);
         },
             
         applyDelta: function(oNormDelta)

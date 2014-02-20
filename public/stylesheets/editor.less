@@ -1,144 +1,143 @@
+@editStatusBarHeight: 25px;
+
 #edit-wrap
-{
-    @editStatusBarHeight: 25px;
-    
+{    
     position: absolute;
     top: @top-toolbar-height + 1px;
     left: @left-toolbar-width + 1px;
     right: 0;
-    bottom: 0;
+    bottom: @editStatusBarHeight;
     
     #edit
     {
         position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: @editStatusBarHeight;
+        top: 0px;
+        left: 0px;
+        right: 0px;
+        bottom: 0px;
     }
-    
-    #edit-status-bar
-    {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: @editStatusBarHeight;
-        box-sizing: border-box;
-        border-top: 1px #eee solid;
-        background-color: white;
-        
-        .status-right
-        {
-            float: right;
-            .status-item
-            {
-                border-right-width: 0px;
-                border-left: 1px #eee solid;
-            }
-        }
-        
-        .status-item, .ace_gutter
-        {
-            float: left;
-            position: static;
-            height: @editStatusBarHeight - 1px;
-        }
+}
 
+#edit-status-bar
+{
+    position: absolute;
+    bottom: 0;
+    left: @left-toolbar-width + 1px;
+    right: 0;
+    height: @editStatusBarHeight;
+    box-sizing: border-box;
+    border-top: 1px #eee solid;
+    background-color: white;
+    
+    .status-right
+    {
+        float: right;
         .status-item
         {
-            border-right: 1px #eee solid;
-            padding-left: 10px;
-            padding-right: 25px;
-            padding-top: 3px;
-            font-size: 9pt;
-            position: relative;
-            box-sizing: border-box;
+            border-right-width: 0px;
+            border-left: 1px #eee solid;
+        }
+    }
+    
+    .status-item, .ace_gutter
+    {
+        float: left;
+        position: static;
+        height: @editStatusBarHeight - 1px;
+    }
 
-            &:focus
+    .status-item
+    {
+        border-right: 1px #eee solid;
+        padding-left: 10px;
+        padding-right: 25px;
+        padding-top: 3px;
+        font-size: 9pt;
+        position: relative;
+        box-sizing: border-box;
+        
+        &:focus
+        {
+            outline: 0px;
+        }
+                        
+        .status-label
+        {
+            color: gray;
+        }
+        
+        .status-value
+        {
+            color: #555;
+            font-weight: bold;
+        }
+        
+        .icon-sort
+        {
+            color: #555;
+            position: absolute;
+            font-size: 12px;
+            right: 6px;
+            top: 5px;
+        }
+        
+        .status-item-options
+        {
+            display: none;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: inherit;
+            
+            border-top: 1px solid #DDD;
+            border-left: 1px solid #DDD;
+            border-right: 1px solid #DDD;
+            bottom: @editStatusBarHeight;
+            right: -1px;
+            left: -1px;
+            z-index: 100;
+            
+            .status-item-option
             {
-                outline: 0px;
-            }
-                            
-            .status-label
-            {
-                color: gray;
+                height: 20px;
+                text-align: center;
+                padding-top: 3px;
             }
             
-            .status-value
+            .status-item-option:hover
             {
-                color: #555;
-                font-weight: bold;
+                background-color: #EEE;
             }
+        }
             
-            .icon-sort
-            {
-                color: #555;
-                position: absolute;
-                font-size: 12px;
-                right: 6px;
-                top: 5px;
-            }
-
+        &.open
+        {
+            background-color: #f8f8f8;
+            
             .status-item-options
             {
-                display: none;
-                position: absolute;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                background-color: inherit;
-                
-                border-top: 1px solid #DDD;
-                border-left: 1px solid #DDD;
-                border-right: 1px solid #DDD;
-                bottom: @editStatusBarHeight;
-                right: -1px;
-                left: -1px;
-                z-index: 100;
-
-
-                .status-item-option
-                {
-                    height: 20px;
-                    text-align: center;
-                    padding-top: 3px;
-                }
-
-                .status-item-option:hover
-                {
-                    background-color: #EEE;
-                }
-            }
-
-            &.open
-            {
-                background-color: #f8f8f8;
-
-                .status-item-options
-                {
-                    display: block;
-                }
-            }
-       }
-        
-        .status-item.menu-btn
-        {
-            cursor: pointer;
-            transition: background-color 0.2s;
-            white-space: nowrap;
-            &:hover
-            {
-                background-color: #f8f8f8;
+                display: block;
             }
         }
-        
-        .status-item#cursor-pos
-        {
-            min-width: 150px;
-        }
-
     }
+    
+    .status-item.menu-btn
+    {
+        cursor: pointer;
+        transition: background-color 0.2s;
+        white-space: nowrap;
+        &:hover
+        {
+            background-color: #f8f8f8;
+        }
+    }
+    
+    .status-item#cursor-pos
+    {
+        min-width: 150px;
+    }
+
 }
 
 /***************** ACE EDITOR STYLES *********************/
