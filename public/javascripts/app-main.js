@@ -7,6 +7,7 @@ define('app-main', function(require)
         oUIDispatch                  = require('helpers/ui-dispatch'),
         Dropdown                     = require('helpers/dropdown')
         MenuKeyNav                   = require('helpers/menu-key-nav'),
+        fnPopupWindow                = require('helpers/popup-window'),
         oModes                       = require('edit-control/modes');
                                        require('lib/tooltip');
     
@@ -213,7 +214,7 @@ define('app-main', function(require)
         
         _setPreviewDock: function(sDockDir)
         {
-            $('#toolbar-item-html-preview-refresh .toolbar-item-value').text(sDockDir);
+            $('#toolbar-item-html-preview-refresh-frequency .toolbar-item-value').text(sDockDir);
             switch(sDockDir)
             {
                 case 'Auto':
@@ -249,7 +250,7 @@ define('app-main', function(require)
         
         _popupPreview: function()
         {
-            alert('Popup is not yet supported.');
+            fnPopupWindow(oHelpers.joinURL(window.location.href, 'preview'), 600, 500);
         }
     });
 

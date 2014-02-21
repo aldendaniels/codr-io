@@ -202,6 +202,23 @@ define(function()
                 ( '0' + d.getHours() % 12 ).slice(-2) + ':' +
                 ( '0' + d.getMinutes()    ).slice(-2) + ' ' +
                 (d.getHours < 12 ? 'AM' : 'PM')
+        },
+        
+        strEndsWith: function(sMain, sSub)
+        {
+            return sMain.substr(-sSub.length) == sSub;
+        },
+        
+        strStartsWith: function(sMain, sSub)
+        {
+            return sMain.substr(0, sSub.length) == sSub;
+        },
+        
+        joinURL: function(sURL1, sURL2)
+        {
+            sURL1 = (this.strEndsWith(sURL1,   '/') ? sURL1.substr(0, sURL1.length - 1) : sURL1);
+            sURL2 = (this.strStartsWith(sURL2, '/') ? sURL2.substr(1, sURL2.length    ) : sURL2);
+            return sURL1 + '/' + sURL2;
         }
     };
 });
