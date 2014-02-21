@@ -484,9 +484,8 @@ module.exports = oHelpers.createClass(
         for (var i = 0; i < this._aClients.length; i++)
         {
             // Don't broadcast events back to the sending clients.
-            // Don't boradcast events from "preview" clients.
             var oClient = this._aClients[i];
-            if(!oSendingClient || (oClient != oSendingClient && !oSendingClient.isPreview()))
+            if(oClient != oSendingClient)
                 oClient.sendAction(oAction)
         }
     },

@@ -3,6 +3,8 @@ var EditSession = require('./edit-session');
 var Document    = require('./document');
 var oDatabase   = require('./database');
 
+var a_PREVIEW_ACTION_TYPES = ['setDocumentData', 'docChange', 'setDocumentTitle', 'error'];
+
 module.exports = oHelpers.createClass(
 {
     _oSocket: null,
@@ -76,10 +78,10 @@ module.exports = oHelpers.createClass(
     
     sendAction: function(param1, param2) /* either sendAction(sType, oData) or sendAction(oAction)*/
     {
-        var sData;
+        var oAction;
         if (typeof(param1) == 'string')
         {
-            sData = oHelpers.toJSON(
+            oAction = (
             {
                 sType: param1,
                 oData: param2
@@ -88,9 +90,12 @@ module.exports = oHelpers.createClass(
         else
         {
             oHelpers.assert(typeof(param1) == 'object', 'Invalid parameter type');
-            sData = oHelpers.toJSON(param1);
+            oAction = param1;
         }
-        this._oSocket.send(sData, oHelpers.createCallback(this, this._onSocketError));                
+        
+        // Only send relevent events to a preview client.
+        if (!this._bIsPreview || oHelpers.inArray(oAction.sType, a_PREVIEW_ACTION_TYPES))
+            this._oSocket.send(oHelpers.toJSON(oAction), oHelpers.createCallback(this, this._onSocketError));                
     },
 
     abort: function(sMessage)

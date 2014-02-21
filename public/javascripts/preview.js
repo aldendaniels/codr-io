@@ -1,60 +1,44 @@
 define('preview', function(require)
 {
     // Dependencies.
-    var oHelpers              = require('helpers/helpers-web-no-jquery'),
-        Socket                = require('helpers/socket'),
-        fnApplyDelta          = require('apply-delta');
+    var fnApplyDelta = require('apply-delta');
+    
+    return (
+    {
+        _aDocLines: [],
+        _ePreview: document.getElementById('preview'),
+        _oSocket: null,
         
-    var aDocLines = [];
-    var ePreview  = document.getElementById('preview'); 
-    
-    // Init Socket.
-    var sSocketURL = 'ws://' + window.document.location.host + '/';
-    var oSocket  = new Socket(sSocketURL);
-    oSocket.bind('message', null, handleServerAction);
-    
-    // Open existing document.
-    var sDocumentID = /^(\/v)?\/([a-z0-9]+)\/preview\/?$/.exec(document.location.pathname)[2];
-    oSocket.send('openDocument',
-    {
-        sDocumentID: sDocumentID,
-        bIsPreview: true
-    });            
-    
-    function handleServerAction(oAction)
-    {
-        switch(oAction.sType)
+        init: function(oSocket)
         {
-            case 'setDocumentTitle':
-                oHelpers.setTitleWithHistory(oAction.oData.sTitle);
-                break;
-            
-            case 'setDocumentData':
-                aDocLines = oAction.oData.aLines;
-                updatePreview();
-                break;
+            this._oSocket = oSocket;
+            this._oSocket.bind('message', this, this._handleServerAction);
+        },
+        
+        _handleServerAction: function(oAction)
+        {
+            switch(oAction.sType)
+            {
+                case 'setDocumentData':
+                    this._aDocLines = oAction.oData.aLines;
+                    this._updatePreview();
+                    return true;
+                    
+                case 'docChange':
+                    fnApplyDelta(this._aDocLines, oAction.oData.oDelta);
+                    this._updatePreview();
+                    return true;
                 
-            case 'docChange':
-                console.log('DocChange');
-                fnApplyDelta(aDocLines, oAction.oData.oDelta);
-                updatePreview();
-                break;
-            
-            case 'error':
-                document.write(oAction.oData.sMessage);
-                break;
-                
-            default:
-                return true; // Ignore other events.
+                case 'error':
+                    document.write(oAction.oData.sMessage);
+                    return true;
+            }
+            return false;
+        },
+        
+        _updatePreview: function()
+        {
+            this._ePreview.contentDocument.childNodes[0].innerHTML = this._aDocLines.join('\n');
         }
-        return true;
-    }
-    
-    function updatePreview()
-    {
-        ePreview.contentDocument.childNodes[0].innerHTML = aDocLines.join('\n');
-    }
+    })
 });
-
-// Start App.
-require(['preview']);

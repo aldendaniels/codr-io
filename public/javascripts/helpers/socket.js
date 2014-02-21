@@ -90,26 +90,29 @@ define(function(require)
         
         _dispatch: function(sEventName, oOptionalData)
         {
-            var _doIt = oHelpers.createCallback(this, function()
-            {
-                if (sEventName in this._oCallbacks)
-                {
-                    var bHandled = false;
-                    
-                    for (var i in this._oCallbacks[sEventName])
-                    {
-                        if (this._oCallbacks[sEventName][i](oOptionalData))
-                            bHandled = true;
-                    }
-                
-                    oHelpers.assert(bHandled, 'The event had no listener: ' + sEventName)
-                }
-            });
-            
             if (fg_iReceiveMsDelay > 0)
-                window.setTimeout(_doIt, fg_iReceiveMsDelay)
+            {
+                var fnCallback = oHelpers.createCallback(this, this._dispatchNoDelay, [sEventName, oOptionalData]);
+                window.setTimeout(fnCallback, fg_iReceiveMsDelay);
+            }
             else
-                _doIt();
-        }  
+            {
+                this._dispatchNoDelay(sEventName, oOptionalData);
+            }
+        },
+        
+        _dispatchNoDelay: function(sEventName, oOptionalData)
+        {
+            if (sEventName in this._oCallbacks)
+            {
+                var bHandled = false;       
+                for (var i in this._oCallbacks[sEventName])
+                {
+                    if (this._oCallbacks[sEventName][i](oOptionalData))
+                        bHandled = true;
+                }
+                oHelpers.assert(bHandled, 'This "' + sEventName + '" event had no listener: ' + oHelpers.toJSON(oOptionalData));
+            }
+        }
     });
 });
