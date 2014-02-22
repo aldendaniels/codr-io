@@ -234,11 +234,18 @@ module.exports = oHelpers.createClass(
             }
         }
         
+        // Send snapshots.
         for (var i = 0; i < this._oDocument.get('aSnapshots').length; i++)
         {
             var oSnapshot = this._oDocument.get('aSnapshots')[i];
             oClient.sendAction('addSnapshot', oSnapshot);
         }
+        
+        // Set auto refresh preview.
+        oClient.sendAction('setAutoRefreshPreview',
+        {
+            bAutoRefreshPreview: this._oDocument.get('bAutoRefreshPreview')
+        });
     },
     
     getDocument: function()
@@ -469,6 +476,15 @@ module.exports = oHelpers.createClass(
             
             case 'setUseWordWrap':
                 this._oDocument.set('bUseWordWrap', oAction.oData.bUseWordWrap);
+                this._broadcastAction(oClient, oAction);
+                break;
+            
+            case 'setAutoRefreshPreview':
+                this._oDocument.set('bAutoRefreshPreview', oAction.oData.bAutoRefreshPreview);
+                this._broadcastAction(oClient, oAction);
+                break;
+            
+            case 'refreshPreview':
                 this._broadcastAction(oClient, oAction);
                 break;
                 

@@ -1,12 +1,14 @@
 define('preview', function(require)
 {
     // Dependencies.
-    var fnApplyDelta = require('apply-delta');
+    var oHelpers     = require('helpers/helpers-web'),
+        fnApplyDelta = require('apply-delta');
     
     return (
     {
         _aDocLines: [],
         _ePreview: document.getElementById('preview'),
+        _bAutoRefresh: false,
         _oSocket: null,
         
         init: function(oSocket)
@@ -26,9 +28,19 @@ define('preview', function(require)
                     
                 case 'docChange':
                     fnApplyDelta(this._aDocLines, oAction.oData.oDelta);
-                    this._updatePreview();
+                    if (this._bAutoRefresh)
+                        this._updatePreview();
+                    return true;
+                    
+                case 'setAutoRefreshPreview':
+                    this._bAutoRefresh = oAction.oData.bAutoRefreshPreview;
                     return true;
                 
+                case 'refreshPreview':
+                    oHelpers.assert(!this._bAutoRefresh, 'The "refreshPreview" event should only occur when manually refreshing.');
+                    this._updatePreview();
+                    return true;
+                    
                 case 'error':
                     document.write(oAction.oData.sMessage);
                     return true;

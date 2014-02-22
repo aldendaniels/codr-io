@@ -212,21 +212,27 @@ define('app-main', function(require)
             this._oMenu.onEvent(oEvent);
         },
         
+        setAutoRefresh:function(bAutoRefresh)
+        {
+            var sLabel = (bAutoRefresh ? 'Auto' : 'Manual');
+            $('#toolbar-item-html-preview-refresh-frequency .toolbar-item-value').text(sLabel);
+        },
+        
         _setPreviewDock: function(sDockDir)
         {
-            $('#toolbar-item-html-preview-refresh-frequency .toolbar-item-value').text(sDockDir);
-            switch(sDockDir)
-            {
-                case 'Auto':
-                    break;
-                
-                case 'Manual':
-                    break
-                
-                default:
-                    assert(false, 'Invalid Dock Location: ' + sDockDir);
-            }
+            // Validate.
+            oHelpers.assert(oHelpers.inArray(sDockDir, ['Auto', 'Manual']));
+            var bAutoRefresh = sDockDir == 'Auto';
+            
+            // Update UI.
+            this.setAutoRefresh(bAutoRefresh);
             oUIDispatch.blurFocusedUIHandler();
+            
+            // Send action.
+            oSocket.send('setAutoRefreshPreview',
+            {
+                bAutoRefreshPreview: bAutoRefresh
+            });
         }
     });
     
@@ -274,7 +280,7 @@ define('app-main', function(require)
         
         _refreshPreview: function()
         {
-            alert('Preview refresh is not yet supported.');
+            oSocket.send('refreshPreview');
         }
     });
     
@@ -344,6 +350,10 @@ define('app-main', function(require)
                 
             case 'error':
                 document.write(oAction.oData.sMessage);
+                break;
+            
+            case 'setAutoRefreshPreview':
+                oHtmlPreviewRefreshFrequencyUIHandler.setAutoRefresh(oAction.oData.bAutoRefreshPreview);
                 break;
                 
             default:

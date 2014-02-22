@@ -25,7 +25,8 @@ module.exports = oHelpers.createClass(
             bUseSoftTabs: true,
             iTabSize: 4,
             bShowInvisibles: false,
-            bUseWordWrap: false
+            bUseWordWrap: false,
+            bAutoRefreshPreview: true
         }
         if (optionalJSONorObj)
             this._load(optionalJSONorObj);

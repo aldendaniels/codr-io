@@ -3,7 +3,7 @@ var EditSession = require('./edit-session');
 var Document    = require('./document');
 var oDatabase   = require('./database');
 
-var a_PREVIEW_ACTION_TYPES = ['setDocumentData', 'docChange', 'setDocumentTitle', 'error'];
+var a_PREVIEW_ACTION_TYPES = ['setDocumentData', 'docChange', 'setDocumentTitle', 'error', 'setAutoRefreshPreview', 'refreshPreview'];
 
 module.exports = oHelpers.createClass(
 {

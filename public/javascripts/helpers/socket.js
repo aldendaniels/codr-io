@@ -64,7 +64,7 @@ define(function(require)
         send: function(sEventType, oEventData)
         {
             // Serialize message.
-            var sMessage = oHelpers.toJSON({ sType: sEventType, oData: oEventData });
+            var sMessage = oHelpers.toJSON({ sType: sEventType, oData: oEventData || null });
             
             // Send message.
             if (fg_iSendMsDelay > 0)
