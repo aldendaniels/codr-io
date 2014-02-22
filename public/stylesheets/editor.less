@@ -18,6 +18,42 @@
     }
 }
 
+#html-preview
+{
+    position: fixed;
+    right: 0;
+    bottom: @editStatusBarHeight;
+    z-index: 100;
+    display: none;
+
+    iframe
+    {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        height: 100%;
+        width: 100%;
+        border: 0 !important;
+        background-color: white;
+    }
+    
+    &.right
+    {
+        width: 200px;
+        top: @top-toolbar-height;
+        border-left: 6px @dark-bg-color solid;
+    }
+    
+    &.bottom
+    {
+        left: @left-toolbar-width + 1px;
+        height: 200px;
+        border-top: 6px @dark-bg-color solid;
+    }
+}
+
 #edit-status-bar
 {
     position: absolute;

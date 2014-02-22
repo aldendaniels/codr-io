@@ -554,17 +554,17 @@
 #html-tools-btn { display: none; }
 #html-tools     { display: none; }
 
+// @dark-bg-color: desaturate(spin(@codr-blue, 270), 25%);
+@dark-bg-color: darken(desaturate(@codr-blue, 35%), 25%);
+@dark-bg-color-light: lighten(@dark-bg-color, 5%);
+@dark-border-color: desaturate(lighten(@dark-bg-color, 15%), 5%);
+
 body.mode-html
-{
-    // @bg-color: desaturate(spin(@codr-blue, 270), 25%);
-    @bg-color: darken(desaturate(@codr-blue, 35%), 25%);
-    @bg-color-light: lighten(@bg-color, 5%);
-    @border-color: desaturate(lighten(@bg-color, 15%), 5%);
-    
+{    
     #html-tools-btn
     {
         display: block;
-        background-color: @bg-color;
+        background-color: @dark-bg-color;
         color: white;
         padding: 5px 35px 5px 10px;
         margin-top: 24px;
@@ -603,10 +603,19 @@ body.mode-html
             top: @top-toolbar-height + 1px + @height;
         }
         
+        #html-preview.right
+        {
+            top: @top-toolbar-height + @height;
+            iframe
+            {
+                top: 0; // Hack. fix Chrome bug.
+            }
+        }
+        
         #html-tools
         {
             display: block;
-            background-color: @bg-color;
+            background-color: @dark-bg-color;
             color: white;
             height: @height;
             position: absolute;
@@ -637,7 +646,7 @@ body.mode-html
                     height: @height - 8px;
                     padding-top: 8px;
                     padding-left: 10px;
-                    border-right: 1px @border-color solid;
+                    border-right: 1px @dark-border-color solid;
                     cursor: pointer;
                     white-space: nowrap;
                     position: relative;
@@ -660,16 +669,16 @@ body.mode-html
                         padding-right: 6px;
                         font-size: 22px;
                         transition: background-color 0.2s;
-                        background-color: @bg-color;
+                        background-color: @dark-bg-color;
                         
                         // Looks good, but doesn't transition well in Chrome.
-                        // #gradient > .horizontal(rgba(red(@bg-color), green(@bg-color), blue(@bg-color), 0.6),
-                        //                        rgba(red(@bg-color), green(@bg-color), blue(@bg-color), 1));
+                        // #gradient > .horizontal(rgba(red(@dark-bg-color), green(@dark-bg-color), blue(@dark-bg-color), 0.6),
+                        //                        rgba(red(@dark-bg-color), green(@dark-bg-color), blue(@dark-bg-color), 1));
                     }
                     
                     &:hover
                     {
-                        background-color: @bg-color-light;
+                        background-color: @dark-bg-color-light;
                     }
                     
                 }
@@ -677,18 +686,18 @@ body.mode-html
                 .toolbar-item-btn:hover .icon-angle-down,
                 &.open .icon-angle-down
                 {
-                    background-color: @bg-color-light;
+                    background-color: @dark-bg-color-light;
                     // Looks good, but doesn't transition well in Chrome.
-                    // #gradient > .horizontal(rgba(red(@bg-color-light), green(@bg-color-light), blue(@bg-color-light), 0.6),
-                    //                         rgba(red(@bg-color-light), green(@bg-color-light), blue(@bg-color-light), 1));
+                    // #gradient > .horizontal(rgba(red(@dark-bg-color-light), green(@dark-bg-color-light), blue(@dark-bg-color-light), 0.6),
+                    //                         rgba(red(@dark-bg-color-light), green(@dark-bg-color-light), blue(@dark-bg-color-light), 1));
                 }
                 
                 .toolbar-dropdown
                 {
-                    background-color: @bg-color-light;
+                    background-color: @dark-bg-color-light;
                     padding: @toolbarDropdownPadding;
-                    border: 1px darken(@bg-color, 3%) solid;
-                    border-top-color: @border-color;
+                    border: 1px darken(@dark-bg-color, 3%) solid;
+                    border-top-color: @dark-border-color;
                     
                     button
                     {
@@ -696,9 +705,9 @@ body.mode-html
                         margin: 0;
                         
                         /* Colors */
-                        background-color: lighten(@bg-color, 15%);
+                        background-color: lighten(@dark-bg-color, 15%);
                         transition: background-color 0.2s;
-                        border: 1px darken(@bg-color, 3%) solid;
+                        border: 1px darken(@dark-bg-color, 3%) solid;
                         color: rgba(255, 255, 255, 0.8);
                         text-shadow: none;
                     }
@@ -724,7 +733,7 @@ body.mode-html
                 .toolbar-dropdown-top-border
                 {
                     height: 1px;
-                    background-color: @bg-color-light;
+                    background-color: @dark-bg-color-light;
                     position: absolute;
                     bottom: -1px;
                     left: 0;
@@ -736,7 +745,7 @@ body.mode-html
                     overflow: visible;
                     .toolbar-item-btn
                     {
-                        background-color: @bg-color-light;
+                        background-color: @dark-bg-color-light;
                     }
                 }
             }
@@ -745,7 +754,7 @@ body.mode-html
             {
                 height: @height;
                 width: 0px;
-                border-right: 1px darken(@bg-color, 10%) solid;
+                border-right: 1px darken(@dark-bg-color, 10%) solid;
             }
             
             .toolbar-item#toolbar-item-html-template-insert
@@ -808,7 +817,7 @@ body.mode-html
                     {
                         position: relative;
                         border-right-width: 0 !important;
-                        border-left: 1px @border-color solid;
+                        border-left: 1px @dark-border-color solid;
                     }
                 }
                 
@@ -871,7 +880,7 @@ body.mode-html
                         
                         &:focus
                         {
-                            background-color: @bg-color-light;
+                            background-color: @dark-bg-color-light;
                         }
                     }
                     .icon

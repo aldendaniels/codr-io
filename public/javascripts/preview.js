@@ -7,7 +7,7 @@ define('preview', function(require)
     return (
     {
         _aDocLines: [],
-        _ePreview: document.getElementById('preview'),
+        _ePreview: document.getElementById('html-preview'),
         _bAutoRefresh: false,
         _oSocket: null,
         
