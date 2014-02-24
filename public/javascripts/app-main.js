@@ -15,7 +15,8 @@ define('app-main', function(require)
     var oChatUIHandler               = require('chat'),
         oHtmlTemplateInsertUIHandler = require('html-template-dialog'),
         oEditor                      = require('editor'),
-        oKeyShortcutHandler          = require('helpers/key-shortcut-handler');
+        oKeyShortcutHandler          = require('helpers/key-shortcut-handler'),
+        oPreviewUIHandler            = require('preview');
         
     // Other module globals.
     var _sUNTITLED = 'Untitled';
@@ -179,21 +180,20 @@ define('app-main', function(require)
         
         _setPreviewDock: function(sDockDir)
         {
+            // Update Menu.
             $('#toolbar-item-html-preview-dock .toolbar-item-value').text(sDockDir);
-            switch(sDockDir)
-            {
-                case 'None':
-                    break;
-                
-                case 'Right':
-                    break
-                
-                case 'Bottom':
-                    break;
-                
-                default:
-                    assert(false, 'Invalid Dock Location: ' + sDockDir);
-            }
+            
+            // Show Preview.
+            sDockDir = sDockDir.toLowerCase();
+            $('#html-preview-wrap').attr('class', sDockDir);
+            
+            // Pause or play Preview.
+            if (sDockDir == 'none')
+                oPreviewUIHandler.pause();
+            else
+                oPreviewUIHandler.play(oEditor.getAllLines());
+            
+            // Close menu.
             oUIDispatch.blurFocusedUIHandler();
         }
     });
@@ -222,7 +222,7 @@ define('app-main', function(require)
         {
             // Validate.
             oHelpers.assert(oHelpers.inArray(sDockDir, ['Auto', 'Manual']));
-            var bAutoRefresh = sDockDir == 'Auto';
+            var bAutoRefresh = (sDockDir == 'Auto');
             
             // Update UI.
             this.setAutoRefresh(bAutoRefresh);
@@ -356,7 +356,6 @@ define('app-main', function(require)
                 oHtmlPreviewRefreshFrequencyUIHandler.setAutoRefresh(oAction.oData.bAutoRefreshPreview);
                 break;
                 
-            default:
                 return false;
         }
         return true;
@@ -384,6 +383,8 @@ define('app-main', function(require)
         oHtmlPreviewDockUIHandler.init();
         oHtmlPreviewRefreshFrequencyUIHandler.init();
         oKeyShortcutHandler.init();
+        oPreviewUIHandler.init(oSocket, oEditor);
+        oPreviewUIHandler.pause();
         
         // Set initial DOM focus to editor.
         oEditor.focus();

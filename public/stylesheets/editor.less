@@ -18,13 +18,18 @@
     }
 }
 
-#html-preview
+#html-preview-wrap
 {
     position: fixed;
     right: 0;
     bottom: @editStatusBarHeight;
     z-index: 100;
     display: none;
+    
+    &.right, &.bottom
+    {
+        display: block;
+    }
 
     iframe
     {

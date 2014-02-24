@@ -195,6 +195,11 @@ define(function(require)
             this._oEditControl.setContent(aLines);
         },
         
+        getAllLines: function()
+        {
+            return this._oEditControl.getAllLines();
+        },
+        
         insertLines: function(aInsertLines)
         {
             var iInsertLastRow  = aInsertLines.length - 1;

@@ -88,6 +88,11 @@ define(function(require)
             this._setApplyingDelta(false);
         },
         
+        getAllLines: function()
+        {
+            return this._oAceDocument.getAllLines();
+        },
+        
         findRegex: function(oRegex)
         {
             var oSearch = new AceSearch();

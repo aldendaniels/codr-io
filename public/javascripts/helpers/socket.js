@@ -55,10 +55,14 @@ define(function(require)
             }));
         },
         
-        bind: function(sEventName, oScope, fnCallback)
+        bind: function(sEventName, oScope, fnCallback, bHandleMsgSends)
         {
             this._oCallbacks[sEventName] = this._oCallbacks[sEventName] || [];
-            this._oCallbacks[sEventName].push(oHelpers.createCallback(oScope, fnCallback));
+            this._oCallbacks[sEventName].push(
+            {
+                fnCallback: oHelpers.createCallback(oScope, fnCallback),
+                bHandleMsgSends: bHandleMsgSends || false
+            });
         },
         
         send: function(sEventType, oEventData)
@@ -83,7 +87,10 @@ define(function(require)
         _send: function(sMessage)
         {
             if (this._bIsOpen)
+            {
                 this._oSocket.send(sMessage);
+                this._dispatchNoDelay('message', oHelpers.fromJSON(sMessage), true /* bIsMsgSend */);
+            }
             else
                 this._aOutbox.push(sMessage);
         },
@@ -101,17 +108,20 @@ define(function(require)
             }
         },
         
-        _dispatchNoDelay: function(sEventName, oOptionalData)
+        _dispatchNoDelay: function(sEventName, oOptionalData, bIsMsgSend)
         {
             if (sEventName in this._oCallbacks)
             {
-                var bHandled = false;       
+                var bHandled = false;
                 for (var i in this._oCallbacks[sEventName])
                 {
-                    if (this._oCallbacks[sEventName][i](oOptionalData))
-                        bHandled = true;
+                    var oCallbackData = this._oCallbacks[sEventName][i];
+                    if (!bIsMsgSend || oCallbackData.bHandleMsgSends)
+                    {
+                        bHandled = oCallbackData.fnCallback(oOptionalData, bIsMsgSend) || bHandled;
+                    }
                 }
-                oHelpers.assert(bHandled, 'This "' + sEventName + '" event had no listener: ' + oHelpers.toJSON(oOptionalData));
+                oHelpers.assert(bIsMsgSend || bHandled, 'This "' + sEventName + '" event had no listener: ' + oHelpers.toJSON(oOptionalData));
             }
         }
     });
