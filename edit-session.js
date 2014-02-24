@@ -86,7 +86,7 @@ module.exports = oHelpers.createClass(
         }
                 
         // Propagate to the other clients.
-        if (this._bDocumentLoaded)
+        if (this._bDocumentLoaded && !oClient.isPreview())
         {
             this._broadcastAction(oClient,
             {
