@@ -314,9 +314,12 @@
                 </div>
                 <div id="edit-wrap">
                     <div id="edit"></div>
-                </div>
-                <div id="html-preview-wrap" class="none">
-                    <iframe id="html-preview" sandbox="allow-same-origin allow-scripts"></iframe>
+                    <div id="html-preview-wrap" class="none">
+                        <div id="html-preview-border"></div>
+                        <div id="html-preview-wrap-inner">
+                            <iframe id="html-preview" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
+                        </div>
+                    </div>
                 </div>
                 <div id="edit-status-bar">
                     <div class="ace_gutter"></div>

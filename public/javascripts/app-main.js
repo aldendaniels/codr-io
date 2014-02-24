@@ -167,6 +167,10 @@ define('app-main', function(require)
     var oHtmlPreviewDockUIHandler = (
     {
         _oMenu: null,
+        _sDockDir: '',
+        _iPctSplit: 40,
+        _jEditor: $('#edit'),
+        _jPreview: $('#html-preview-wrap'),
         
         init: function()
         {
@@ -178,6 +182,27 @@ define('app-main', function(require)
             this._oMenu.onEvent(oEvent);
         },
         
+        _updateSplit: function()
+        {
+            switch(this._sDockDir)
+            {
+                case 'right':
+                    this._jPreview.width(this._iPctSplit + '%').height('');
+                    this._jEditor.width(100 - this._iPctSplit + '%').height('');
+                    break;
+                
+                case 'bottom':
+                    this._jPreview.height(this._iPctSplit + '%').width('');
+                    this._jEditor.height(100 - this._iPctSplit + '%').width('');
+                    break;
+                
+                case 'none':
+                    this._jPreview.height('').width('');
+                    this._jEditor.height('').width('');
+                    break;
+            }
+        },
+        
         _setPreviewDock: function(sDockDir)
         {
             // Update Menu.
@@ -185,7 +210,10 @@ define('app-main', function(require)
             
             // Show Preview.
             sDockDir = sDockDir.toLowerCase();
+            this._sDockDir = sDockDir;
             $('#html-preview-wrap').attr('class', sDockDir);
+            this._updateSplit();
+            oEditor.resize();
             
             // Pause or play Preview.
             if (sDockDir == 'none')

@@ -20,11 +20,26 @@
 
 #html-preview-wrap
 {
-    position: fixed;
+    position: absolute;
     right: 0;
-    bottom: @editStatusBarHeight;
-    z-index: 100;
+    bottom: 0;
     display: none;
+    z-index: 10;
+    
+    #html-preview-wrap-inner
+    {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        right: 0;
+    }
+
+    #html-preview-border
+    {
+        background-color: @dark-bg-color;
+        position: absolute;
+    }
     
     &.right, &.bottom
     {
@@ -46,16 +61,38 @@
     
     &.right
     {
-        width: 200px;
-        top: @top-toolbar-height;
-        border-left: 6px @dark-bg-color solid;
+        top: 0;
+        
+        #html-preview-wrap-inner
+        {
+            left: 6px;
+        }
+        
+        #html-preview-border
+        {
+            width: 6px;
+            left: 0;
+            bottom: 0;
+            top: 0;
+        }
     }
     
     &.bottom
     {
-        left: @left-toolbar-width + 1px;
-        height: 200px;
-        border-top: 6px @dark-bg-color solid;
+        left: 0;
+        
+        #html-preview-wrap-inner
+        {
+            top: 6px;
+        }
+        
+        #html-preview-border
+        {
+            height: 6px;
+            left: 0;
+            right: 0;
+            top: 0;
+        }
     }
 }
 

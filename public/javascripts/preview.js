@@ -47,17 +47,12 @@ define('preview', function(require)
             switch(oAction.sType)
             {
                 case 'setDocumentData':
+                    // Note: We don't call updatePreview() because that will
+                    //       happen with the initial setAutoRefreshPreview
+                    //       message.
                     if (this._bIsStandalone)
-                    {
                         this._aDocLines = oAction.oData.aLines;
-                        this._updatePreview();                        
-                    }
-                    else if (!this._bPaused)
-                    {
-                        // Allow the editor to update, and then update preview.
-                        window.setTimeout(oHelpers.createCallback(this, this._updatePreview), 1);
-                    }
-                    return true;                        
+                    return true;             
                     
                 case 'docChange':
                     if (this._bIsStandalone)
@@ -76,6 +71,8 @@ define('preview', function(require)
                     
                 case 'setAutoRefreshPreview':
                     this._bAutoRefresh = oAction.oData.bAutoRefreshPreview;
+                    if (this._bAutoRefresh)
+                        this._updatePreview();
                     return true;
                 
                 case 'refreshPreview':
@@ -94,8 +91,26 @@ define('preview', function(require)
         _updatePreview: function()
         {
             oHelpers.assert(!this._bPaused, '_updatePreview should not be called when paused.');
-            this._ePreview.contentDocument.childNodes[0].innerHTML =
-               (this._bIsStandalone ? this._aDocLines : this._oEditor.getAllLines()).join('\n');;
+            
+            // Update content.
+            this._ePreview.contentDocument.documentElement.innerHTML =
+               (this._bIsStandalone ? this._aDocLines : this._oEditor.getAllLines()).join('\n');
+            
+            // Replace scripts.
+            // Necessary because setting the InnerHTML of the iFrame won't make it eval the scripts.
+            var aScripts = this._ePreview.contentDocument.getElementsByTagName('script');
+            for (var i in aScripts)
+            {
+                var eOldScript = aScripts[i];
+                if (eOldScript.parentNode)
+                {
+                    var eNewScript = document.createElement('script');
+                    if (eOldScript.src)
+                        eNewScript.src = eOldScript.src;
+                    eNewScript.text = eOldScript.text;
+                    eOldScript.parentNode.replaceChild(eNewScript, eOldScript);                    
+                }
+            }
         }
-    })
+    });
 });
