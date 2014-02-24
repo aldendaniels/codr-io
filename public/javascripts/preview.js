@@ -95,7 +95,7 @@ define('preview', function(require)
         {
             oHelpers.assert(!this._bPaused, '_updatePreview should not be called when paused.');
             this._ePreview.contentDocument.childNodes[0].innerHTML =
-               (this._bStandalone ? this._aDocLines : this._oEditor.getAllLines()).join('\n');;
+               (this._bIsStandalone ? this._aDocLines : this._oEditor.getAllLines()).join('\n');;
         }
     })
 });
