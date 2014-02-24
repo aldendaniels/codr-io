@@ -641,6 +641,12 @@ body.mode-html
                 overflow: hidden;
                 position: relative;
                 
+                &.disabled .toolbar-item-btn
+                {
+                    cursor: default;
+                    color: #aaa;
+                }
+                
                 .toolbar-item-btn
                 {
                     height: @height - 8px;
@@ -674,13 +680,12 @@ body.mode-html
                         // Looks good, but doesn't transition well in Chrome.
                         // #gradient > .horizontal(rgba(red(@dark-bg-color), green(@dark-bg-color), blue(@dark-bg-color), 0.6),
                         //                        rgba(red(@dark-bg-color), green(@dark-bg-color), blue(@dark-bg-color), 1));
-                    }
-                    
-                    &:hover
-                    {
-                        background-color: @dark-bg-color-light;
-                    }
-                    
+                    }                    
+                }
+                
+                &:not(.disabled) .toolbar-item-btn:hover
+                {
+                    background-color: @dark-bg-color-light;
                 }
                 
                 .toolbar-item-btn:hover .icon-angle-down,

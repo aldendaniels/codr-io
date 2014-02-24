@@ -204,7 +204,7 @@ define('app-main', function(require)
         
         init: function()
         {
-            this._oMenu = new MenuKeyNav('#html-preview-refresh-menu', this, this._setPreviewDock);
+            this._oMenu = new MenuKeyNav('#html-preview-refresh-menu', this, this._setRefreshFrequency);
         },
         
         onEvent: function(oEvent)
@@ -216,13 +216,14 @@ define('app-main', function(require)
         {
             var sLabel = (bAutoRefresh ? 'Auto' : 'Manual');
             $('#toolbar-item-html-preview-refresh-frequency .toolbar-item-value').text(sLabel);
+            oHtmlPreviewRefreshUIHandler.setDisabled(bAutoRefresh);
         },
         
-        _setPreviewDock: function(sDockDir)
+        _setRefreshFrequency: function(sRefreshFrequency)
         {
             // Validate.
-            oHelpers.assert(oHelpers.inArray(sDockDir, ['Auto', 'Manual']));
-            var bAutoRefresh = (sDockDir == 'Auto');
+            oHelpers.assert(oHelpers.inArray(sRefreshFrequency, ['Auto', 'Manual']));
+            var bAutoRefresh = (sRefreshFrequency == 'Auto');
             
             // Update UI.
             this.setAutoRefresh(bAutoRefresh);
@@ -262,9 +263,16 @@ define('app-main', function(require)
 
     var oHtmlPreviewRefreshUIHandler = (
     {
+        _jElem: $('#toolbar-item-html-preview-refresh'),
+        
         contains: function(jElem)
         {
-            return jElem.closest('#toolbar-item-html-preview-refresh').length;
+            return jElem.closest(this._jElem).length;
+        },
+        
+        setDisabled: function(bDisabled)
+        {
+            this._jElem.toggleClass('disabled', bDisabled);
         },
         
         onEvent: function(oEvent)
@@ -273,7 +281,8 @@ define('app-main', function(require)
             var sEventType = oEvent.type;
             if ((sEventType == 'keydown' && oEvent.which == 13) || sEventType == 'click')
             {
-                this._refreshPreview();
+                if (!this._jElem.hasClass('disabled'))
+                    this._refreshPreview();
                 oEvent.preventDefault();
             }
         },
