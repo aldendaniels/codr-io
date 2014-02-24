@@ -62,7 +62,7 @@ compileJS('app-main',
 });
 
 // Preview.
-compileJS('preview',
+compileJS('preview-standalone',
 {
     include: ['lib/require', 'require-config']
 });
