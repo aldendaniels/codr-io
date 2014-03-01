@@ -9,7 +9,8 @@ define('preview', function(require)
         _ePreview: document.getElementById('html-preview'),
         _bAutoRefresh: false,
         _oSocket: null,
-        _bIsStandalone: true,        
+        _bIsStandalone: true,
+        _bIsDirty: false,
         
         // Standalone Only.
         _aDocLines: [],
@@ -47,14 +48,20 @@ define('preview', function(require)
             switch(oAction.sType)
             {
                 case 'setDocumentData':
-                    // Note: We don't call updatePreview() because that will
-                    //       happen with the initial setAutoRefreshPreview
-                    //       message.
+                    this._bIsDirty = true;
                     if (this._bIsStandalone)
+                    {
                         this._aDocLines = oAction.oData.aLines;
+                        this._updatePreview();
+                    }
+                    else
+                    {
+                        window.setTimeout(oHelpers.createCallback(this, this._updatePreview), 1);
+                    }
                     return true;             
                     
                 case 'docChange':
+                    this._bIsDirty = true;
                     if (this._bIsStandalone)
                     {
                         fnApplyDelta(this._aDocLines, oAction.oData.oDelta);
@@ -92,25 +99,29 @@ define('preview', function(require)
         {
             oHelpers.assert(!this._bPaused, '_updatePreview should not be called when paused.');
             
-            // Update content.
-            this._ePreview.contentDocument.documentElement.innerHTML =
-               (this._bIsStandalone ? this._aDocLines : this._oEditor.getAllLines()).join('\n');
-            
-            // Replace scripts.
-            // Necessary because setting the InnerHTML of the iFrame won't make it eval the scripts.
-            var aScripts = this._ePreview.contentDocument.getElementsByTagName('script');
-            for (var i in aScripts)
-            {
-                var eOldScript = aScripts[i];
-                if (eOldScript.parentNode)
+            if (this._bIsDirty)
+            {                
+                // Update content.
+                this._ePreview.contentDocument.documentElement.innerHTML =
+                   (this._bIsStandalone ? this._aDocLines : this._oEditor.getAllLines()).join('\n');
+                
+                // Replace scripts.
+                // Necessary because setting the InnerHTML of the iFrame won't make it eval the scripts.
+                var aScripts = this._ePreview.contentDocument.getElementsByTagName('script');
+                for (var i in aScripts)
                 {
-                    var eNewScript = document.createElement('script');
-                    if (eOldScript.src)
-                        eNewScript.src = eOldScript.src;
-                    eNewScript.text = eOldScript.text;
-                    eOldScript.parentNode.replaceChild(eNewScript, eOldScript);                    
+                    var eOldScript = aScripts[i];
+                    if (eOldScript.parentNode)
+                    {
+                        var eNewScript = document.createElement('script');
+                        if (eOldScript.src)
+                            eNewScript.src = eOldScript.src;
+                        eNewScript.text = eOldScript.text;
+                        eOldScript.parentNode.replaceChild(eNewScript, eOldScript);                    
+                    }
                 }
             }
+            this._bIsDirty = false;
         }
     });
 });

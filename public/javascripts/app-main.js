@@ -171,6 +171,16 @@ define('app-main', function(require)
         
         init: function()
         {
+            if($(window).width() > $(window).height())
+            {
+                $('#html-preview-dock-menu .option#right').addClass('selected');
+                this._setPreviewDock('Right');
+            }
+            else
+            {
+                $('#html-preview-dock-menu .option#bottom').addClass('selected');
+                this._setPreviewDock('Bottom');
+            }
             this._oMenu = new MenuKeyNav('#html-preview-dock-menu', this, this._setPreviewDock);
         },
         
@@ -502,7 +512,6 @@ define('app-main', function(require)
         oHtmlPreviewRefreshFrequencyUIHandler.init();
         oKeyShortcutHandler.init();
         oPreviewUIHandler.init(oSocket, oEditor);
-        oPreviewUIHandler.pause();
         
         // Set initial DOM focus to editor.
         oEditor.focus();
