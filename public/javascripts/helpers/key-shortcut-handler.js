@@ -47,9 +47,9 @@ define(function(require)
                     break;
                 
                 case 'keydown':
-                    
                     var iKeyCode = oEvent.which;
-                    if (!this._bIsOpen && iKeyCode == 186 && oEvent.ctrlKey) // CTRL + SEMICOLON
+                    var bIsSemicolon = (iKeyCode == 186 || iKeyCode == 59); // 59 for FF, 186 for other browsers. 
+                    if (!this._bIsOpen && bIsSemicolon && oEvent.ctrlKey) // CTRL + SEMICOLON
                     {
                         this._open();
                     }
@@ -77,20 +77,23 @@ define(function(require)
             $('#shortcut-overlay').show();
             for (var iShortcut in this._oShortcuts)
             {
-                // Create shortcut indicator.
                 var oShortcut = this._oShortcuts[iShortcut];
-                var jShortcut = $('<div class="shortcut"></div>');
-                jShortcut.text(oShortcut.sAccel);                
-                $('#shortcut-overlay').append(jShortcut);
-                
-                // Position shortcut indicator. 
                 var jElem = oShortcut.jElem;
-                var oPos = jElem.offset();
-                jShortcut.css(
+                if (oHelpers.isVisible(jElem))
                 {
-                    top:  oPos.top  + (jElem.outerHeight() - jShortcut.outerHeight()) / 2 + oShortcut.iOffsetTop, // Center vertically.,
-                    left: oPos.left +  jElem.outerWidth()  - jShortcut.outerWidth()       + oShortcut.iOffsetLeft // Right align.
-                });
+                    // Create shortcut indicator.
+                    var jShortcut = $('<div class="shortcut"></div>');
+                    jShortcut.text(oShortcut.sAccel);                
+                    $('#shortcut-overlay').append(jShortcut);
+                    
+                    // Position shortcut indicator. 
+                    var oPos = jElem.offset();
+                    jShortcut.css(
+                    {
+                        top:  oPos.top  + (jElem.outerHeight() - jShortcut.outerHeight()) / 2 + oShortcut.iOffsetTop, // Center vertically.,
+                        left: oPos.left +  jElem.outerWidth()  - jShortcut.outerWidth()       + oShortcut.iOffsetLeft // Right align.
+                    });                    
+                }
             }
             this._bIsOpen = true;
         },
