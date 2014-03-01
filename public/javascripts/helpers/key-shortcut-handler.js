@@ -19,13 +19,14 @@ define(function(require)
             $('body').on('keydown', oHelpers.createCallback(this, this.onEvent));
         },
         
-        registerShortcut: function(sAccel, jElem, iOptionalOffset)
+        registerShortcut: function(sAccel, jElem, iOptionalOffsetLeft, iOptionalOffsetTop)
         {
             oHelpers.assert(sAccel.length == 1, 'A shortcut must be one char long.');
             this._oShortcuts[sAccel.toUpperCase().charCodeAt(0)] = {
                 jElem:   jElem,
                 sAccel:  sAccel.toUpperCase(),
-                iOffset: iOptionalOffset || 0
+                iOffsetLeft: iOptionalOffsetLeft || 0,
+                iOffsetTop:  iOptionalOffsetTop  || 0
             };
         },
         
@@ -59,17 +60,11 @@ define(function(require)
                     else if (this._bIsOpen && iKeyCode in this._oShortcuts)
                     {
                         var jElem = this._oShortcuts[iKeyCode]['jElem'];
-                        if (jElem.is('button'))
+                        oHelpers.findFirstChild(jElem, this, function(eChild)
                         {
-                            jElem.click();
-                        }
-                        else
-                        {
-                            oHelpers.findFirstChild(jElem, this, function(eChild)
-                            {
-                                return oHelpers.isFocusable(eChild);
-                            }).focus();
-                        }
+                            return oHelpers.isFocusable(eChild);
+                        }).focus();
+                        jElem.click();
                         this._close();
                         oEvent.preventDefault();
                     }
@@ -93,8 +88,8 @@ define(function(require)
                 var oPos = jElem.offset();
                 jShortcut.css(
                 {
-                    top:  oPos.top  + (jElem.height() - jShortcut.outerHeight()) / 2,              // Center vertically.,
-                    left: oPos.left +  jElem.width()  - jShortcut.outerWidth() + oShortcut.iOffset // Right align.
+                    top:  oPos.top  + (jElem.height() - jShortcut.outerHeight()) / 2 + oShortcut.iOffsetTop, // Center vertically.,
+                    left: oPos.left +  jElem.width()  - jShortcut.outerWidth() + oShortcut.iOffsetLeft       // Right align.
                 });
             }
             this._bIsOpen = true;

@@ -378,6 +378,7 @@ define('app-main', function(require)
         {
             fnPopupWindow(oHelpers.joinURL(window.location.href, 'preview'), 600, 500);
             oHtmlPreviewDockDropdownUIHandler.setPreviewDock('None');
+            oUIDispatch.blurFocusedUIHandler();
         }
     });
 
@@ -409,6 +410,7 @@ define('app-main', function(require)
         
         _refreshPreview: function()
         {
+            oUIDispatch.blurFocusedUIHandler();
             oSocket.send('refreshPreview');
         }
     });
@@ -590,8 +592,8 @@ define('app-main', function(require)
         oUIDispatch.registerUIHandler(oHtmlPreviewDockSplitUIHandler);
         
         // Bind shorctut handlers.
-        oKeyShortcutHandler.registerShortcut('T', $('#toolbar-item-title'),    -15);
-        oKeyShortcutHandler.registerShortcut('L', $('#toolbar-item-mode'),     -15);
+        oKeyShortcutHandler.registerShortcut('T', $('#toolbar-item-title'),     -15);
+        oKeyShortcutHandler.registerShortcut('L', $('#toolbar-item-mode'),      -15);
         oKeyShortcutHandler.registerShortcut('D', $('#toolbar-item-download'),  12);
         oKeyShortcutHandler.registerShortcut('F', $('#toolbar-item-fork'),      12);
         if (!bIsSnapshot)
@@ -599,6 +601,11 @@ define('app-main', function(require)
             oKeyShortcutHandler.registerShortcut('C', $('#toolbar-item-chat'),  12);
             oKeyShortcutHandler.registerShortcut('K', $('#toolbar-item-link'),  12);
         }
+        oKeyShortcutHandler.registerShortcut('I', $('#toolbar-item-html-template-insert'),           -2, 18);
+        oKeyShortcutHandler.registerShortcut('O', $('#toolbar-item-html-preview-dock'),              -2, 18);
+        oKeyShortcutHandler.registerShortcut('P', $('#toolbar-item-html-preview-popup'),             -2, 18);
+        oKeyShortcutHandler.registerShortcut('A', $('#toolbar-item-html-preview-refresh-frequency'), -2, 18);
+        oKeyShortcutHandler.registerShortcut('R', $('#toolbar-item-html-preview-refresh'),           -2, 18);
         
         // Disable native browser handling for saving/searching.
         // TODO: Think through keyboard controls for a mac.
