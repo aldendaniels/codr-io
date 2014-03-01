@@ -27,6 +27,7 @@ define('preview', function(require)
             // Docked (non stand-alone).
             if (oOptionalEditor)
             {
+                this._bPaused = true;
                 this._bIsStandalone = false;
                 this._oEditor = oOptionalEditor;
             }
@@ -56,7 +57,8 @@ define('preview', function(require)
                     }
                     else
                     {
-                        window.setTimeout(oHelpers.createCallback(this, this._updatePreview), 1);
+                        if (!this._bPaused)
+                            window.setTimeout(oHelpers.createCallback(this, this._updatePreview), 1);
                     }
                     return true;             
                     

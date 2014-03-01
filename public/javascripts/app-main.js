@@ -99,6 +99,10 @@ define('app-main', function(require)
             $('#toolbar-item-mode .toolbar-item-selection').text(oMode.getDisplayName());
             $('BODY').toggleClass('mode-html',       oMode.getName() == 'html');
             $('BODY').toggleClass('show-html-tools', oMode.getName() == 'html');
+            if (oMode.getName() == 'html')
+                oHtmlPreviewDockDropdownUIHandler.showPreview();
+            else
+                oHtmlPreviewDockDropdownUIHandler.setPreviewDock('None');
             this._oCurrentMode = oMode;
             oEditor.setMode(oMode);
         },
@@ -171,6 +175,11 @@ define('app-main', function(require)
         
         init: function()
         {
+            this._oMenu = new MenuKeyNav('#html-preview-dock-menu', this, this.setPreviewDock);
+        },
+        
+        showPreview: function()
+        {
             if($(window).width() > $(window).height())
             {
                 $('#html-preview-dock-menu .option#right').addClass('selected');
@@ -180,8 +189,7 @@ define('app-main', function(require)
             {
                 $('#html-preview-dock-menu .option#bottom').addClass('selected');
                 this.setPreviewDock('Bottom');
-            }
-            this._oMenu = new MenuKeyNav('#html-preview-dock-menu', this, this.setPreviewDock);
+            }            
         },
         
         onEvent: function(oEvent)
