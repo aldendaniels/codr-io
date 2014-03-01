@@ -88,8 +88,8 @@ define(function(require)
                 var oPos = jElem.offset();
                 jShortcut.css(
                 {
-                    top:  oPos.top  + (jElem.height() - jShortcut.outerHeight()) / 2 + oShortcut.iOffsetTop, // Center vertically.,
-                    left: oPos.left +  jElem.width()  - jShortcut.outerWidth() + oShortcut.iOffsetLeft       // Right align.
+                    top:  oPos.top  + (jElem.outerHeight() - jShortcut.outerHeight()) / 2 + oShortcut.iOffsetTop, // Center vertically.,
+                    left: oPos.left +  jElem.outerWidth()  - jShortcut.outerWidth()       + oShortcut.iOffsetLeft // Right align.
                 });
             }
             this._bIsOpen = true;

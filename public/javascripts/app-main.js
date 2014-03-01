@@ -437,6 +437,7 @@ define('app-main', function(require)
             if ((sEventType == 'keydown' && oEvent.which == 13) || sEventType == 'click')
             {
                 $('BODY').toggleClass('show-html-tools');
+                oUIDispatch.blurFocusedUIHandler();
                 oEvent.preventDefault();
             }
         }
@@ -614,6 +615,7 @@ define('app-main', function(require)
         oKeyShortcutHandler.registerShortcut('P', $('#toolbar-item-html-preview-popup'),             -2, 18);
         oKeyShortcutHandler.registerShortcut('A', $('#toolbar-item-html-preview-refresh-frequency'), -2, 18);
         oKeyShortcutHandler.registerShortcut('R', $('#toolbar-item-html-preview-refresh'),           -2, 18);
+        oKeyShortcutHandler.registerShortcut('H', $('#html-tools-btn'),                              15);
         
         // Disable native browser handling for saving/searching.
         // TODO: Think through keyboard controls for a mac.
