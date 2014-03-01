@@ -174,14 +174,14 @@ define('app-main', function(require)
             if($(window).width() > $(window).height())
             {
                 $('#html-preview-dock-menu .option#right').addClass('selected');
-                this._setPreviewDock('Right');
+                this.setPreviewDock('Right');
             }
             else
             {
                 $('#html-preview-dock-menu .option#bottom').addClass('selected');
-                this._setPreviewDock('Bottom');
+                this.setPreviewDock('Bottom');
             }
-            this._oMenu = new MenuKeyNav('#html-preview-dock-menu', this, this._setPreviewDock);
+            this._oMenu = new MenuKeyNav('#html-preview-dock-menu', this, this.setPreviewDock);
         },
         
         onEvent: function(oEvent)
@@ -189,7 +189,7 @@ define('app-main', function(require)
             this._oMenu.onEvent(oEvent);
         },
         
-        _setPreviewDock: function(sDockDir)
+        setPreviewDock: function(sDockDir)
         {
             // Update Menu.
             $('#toolbar-item-html-preview-dock .toolbar-item-value').text(sDockDir);
@@ -377,6 +377,7 @@ define('app-main', function(require)
         _popupPreview: function()
         {
             fnPopupWindow(oHelpers.joinURL(window.location.href, 'preview'), 600, 500);
+            oHtmlPreviewDockDropdownUIHandler.setPreviewDock('None');
         }
     });
 
