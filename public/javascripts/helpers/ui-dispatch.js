@@ -75,12 +75,7 @@ define(function(require)
         
         _attachDOMEvents: function()
         {
-            function _sendEvent(oUIHandler, oEvent)
-            {
-                oUIHandler.onEvent(oEvent);
-            }
-            
-            oHelpers.on('BODY', 'mousedown click focusin keydown keyup keypress change', this, function(oEvent)
+            oHelpers.on('BODY', 'mousedown mouseup mousemove click focusin keydown keyup keypress change', this, function(oEvent)
             {
                 // Get UI Handler (If any).
                 var jTarget = $(oEvent.target);
@@ -97,15 +92,18 @@ define(function(require)
                         }
                                             
                     case 'keypress':
+                    case 'keydown':
                     case 'keyup':
+                    case 'mousemove':
+                    case 'mouseup':
                         if (this._oFocusedUIHandler)
-                            _sendEvent(this._oFocusedUIHandler, oEvent);               
+                            this._oFocusedUIHandler.onEvent(oEvent);
                         break;
                         
                     case 'focusin':
                         oHelpers.assert(oUIHandler, 'Focusable object should have a UI handler.');
                         this._onUIHandlerFocus(oUIHandler);
-                        
+                    
                     case 'mousedown':
                         
                         // Focus should always be in a text-entry box.
@@ -122,7 +120,7 @@ define(function(require)
                     // Forward non-keyboard events.
                     default:
                         if (oUIHandler)
-                            _sendEvent(oUIHandler, oEvent);                    
+                            oUIHandler.onEvent(oEvent);
                 }
             });
         }

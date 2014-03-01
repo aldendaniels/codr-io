@@ -71,7 +71,7 @@ define('preview', function(require)
                     
                 case 'setAutoRefreshPreview':
                     this._bAutoRefresh = oAction.oData.bAutoRefreshPreview;
-                    if (this._bAutoRefresh)
+                    if (this._bAutoRefresh && !this._bPaused)
                         this._updatePreview();
                     return true;
                 

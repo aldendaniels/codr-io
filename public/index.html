@@ -315,7 +315,12 @@
                 <div id="edit-wrap">
                     <div id="edit"></div>
                     <div id="html-preview-wrap" class="none">
-                        <div id="html-preview-border"></div>
+                        <div id="html-preview-border">
+                            <div id="grab"></div>
+                            <div class="hidden-focusable">
+                                <input type="text" tabindex="-1"></input>
+                            </div>
+                        </div>
                         <div id="html-preview-wrap-inner">
                             <iframe id="html-preview" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
                         </div>
@@ -377,6 +382,7 @@
         </div>
         
         <div id="shortcut-overlay"></div>
+        <div id="resize-overlay"></div>
         
         <script type="text/javascript">
             if (IS_SNAPSHOT)

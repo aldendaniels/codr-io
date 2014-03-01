@@ -164,12 +164,9 @@ define('app-main', function(require)
         },
     });
 
-    var oHtmlPreviewDockUIHandler = (
+    var oHtmlPreviewDockDropdownUIHandler = (
     {
         _oMenu: null,
-        _sDockDir: '',
-        _iPctSplit: 40,
-        _jEditor: $('#edit'),
         _jPreview: $('#html-preview-wrap'),
         
         init: function()
@@ -182,27 +179,6 @@ define('app-main', function(require)
             this._oMenu.onEvent(oEvent);
         },
         
-        _updateSplit: function()
-        {
-            switch(this._sDockDir)
-            {
-                case 'right':
-                    this._jPreview.width(this._iPctSplit + '%').height('');
-                    this._jEditor.width(100 - this._iPctSplit + '%').height('');
-                    break;
-                
-                case 'bottom':
-                    this._jPreview.height(this._iPctSplit + '%').width('');
-                    this._jEditor.height(100 - this._iPctSplit + '%').width('');
-                    break;
-                
-                case 'none':
-                    this._jPreview.height('').width('');
-                    this._jEditor.height('').width('');
-                    break;
-            }
-        },
-        
         _setPreviewDock: function(sDockDir)
         {
             // Update Menu.
@@ -210,9 +186,8 @@ define('app-main', function(require)
             
             // Show Preview.
             sDockDir = sDockDir.toLowerCase();
-            this._sDockDir = sDockDir;
             $('#html-preview-wrap').attr('class', sDockDir);
-            this._updateSplit();
+            oHtmlPreviewDockSplitUIHandler.updateSplit(sDockDir);
             oEditor.resize();
             
             // Pause or play Preview.
@@ -223,6 +198,112 @@ define('app-main', function(require)
             
             // Close menu.
             oUIDispatch.blurFocusedUIHandler();
+        }
+    });
+
+    var oHtmlPreviewDockSplitUIHandler = (
+    {
+        _sDockDir: '',
+        _iPctSplitRight:  40,
+        _iPctSplitBottom: 40,
+        _jEditor: $('#edit'),
+        _jPreview: $('#html-preview-wrap'),
+        _jEditWrap: $('#edit-wrap'),
+        _jSplitElem: $('#html-preview-border'),
+        _bIsDragging: false,
+        
+        contains: function()
+        {
+            return this._jSplitElem;
+        },
+        
+        onEvent: function(oEvent)
+        {
+            switch(oEvent.type)
+            {
+                case 'mousedown':
+                    this._setIsDragging(true);
+                    break
+                
+                case 'mouseup':
+                    oUIDispatch.blurFocusedUIHandler();
+                    break;
+                
+                case 'mousemove':
+                    if (this._bIsDragging)
+                    {
+                        var oWrapOffset = $('#edit-wrap').offset(); 
+                        switch(this._sDockDir)
+                        {
+                            case 'right':
+                                var iEditWrapWidth    = this._jEditWrap.width();
+                                var iMouseOffsetLeft  = oEvent.pageX - oWrapOffset.left;
+                                this._iPctSplitRight  = (iEditWrapWidth - iMouseOffsetLeft) / iEditWrapWidth * 100;
+                                this._iPctSplitRight = Math.min(Math.max(this._iPctSplitRight, 10), 90);
+                                break;
+                            
+                            case 'bottom':
+                                var iEditWrapHeight   = this._jEditWrap.height();
+                                var iMouseOffsetTop   = oEvent.pageY - oWrapOffset.top;
+                                this._iPctSplitBottom = (iEditWrapHeight - iMouseOffsetTop) / iEditWrapHeight * 100;
+                                this._iPctSplitBottom = Math.min(Math.max(this._iPctSplitBottom, 10), 90);
+                                break;
+                        }
+                        this.updateSplit();
+                    }
+                    break;
+            }
+        },
+        
+        onFocusOut: function()
+        {
+            this._setIsDragging(false);
+        },
+        
+        _setIsDragging: function(bIsDragging)
+        {
+            if (bIsDragging)
+            {
+                this._bIsDragging = true;
+                this._jSplitElem.find('input').focus();
+                
+                // Work around Chrome bug where mousemove events don't fire over an iframe.
+                // Also forces the cursor to stay a resize cursor.
+                $('#resize-overlay').show().css('cursor', this._sDockDir == 'right' ? 'ew-resize' : 'ns-resize');
+            }
+            else
+            {
+                this._bIsDragging = false;
+                $('BODY').css('cursor', 'auto');
+                $('#resize-overlay').hide().css('cursor', 'auto');
+                oEditor.resize();                
+            }
+        },
+        
+        updateSplit: function(sDockDir)
+        {
+            // Optionally set dock dir.
+            if (sDockDir)
+                this._sDockDir = sDockDir;
+                
+            // Refresh split.
+            switch(this._sDockDir)
+            {
+                case 'right':
+                    this._jPreview.width(this._iPctSplitRight + '%').height('');
+                    this._jEditor.width(100 - this._iPctSplitRight + '%').height('');
+                    break;
+                
+                case 'bottom':
+                    this._jPreview.height(this._iPctSplitBottom + '%').width('');
+                    this._jEditor.height(100 - this._iPctSplitBottom + '%').width('');
+                    break;
+                
+                case 'none':
+                    this._jPreview.height('').width('');
+                    this._jEditor.height('').width('');
+                    break;
+            }
         }
     });
 
@@ -417,7 +498,7 @@ define('app-main', function(require)
         oChatUIHandler.init(oSocket, function(){ return oUserInfo });
         oHtmlTemplateInsertUIHandler.init(oEditor, oTitleUIHandler);
         oModeUIHandler.init();
-        oHtmlPreviewDockUIHandler.init();
+        oHtmlPreviewDockDropdownUIHandler.init();
         oHtmlPreviewRefreshFrequencyUIHandler.init();
         oKeyShortcutHandler.init();
         oPreviewUIHandler.init(oSocket, oEditor);
@@ -488,7 +569,7 @@ define('app-main', function(require)
         new Dropdown('#toolbar-item-link',                           oLinksUIHandler);
         new Dropdown('#toolbar-item-chat',                           oChatUIHandler);
         new Dropdown('#toolbar-item-html-template-insert',           oHtmlTemplateInsertUIHandler);
-        new Dropdown('#toolbar-item-html-preview-dock',              oHtmlPreviewDockUIHandler);
+        new Dropdown('#toolbar-item-html-preview-dock',              oHtmlPreviewDockDropdownUIHandler);
         new Dropdown('#toolbar-item-html-preview-refresh-frequency', oHtmlPreviewRefreshFrequencyUIHandler);
         new Dropdown('#toolbar-item-fork');
         
@@ -496,6 +577,7 @@ define('app-main', function(require)
         oUIDispatch.registerUIHandler(oHtmlPreviewPopupUIHandler);
         oUIDispatch.registerUIHandler(oHtmlPreviewRefreshUIHandler);
         oUIDispatch.registerUIHandler(oToggleHtmlToolsUIHanlder);
+        oUIDispatch.registerUIHandler(oHtmlPreviewDockSplitUIHandler);
         
         // Bind shorctut handlers.
         oKeyShortcutHandler.registerShortcut('T', $('#toolbar-item-title'),    -15);
