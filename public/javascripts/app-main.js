@@ -458,7 +458,6 @@ define('app-main', function(require)
                     sMode:  oNewDocumentMode.getName(),
                     sTitle: _sUNTITLED
                 });
-                $('.edit-mode-message').show();
             }
             else // Open existing document.
             {
