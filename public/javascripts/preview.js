@@ -10,7 +10,7 @@ define('preview', function(require)
         _bAutoRefresh: false,
         _oSocket: null,
         _bIsStandalone: true,
-        _bIsDirty: false,
+        _bIsDirty: true, // Start as dirty, since we need initial content.
         
         // Standalone Only.
         _aDocLines: [],
@@ -49,7 +49,6 @@ define('preview', function(require)
             switch(oAction.sType)
             {
                 case 'setDocumentData':
-                    this._bIsDirty = true;
                     if (this._bIsStandalone)
                     {
                         this._aDocLines = oAction.oData.aLines;
@@ -60,7 +59,7 @@ define('preview', function(require)
                         if (!this._bPaused)
                             window.setTimeout(oHelpers.createCallback(this, this._updatePreview), 1);
                     }
-                    return true;             
+                    return true;
                     
                 case 'docChange':
                     this._bIsDirty = true;
@@ -102,10 +101,62 @@ define('preview', function(require)
             oHelpers.assert(!this._bPaused, '_updatePreview should not be called when paused.');
             
             if (this._bIsDirty)
-            {                
+            {
+                // Get HTML.
+                var sHTML = (this._bIsStandalone ? this._aDocLines : this._oEditor.getAllLines()).join('\n');
+                if (!sHTML) // Show placeholder.
+                {
+                    sHTML = [
+                        '<!DOCTYPE html>',
+                        '<html>',
+                        '    <head>',
+                        '        <style type="text/css">',
+                        '            body',
+                        '            {',
+                        '                background-color: #f5f5f5;',
+                        '                font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;',
+                        '                text-align: center;',
+                        '                text-shadow: 1px 2px 3px white;',
+                        '            }',
+                        '            ',
+                        '            h1',
+                        '            {',
+                        '                font-size: 2.5em;',
+                        '                color: #aaa;',
+                        '                margin-bottom: 0;',
+                        '            }',
+                        '            ',
+                        '            p',
+                        '            {',
+                        '                margin-top: 10px;',
+                        '                color: #888;',
+                        '            }',
+                        '            ',
+                        '            html, body, table',
+                        '            {',
+                        '                height: 100%;',
+                        '                width: 100%;',
+                        '                overflow: hidden;',
+                        '                text-align: center;',
+                        '            }',
+                        '        </style>',
+                        '    </head>',
+                        '    <body>',
+                        '        <table>',
+                        '            <tr>',
+                        '                <td>',
+                        '                    <h1>HTML Preview</h1>',
+                        '                    <p>No content yet. Start typing!</p>',
+                        '                </td>',
+                        '            </tr>',
+                        '        </table>',
+                        '    </body>',
+                        '</html>'
+                    ].join('\n');
+                }
+                
                 // Update content.
-                this._ePreview.contentDocument.documentElement.innerHTML =
-                   (this._bIsStandalone ? this._aDocLines : this._oEditor.getAllLines()).join('\n');
+                this._ePreview.contentDocument.documentElement.innerHTML = sHTML;
                 
                 // Replace scripts.
                 // Necessary because setting the InnerHTML of the iFrame won't make it eval the scripts.
