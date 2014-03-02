@@ -3,27 +3,31 @@ var oFS = require('fs');
 var oLESS = require('less');
 var requirejs = require('requirejs');
 var mkdirp = require('mkdirp');
+var ncp = require('ncp').ncp;
+
+// Get arguments.
+var oArgs = (
+{
+    fast: false
+});
+for (var i = 2; i < process.argv.length; i++)
+{
+    var aParts = process.argv[i].split('=');
+    oArgs[aParts[0].trim()] = aParts[1].trim();
+}
 
 // OUPUT DIR
-var sOutputDir = './public_build';
+var sOutputDir = __dirname + '/public_build';
 
 // Delete output dir.
-oHelpers.emptyDirSync(__dirname + sOutputDir);
+console.log('Empty ouput dir');
+oHelpers.emptyDirSync(sOutputDir);
+console.log('Build static content');
 
 // OnError handler function
 function handleError(e)
 {
     if (e) throw e;
-}
-
-// Get arguments.
-var oArgs = {
-    fast: false
-};
-for (var i = 2; i < process.argv.length; i++)
-{
-    var aParts = process.argv[i].split('=');
-    oArgs[aParts[0].trim()] = aParts[1].trim();
 }
 
 ////////////// JS COMPILATION /////////////////
@@ -73,30 +77,19 @@ compileJS('tests/index',
     include: ['lib/require', 'require-config']
 });
 
-// Ace.
-requirejs.optimize({
-    
-    mainConfigFile: './public/javascripts/require-config.js',
-        
-    baseUrl: './public/javascripts/edit-control/ace',
-    
-    dir: sOutputDir + '/javascripts/ace',
-                        
-    fileExclusionRegExp: /^ace.js$/, // Already built into workspace.js
-   
-    preserveLicenseComments: false,
-    
-    optimize: (oArgs.fast ? 'none': 'uglify')
-    
-}, handleError);
-
+// Copy Ace.
+ncp('./public/javascripts/edit-control/ace',
+    sOutputDir + '/javascripts/ace',
+    {
+        filter: /^(.(?!ace\.js))*$/ // Exclude ace.
+    }, handleError);
 
 ////////////// LESS COMPILATION /////////////////
 
 function complileLESS(sDirIn, sFilename)
 {
     // Paths.
-    var sDirOut  = sDirIn.replace('public/', sOutputDir + '/');
+    var sDirOut  = sDirIn.replace('public/', 'public_build' + '/');
     var sPathIn  = sDirIn  + '/' + sFilename;
     var sPathOut = sDirOut + '/' + sFilename.replace('.less', '.css');
     

@@ -17,7 +17,9 @@ oHelpers.extendObj(oHelpers,
                     oFS.rmdirSync(sCurPath); // Delete dir.
                 }
                 else
+                {
                     oFS.unlinkSync(sCurPath); // Delete file.
+                }
             });
         }
     }
