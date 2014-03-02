@@ -22,69 +22,11 @@ var sOutputDir = __dirname + '/public_build';
 // Delete output dir.
 console.log('Empty ouput dir');
 oHelpers.emptyDirSync(sOutputDir);
-console.log('Build static content');
 
-// OnError handler function
 function handleError(e)
 {
     if (e) throw e;
 }
-
-////////////// JS COMPILATION /////////////////
-
-function compileJS(sName, oExtraOptions)
-{
-    var oOptions = {
-        
-        mainConfigFile: './public/javascripts/require-config.js',
-            
-        baseUrl: './public/javascripts',
-            
-        name: sName,
-        
-        out: sOutputDir + '/javascripts/' + sName + '.js',
-        
-        preserveLicenseComments: false,
-        
-        optimize: (oArgs.fast ? 'none': 'uglify')
-        
-    };
-    oHelpers.extendObj(oOptions, oExtraOptions);
-    requirejs.optimize(oOptions, handleError);
-}
-
-// Init-Aapp.
-compileJS('init-app',
-{
-    include: ['lib/require', 'require-config']
-});
-
-// App Main.
-compileJS('app-main',
-{
-    exclude: ['init-app'],
-});
-
-// Preview.
-compileJS('preview-standalone',
-{
-    include: ['lib/require', 'require-config']
-});
-
-// Tests.
-compileJS('tests/index',
-{
-    include: ['lib/require', 'require-config']
-});
-
-// Copy Ace.
-ncp('./public/javascripts/edit-control/ace',
-    sOutputDir + '/javascripts/ace',
-    {
-        filter: /^(.(?!ace\.js))*$/ // Exclude ace.
-    }, handleError);
-
-////////////// LESS COMPILATION /////////////////
 
 function complileLESS(sDirIn, sFilename)
 {
@@ -115,40 +57,134 @@ function complileLESS(sDirIn, sFilename)
     });
 }
 
-complileLESS('./public/stylesheets', 'index.less');
-
-////////////// HTML COMPILATION /////////////////
-
-var aFileNames = ['index.html', 'tests.html', 'preview.html'];
-for(var i in aFileNames)
+function compileJS(sName, oExtraOptions, fnCallback)
 {
-    var sFileName = aFileNames[i];
-    r = /<!--START_DEV_ONLY-->(.|\n|\r)*<!--END_DEV_ONLY-->/g;
-    var sFileContent = String(oFS.readFileSync('./public/' + sFileName)).replace(r, '');
-    oFS.writeFileSync(sOutputDir + '/' + sFileName, sFileContent, {}, handleError);
+    var oOptions = {
+        
+        mainConfigFile: './public/javascripts/require-config.js',
+            
+        baseUrl: './public/javascripts',
+            
+        name: sName,
+        
+        out: sOutputDir + '/javascripts/' + sName + '.js',
+        
+        preserveLicenseComments: false,
+        
+        optimize: (oArgs.fast ? 'none': 'uglify')
+        
+    };
+    oHelpers.extendObj(oOptions, oExtraOptions);
+    requirejs.optimize(oOptions, fnCallback, handleError);
 }
 
-////////////// OTHER FILES /////////////////
-oFS.mkdir(sOutputDir + '/images', function(e){});
-oFS.mkdir(sOutputDir + '/stylesheets', function(e){});
-aFileNames = ['stylesheets/qunit.css', 'images/favicon.ico'];
-for(var i in aFileNames)
-{
-    var sFileName = aFileNames[i];
-    oFS.createReadStream('./public/' + sFileName).pipe(oFS.createWriteStream(sOutputDir + '/' + sFileName));
-    //var sFileContent = String(oFS.readFileSync('./public/' + sFileName));
-    //oFS.writeFileSync(sOutputDir + '/' + sFileName, sFileContent, {}, handleError);
-}
+var aTasks = [
 
-////////////////////// COMPRESS /////////////////////
-/*
-var ncp = require('ncp').ncp;
-var oZLib = require('zlib');
-oHelpers.emptyDirSync(__dirname + sOutputDir + '_compressed');
-ncp('./public_build', sOutputDir + '_compressed',
-{
-    transform: function(read, write)
+    function()
     {
-        read.pipe(new oZLib.Gzip()).pipe(write);
+        console.log('Compile init-app.js');
+        compileJS('init-app',
+        {
+            include: ['lib/require', 'require-config']
+        }, fnNext);
+    },
+    
+    function()
+    {
+        console.log('Compile app-main.js');
+        compileJS('app-main',
+        {
+            exclude: ['init-app'],
+        }, fnNext);        
+    },
+    
+    function()
+    {
+        console.log('Compile preview-standalone.js');
+        compileJS('preview-standalone',
+        {
+            include: ['lib/require', 'require-config']
+        }, fnNext);        
+    },
+    
+    function()
+    {
+        console.log('Compile tests/index.js');
+        compileJS('tests/index',
+        {
+            include: ['lib/require', 'require-config']
+        }, fnNext);        
+    },
+    
+    function()
+    {
+        console.log('Copy ace files');
+        ncp('./public/javascripts/edit-control/ace',
+            sOutputDir + '/javascripts/edit-control/ace',
+            {
+                filter: /^(.(?!ace\.js))*$/ // Exclude ace.
+            },
+            fnNext
+        );
+    },
+    
+    function()
+    {
+        console.log('Compile index.less');
+        complileLESS('./public/stylesheets', 'index.less');
+        fnNext();
+    },
+    
+    function()
+    {
+        console.log('Compile HTML files');
+        var aFileNames = ['index.html', 'tests.html', 'preview.html'];
+        for(var i in aFileNames)
+        {
+            var sFileName = aFileNames[i];
+            r = /<!--START_DEV_ONLY-->(.|\n|\r)*<!--END_DEV_ONLY-->/g;
+            var sFileContent = String(oFS.readFileSync('./public/' + sFileName)).replace(r, '');
+            oFS.writeFileSync(sOutputDir + '/' + sFileName, sFileContent, {}, handleError);
+        }
+        fnNext();
+    },
+    
+    function()
+    {
+        console.log('Copy other files');
+        
+        oFS.mkdir(sOutputDir + '/images', function(e){});
+        oFS.mkdir(sOutputDir + '/stylesheets', function(e){});
+        aFileNames = ['stylesheets/qunit.css', 'images/favicon.ico'];
+        for(var i in aFileNames)
+        {
+            var sFileName = aFileNames[i];
+            oFS.createReadStream('./public/' + sFileName).pipe(oFS.createWriteStream(sOutputDir + '/' + sFileName));
+        }
+        fnNext();
+    },
+    
+    // Compress
+    function()
+    {
+        /*
+        var oZLib = require('zlib');
+        oHelpers.emptyDirSync(__dirname + sOutputDir + '_compressed');
+        ncp('./public_build', sOutputDir + '_compressed',
+        {
+            transform: function(read, write)
+            {
+                read.pipe(new oZLib.Gzip()).pipe(write);
+            }
+        }, handleError);*/        
     }
-}, handleError);*/
+];
+
+// Run tasks
+var iCurTask = 0;
+function fnNext()
+{
+    iCurTask++;
+    aTasks[iCurTask]();
+}
+aTasks[iCurTask]();
