@@ -14,13 +14,8 @@ requirejs.config(
         {
             exports: 'ace'
         },
-
-        'lib/tooltip':
-        {
-            exports: '$'
-        },
         
-        'lib/jquery':
+        'lib/tooltip':
         {
             exports: '$'
         },
@@ -31,4 +26,12 @@ requirejs.config(
             exports: 'QUnit',
         }
     }
+});
+
+define('lib/jquery', function(require)
+{
+    if (window.$)
+        return $;
+    else
+        throw 'Error: jQuery should be loaded in the HTML.'
 });

@@ -71,10 +71,13 @@ function compileJS(sName, oExtraOptions, fnCallback)
         
         preserveLicenseComments: false,
         
-        optimize: (oArgs.fast ? 'none': 'uglify')
+        optimize: (oArgs.fast ? 'none': 'uglify'),
+        
+        exclude: []
         
     };
     oHelpers.extendObj(oOptions, oExtraOptions);
+    oOptions.exclude.push('lib/jquery');
     requirejs.optimize(oOptions, fnCallback, handleError);
 }
 
@@ -85,7 +88,7 @@ var aTasks = [
         console.log('Compile init-app.js');
         compileJS('init-app',
         {
-            include: ['lib/require', 'require-config']
+            include: ['require-config']
         }, fnNext);
     },
     
@@ -94,8 +97,8 @@ var aTasks = [
         console.log('Compile app-main.js');
         compileJS('app-main',
         {
-            exclude: ['init-app'],
-        }, fnNext);        
+            exclude: ['init-app','edit-control/ace/ace'],
+        }, fnNext);
     },
     
     function()
@@ -103,7 +106,7 @@ var aTasks = [
         console.log('Compile preview-standalone.js');
         compileJS('preview-standalone',
         {
-            include: ['lib/require', 'require-config']
+            include: ['require-config']
         }, fnNext);        
     },
     
@@ -112,17 +115,34 @@ var aTasks = [
         console.log('Compile tests/index.js');
         compileJS('tests/index',
         {
-            include: ['lib/require', 'require-config']
-        }, fnNext);        
+            include: ['require-config']
+        }, fnNext);
     },
     
     function()
     {
-        console.log('Copy ace files');
+        console.log('Copy ace JS files.');
+        oFS.mkdir(sOutputDir + '/javascripts/edit-control')
         ncp('./public/javascripts/edit-control/ace',
             sOutputDir + '/javascripts/edit-control/ace',
             {
-                filter: /^(.(?!ace\.js))*$/ // Exclude ace.
+            },
+            fnNext
+        );
+    },
+   
+    function()
+    {
+        console.log('Copy jquery.js and require.js');
+        ncp('./public/javascripts/lib',
+            sOutputDir + '/javascripts/lib',
+            {
+                filter: function(sFileName)
+                {
+                    return oHelpers.strEndsWith(sFileName, '\lib') ||
+                           oHelpers.strEndsWith(sFileName, 'jquery.js') ||
+                           oHelpers.strEndsWith(sFileName, 'require.js');
+                }
             },
             fnNext
         );

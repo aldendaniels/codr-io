@@ -62,7 +62,7 @@ define('init-app', function(require)
         {
             bDocReady = true;            
         });
-
+        
         // References global variables defined in index.html:
         //   - IS_NEW_DOCUMENT
         //   - IS_SNAPSHOT
@@ -103,6 +103,26 @@ window.addEventListener('load', function()
         });
     }, 0);
 });
+
+// Load main app scripts for new documents.
+// When opening an existing document, we load these synchronously via
+// script tags in the HTML to reduce latency.
+if (IS_NEW_DOCUMENT)
+{
+    require(['edit-control/ace/ace'], function(){});
+}
+else
+{
+    // Shim to keep require.js from trying to load ace since
+    // we loaded it manually.
+    define('edit-control/ace/ace', function(require)
+    {
+        if (window.ace)
+            return ace;
+        else
+            throw 'Error: Ace should be loaded in the HTML.'
+    });
+}
 
 // Start App.
 require(['init-app'], function(fnInitApp)
