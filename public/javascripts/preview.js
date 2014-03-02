@@ -124,6 +124,7 @@ define('preview', function(require)
                         '                font-size: 2.5em;',
                         '                color: #aaa;',
                         '                margin-bottom: 0;',
+                        '                font-weight: normal',
                         '            }',
                         '            ',
                         '            p',
