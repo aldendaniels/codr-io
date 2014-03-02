@@ -67,8 +67,12 @@ define(function(require)
         
         send: function(sEventType, oEventData)
         {
+            // Broadcast send notification.
+            var oData = { sType: sEventType, oData: oEventData || null };
+            this._dispatchNoDelay('message', oData, true /* bIsMsgSend */);
+            
             // Serialize message.
-            var sMessage = oHelpers.toJSON({ sType: sEventType, oData: oEventData || null });
+            var sMessage = oHelpers.toJSON(oData);
             
             // Send message.
             if (fg_iSendMsDelay > 0)
@@ -87,10 +91,7 @@ define(function(require)
         _send: function(sMessage)
         {
             if (this._bIsOpen)
-            {
                 this._oSocket.send(sMessage);
-                this._dispatchNoDelay('message', oHelpers.fromJSON(sMessage), true /* bIsMsgSend */);
-            }
             else
                 this._aOutbox.push(sMessage);
         },

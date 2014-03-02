@@ -7,7 +7,7 @@ define('preview', function(require)
     return (
     {
         _ePreview: document.getElementById('html-preview'),
-        _bAutoRefresh: false,
+        _bAutoRefresh: true,
         _oSocket: null,
         _bIsStandalone: true,
         _bIsDirty: true, // Start as dirty, since we need initial content.
