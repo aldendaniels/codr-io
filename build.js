@@ -28,7 +28,7 @@ function handleError(e)
     if (e) throw e;
 }
 
-function complileLESS(sDirIn, sFilename)
+function complileLESS(sDirIn, sFilename, fnCallback)
 {
     // Paths.
     var sDirOut  = sDirIn.replace('public/', 'public_build' + '/');
@@ -49,11 +49,14 @@ function complileLESS(sDirIn, sFilename)
         handleError(e);
         
         // Create the output dir.
-        mkdirp(sDirOut, handleError);
-        
-        // Write CSS.
-        var sCSS = oTree.toCSS({compress: true});
-        oFS.writeFileSync(sPathOut, sCSS, {}, handleError);
+        mkdirp(sDirOut, function(sError)
+        {
+            // Write CSS.
+            handleError(sError);
+            var sCSS = oTree.toCSS({compress: true});
+            oFS.writeFileSync(sPathOut, sCSS, {}, handleError);
+            fnCallback();
+        });
     });
 }
 
@@ -148,8 +151,7 @@ var aTasks = [
     function()
     {
         console.log('Compile index.less');
-        complileLESS('./public/stylesheets', 'index.less');
-        fnNext();
+        complileLESS('./public/stylesheets', 'index.less', fnNext);
     },
     
     function()
