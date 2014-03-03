@@ -405,17 +405,55 @@
         <script type="text/javascript" defer src="/javascripts/lib/jquery.js"></script>
         <script type="text/javascript" defer src="/javascripts/init-app.js"></script>
         
-        <!-- Main App Scrips -->
-        <!-- For new documents, these are loaded async by init-app.js via require.js -->
+        <!-- Main App Scrips (Loaded aSync) -->
         <script type="text/javascript">
-        var s1  = document.createElement('script');
-        var s2  = document.createElement('script');
-        s1.type = 'text/javascript';
-        s2.type = 'text/javascript';
-        s1.src  = "/javascripts/edit-control/ace/ace.js";
-        s2.src  = "/javascripts/app-main.js"
-        document.body.appendChild(s1);
-        document.body.appendChild(s2);
+        var IS_EDITOR_READY = false;
+        var EDITOR_READY_HANDlER = null;
+        (function()
+        {
+            function createScript(sUrl, fnOnLoad)
+            {
+                var e  = document.createElement('script');
+                e.type = 'text/javascript';
+                e.src  = sUrl
+                e.addEventListener('load', fnOnLoad);
+                return e;
+            }
+            
+            var i = 0;
+            function onScriptLoad()
+            {
+                i++;
+                if (i == 2)
+                {
+                    IS_EDITOR_READY = true;
+                    if (EDITOR_READY_HANDlER)
+                        EDITOR_READY_HANDlER();
+                }
+            }
+            
+            var eScript1 = createScript('/javascripts/edit-control/ace/ace.js', onScriptLoad);
+            var eScript2 = createScript('/javascripts/app-main.js', onScriptLoad);
+            
+            function appendScripts()
+            {
+                document.body.appendChild(eScript1);
+                document.body.appendChild(eScript2);                                    
+            }
+            
+            
+            if (IS_NEW_DOCUMENT)
+            {
+                window.addEventListener('load', function()
+                {
+                    window.setTimeout(appendScripts, 1);
+                });
+            }
+            else
+            {
+                appendScripts();
+            }
+        })();
         </script>
     </body>
 </html>

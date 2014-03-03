@@ -4,8 +4,6 @@ define('init-app', function(require)
     // Requires jQuery.
     var oHelpers = require('helpers/helpers-web'),
         oModes   = require('edit-control/modes');
-    
-    var bDocReady = false;
 
     function loadModeChooser(fnOnModeSelect)
     {
@@ -49,21 +47,15 @@ define('init-app', function(require)
                 }
             });                
         };
-        if (this._bDocReady)
+        
+        if (IS_EDITOR_READY)
             fnLoadWorkspace()
         else
-            $(document).ready(fnLoadWorkspace);
+            EDITOR_READY_HANDlER = fnLoadWorkspace;
     }
     
     return function()
     {        
-        // Store DocReady State.
-        $(document).ready(function()
-        {
-            bDocReady = true;
-            console.log(ace);
-        });
-        
         // References global variables defined in index.html:
         //   - IS_NEW_DOCUMENT
         //   - IS_SNAPSHOT
