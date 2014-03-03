@@ -2,7 +2,6 @@ var oHelpers = require('./helpers-node');
 var oFS = require('fs');
 var oLESS = require('less');
 var requirejs = require('requirejs');
-var mkdirp = require('mkdirp');
 var ncp = require('ncp').ncp;
 
 // Get arguments.
@@ -46,17 +45,10 @@ function complileLESS(sDirIn, sFilename, fnCallback)
     });
     oParser.parse(sStr, function(e, oTree)
     {
-        handleError(e);
-        
-        // Create the output dir.
-        mkdirp(sDirOut, function(sError)
-        {
-            // Write CSS.
-            handleError(sError);
-            var sCSS = oTree.toCSS({compress: true});
-            oFS.writeFileSync(sPathOut, sCSS, {}, handleError);
-            fnCallback();
-        });
+        handleError(e);        
+        var sCSS = oTree.toCSS({compress: true});
+        oFS.writeFileSync(sPathOut, sCSS, {}, handleError);
+        fnCallback();
     });
 }
 
@@ -151,6 +143,7 @@ var aTasks = [
     function()
     {
         console.log('Compile index.less');
+        oFS.mkdirSync(sOutputDir + '/stylesheets', function(e){});
         complileLESS('./public/stylesheets', 'index.less', fnNext);
     },
     
@@ -172,8 +165,7 @@ var aTasks = [
     {
         console.log('Copy other files');
         
-        oFS.mkdir(sOutputDir + '/images', function(e){});
-        oFS.mkdir(sOutputDir + '/stylesheets', function(e){});
+        oFS.mkdirSync(sOutputDir + '/images', function(e){});
         aFileNames = ['stylesheets/qunit.css', 'images/favicon.ico'];
         for(var i in aFileNames)
         {
