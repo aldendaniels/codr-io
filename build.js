@@ -181,19 +181,31 @@ var aTasks = [
         fnNext();
     },
     
-    // Compress
     function()
     {
-        /*
+        console.log('Compress');
         var oZLib = require('zlib');
-        oHelpers.emptyDirSync(__dirname + sOutputDir + '_compressed');
         ncp('./public_build', sOutputDir + '_compressed',
         {
             transform: function(read, write)
             {
                 read.pipe(new oZLib.Gzip()).pipe(write);
             }
-        }, handleError);*/        
+        }, fnNext);
+    },
+    
+    function()
+    {
+        console.log('Replace uncompressed files');
+        oHelpers.emptyDirSync(sOutputDir);
+        oFS.rmdirSync(sOutputDir);
+        
+        // Timeout avoids collision with rmdirSync. Otherwise
+        // we get occasional EPERM errors (at least on Windows).
+        setTimeout(function() 
+        {
+            oFS.renameSync(sOutputDir + '_compressed', sOutputDir);
+        }, 10);
     }
 ];
 
@@ -202,6 +214,7 @@ var iCurTask = 0;
 function fnNext()
 {
     iCurTask++;
-    aTasks[iCurTask]();
+    if (iCurTask < aTasks.length)
+        aTasks[iCurTask]();
 }
 aTasks[iCurTask]();

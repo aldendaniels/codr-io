@@ -58,23 +58,31 @@ oApp.configure(function()
         oApp.use(oExpress.static(sLessOutputDir));
     }
     
-    // Server static content.
+    // Serve with gzip headers in production.
+    // The build script should gzip all static files.
+    if (g_oConfig.bIsProd)
+    {
+        oApp.use(function(req, res, next)
+        {
+            res.set("Content-Encoding", "gzip");
+            next();
+        });        
+    }
+    
+    // Serve static content.
     oApp.use(oExpress.static(sPublicDir));        
 
-    /* Save static index.html */
-    oApp.get('^/$', function(req, res)
-    {
-        res.sendfile(sPublicDir + '/index.html');
-    });
-
+    // Serve tests.
     oApp.get('^/tests/?$', function(req, res) { res.sendfile(sPublicDir + '/tests.html'); });
 
+    // Ajax entrypoint to load document. Used by snapshots since
+    // snapshots don't have a websocket connection to the server.
     oApp.get('^/ajax/:DocumentID([a-z0-9]+)/?$', function(req, res) {
-
+        
         function send(oDocument)
         {
             res.set('Content-Type', 'text/json');
-
+            
             if (oDocument.get('bIsSnapshot'))
                 res.send(oDocument.toJSON());
             else
@@ -83,7 +91,7 @@ oApp.configure(function()
                 res.send(oHelpers.toJSON({'sError': sError}));
             }
         }
-
+        
         var sDocumentID = req.params['DocumentID'];
         if (sDocumentID in g_oEditSessions)
         {
