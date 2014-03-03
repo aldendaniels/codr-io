@@ -1,8 +1,8 @@
 define(function(require)
 {
     // Dependencies
-    var $        = require('lib/jquery'),
-        oHelpers = require('./helpers-web-no-jquery');
+    // Requires jQuery.
+    var oHelpers = require('./helpers-web-no-jquery');
         
     oHelpers.extendObj(oHelpers,
     {

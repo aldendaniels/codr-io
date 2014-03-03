@@ -408,7 +408,14 @@
         <!-- Main App Scrips -->
         <!-- For new documents, these are loaded async by init-app.js via require.js -->
         <script type="text/javascript">        
-        if (!IS_NEW_DOCUMENT)
+        if (IS_NEW_DOCUMENT)
+        {
+            document.write(
+                '\<script type="text/javascript" defer src="/javascripts/edit-control/ace/ace.js"\>\</script\>' +
+                '\<script type="text/javascript" defer src="/javascripts/app-main.js"\>\</script\>'
+            );
+        }
+        else
         {
             document.write(
                 '\<script type="text/javascript" src="/javascripts/edit-control/ace/ace.js"\>\</script\>' +

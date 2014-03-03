@@ -1,8 +1,8 @@
 define(function(require)
 {
     // Dependencies.
-    var $            = require('lib/jquery'),
-        oHelpers     = require('helpers/helpers-web'),
+    // Requires jQuery.
+    var oHelpers     = require('helpers/helpers-web'),
         oUIDispatch  = require('helpers/ui-dispatch'),
         EditControl  = require('edit-control/edit-control'),
         oOT          = require('OT');

@@ -73,11 +73,8 @@ function compileJS(sName, oExtraOptions, fnCallback)
         
         optimize: (oArgs.fast ? 'none': 'uglify'),
         
-        exclude: []
-        
     };
     oHelpers.extendObj(oOptions, oExtraOptions);
-    oOptions.exclude.push('lib/jquery');
     requirejs.optimize(oOptions, fnCallback, handleError);
 }
 
@@ -97,7 +94,7 @@ var aTasks = [
         console.log('Compile app-main.js');
         compileJS('app-main',
         {
-            exclude: ['init-app','edit-control/ace/ace'],
+            exclude: ['init-app'],
         }, fnNext);
     },
     

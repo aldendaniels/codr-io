@@ -1,8 +1,8 @@
 define('app-main', function(require)
 {
     // Dependencies.
-    var $                            = require('lib/jquery'),
-        oHelpers                     = require('helpers/helpers-web'),
+    // Requires jQuery.
+    var oHelpers                     = require('helpers/helpers-web'),
         Socket                       = require('helpers/socket'),
         oUIDispatch                  = require('helpers/ui-dispatch'),
         Dropdown                     = require('helpers/dropdown')
