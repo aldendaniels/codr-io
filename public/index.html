@@ -396,32 +396,26 @@
             }
         </script>
         
-        <script type="text/javascript" src="/javascripts/lib/require.js"></script>
+        <script type="text/javascript" defer src="/javascripts/lib/require.js"></script>
         <!--START_DEV_ONLY-->
-        <script type="text/javascript" src="/javascripts/require-config.js"></script>
+        <script type="text/javascript" defer src="/javascripts/require-config.js"></script>
         <!--END_DEV_ONLY-->
         
         <!-- Init App Scripts -->
-        <script type="text/javascript" src="/javascripts/lib/jquery.js"></script>
-        <script type="text/javascript" src="/javascripts/init-app.js"></script>
+        <script type="text/javascript" defer src="/javascripts/lib/jquery.js"></script>
+        <script type="text/javascript" defer src="/javascripts/init-app.js"></script>
         
         <!-- Main App Scrips -->
         <!-- For new documents, these are loaded async by init-app.js via require.js -->
-        <script type="text/javascript">        
-        if (IS_NEW_DOCUMENT)
-        {
-            document.write(
-                '\<script type="text/javascript" defer src="/javascripts/edit-control/ace/ace.js"\>\</script\>' +
-                '\<script type="text/javascript" defer src="/javascripts/app-main.js"\>\</script\>'
-            );
-        }
-        else
-        {
-            document.write(
-                '\<script type="text/javascript" src="/javascripts/edit-control/ace/ace.js"\>\</script\>' +
-                '\<script type="text/javascript" src="/javascripts/app-main.js"\>\</script\>'
-            );
-        }
+        <script type="text/javascript">
+        var s1  = document.createElement('script');
+        var s2  = document.createElement('script');
+        s1.type = 'text/javascript';
+        s2.type = 'text/javascript';
+        s1.src  = "/javascripts/edit-control/ace/ace.js";
+        s2.src  = "/javascripts/app-main.js"
+        document.body.appendChild(s1);
+        document.body.appendChild(s2);
         </script>
     </body>
 </html>

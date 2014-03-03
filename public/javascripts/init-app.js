@@ -60,7 +60,8 @@ define('init-app', function(require)
         // Store DocReady State.
         $(document).ready(function()
         {
-            bDocReady = true;            
+            bDocReady = true;
+            console.log(ace);
         });
         
         // References global variables defined in index.html:
