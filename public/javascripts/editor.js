@@ -214,7 +214,7 @@ define(function(require)
                 },
                 aLines: aInsertLines
             };
-            this._applyDelta(oInsertDelta);
+            this._applyDelta(oInsertDelta, true);
             this._onDocumentChange([oInsertDelta]);
             this._moveLocalCursorToDeltaEnd(oInsertDelta);
         },
@@ -250,8 +250,8 @@ define(function(require)
                     },
                     aLines: [sLine]
                 }
-                this._applyDelta(oDeleteDelta);
-                this._applyDelta(oInsertDelta);
+                this._applyDelta(oDeleteDelta, true);
+                this._applyDelta(oInsertDelta, true);
                 this._onDocumentChange([oDeleteDelta, oInsertDelta]);                
             }
         },
@@ -290,10 +290,10 @@ define(function(require)
                     // Revert pending changes.
                     var aPendingDocChanges = this._getPendingDocChanges(true /*remove*/);
                     for(var i = aPendingDocChanges.length - 1; i >= 0; i--)
-                        this._applyDelta(this._getReversedDelta(aPendingDocChanges[i].get('oDelta')));
+                        this._applyDelta(this._getReversedDelta(aPendingDocChanges[i].get('oDelta')), true);
                     
                     // Apply new delta.
-                    this._applyDelta(oAction.oData.oDelta, oAction.oData.sClientID);
+                    this._applyDelta(oAction.oData.oDelta, false, oAction.oData.sClientID);
                     this._aPastDocChanges.push(new DocChange(
                     {
                         bIsMe: false,
@@ -306,7 +306,7 @@ define(function(require)
                         var oPendingDocChange = aPendingDocChanges[i];
                         var oDelta = oPendingDocChange.get('oDelta');
                         oOT.transformDelta(oAction.oData.oDelta, oDelta);
-                        this._applyDelta(oDelta);
+                        this._applyDelta(oDelta, true);
                         this._aPastDocChanges.push(oPendingDocChange);
                     }
                     break;
@@ -488,7 +488,7 @@ define(function(require)
                 
                 // Apply undo delta.
                 aReverseDeltas.push(oReverseDelta);
-                this._applyDelta(oReverseDelta);
+                this._applyDelta(oReverseDelta, true);
                 oDocChange.set('bHasBeenUndone', true);
                 this._moveLocalCursorToDeltaEnd(oReverseDelta);
             }
@@ -541,7 +541,7 @@ define(function(require)
                 
                 // Apply redo delta.
                 aReverseDeltas.push(oReverseDelta);
-                this._applyDelta(oReverseDelta);
+                this._applyDelta(oReverseDelta, true);
                 oDocChange.set('bHasBeenRedone', true);
                 this._moveLocalCursorToDeltaEnd(oReverseDelta);
             }
@@ -549,15 +549,15 @@ define(function(require)
             this._onDocumentChange(aReverseDeltas, 'redo');
         },
         
-        _transformRemoteSelections: function(oDelta, sOptionalClientID)
+        _transformRemoteSelections: function(oDelta, sOptionalRemoteClientID)
         {
             for (var sClientID in this._oRemoteClients)
             {
                 var oClient = this._oRemoteClients[sClientID];
                 if (oClient.oLastSelRange)
                 {
-                    var bPushEqualPoints = (sClientID == sOptionalClientID); // Always push a client's own selection.
-                    oOT.transformRange(oDelta, oClient.oLastSelRange, sClientID == sOptionalClientID);
+                    var bPushEqualPoints = (sClientID == sOptionalRemoteClientID); // Always push a client's own selection.
+                    oOT.transformRange(oDelta, oClient.oLastSelRange, sClientID == sOptionalRemoteClientID);
                     this._refreshRemoteSelection(oClient);
                 }
             }
@@ -581,8 +581,12 @@ define(function(require)
             this._oEditControl.setSelectionRange(oSelRange);
         },
         
-        _applyDelta: function(oDelta, sOptionalClientID)
+        _applyDelta: function(oDelta, bIsMe, sOptionalRemoteClientID)
         {
+            // Validate params.
+            oHelpers.assert(bIsMe  ||  sOptionalRemoteClientID, 'Invalid param: It\'s got to be me or someone.');
+            oHelpers.assert(!bIsMe || !sOptionalRemoteClientID, 'Invalid param: It can\'t be me AND someone else.');
+            
             // Save local selection range.
             var oSelRange = this._oEditControl.getSelectionRange();
             
@@ -601,11 +605,11 @@ define(function(require)
             this._oEditControl.applyDelta(oDelta);
             
             // Transform local selection.
-            oOT.transformRange(oDelta, oSelRange, true /* Push equal points */);
+            oOT.transformRange(oDelta, oSelRange, bIsMe /* Push equal points */);
             this._oEditControl.setSelectionRange(oSelRange);
             
             // Transform remote selections.
-            this._transformRemoteSelections(oDelta, sOptionalClientID);    
+            this._transformRemoteSelections(oDelta, sOptionalRemoteClientID);    
         },
         
         _getReversedDelta: function(oDelta)
