@@ -601,7 +601,7 @@ define(function(require)
             this._oEditControl.applyDelta(oDelta);
             
             // Transform local selection.
-            oOT.transformRange(oDelta, oSelRange);
+            oOT.transformRange(oDelta, oSelRange, true /* Push equal points */);
             this._oEditControl.setSelectionRange(oSelRange);
             
             // Transform remote selections.
