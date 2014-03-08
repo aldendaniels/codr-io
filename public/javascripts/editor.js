@@ -400,8 +400,6 @@ define(function(require)
             for (var i = 1; i < aDeltas.length; i++)
                 this._mergeContiguousDeltas(aDeltas[i], oDelta);
             
-            console.log(oDelta);
-            
             // Handle change.
             this._oSocket.send('docChange',
             {
