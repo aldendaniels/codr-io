@@ -11,6 +11,20 @@ define(function(require)
     
     return (
     {
+        getTransformedDelta: function(oDelta1, oDelta2)
+        {
+            oDelta2 = oHelpers.deepCloneObj(oDelta2, true);
+            this.transformDelta(oDelta1, oDelta2);
+            return oDelta2;
+        },
+        
+        getTransformedRange: function(oDelta, oRange, bPushEqualPoints)
+        {
+            oRange = oHelpers.deepCloneObj(oRange, true);
+            this.transformRange(oDelta, oRange, bPushEqualPoints);
+            return oRange;
+        },
+        
         transformDelta: function(oDelta1, oDelta2)
         {
             // Quick access.
@@ -38,15 +52,19 @@ define(function(require)
                     var oIntersectEndPoint   = this._pointsInOrder(oRange1.oEnd,   oRange2.oEnd)   ? oRange1.oEnd   : oRange2.oEnd;   // Min end point
                     
                     // Munger oDelta2.aLines to reflect the intersecting changes
-                    fnApplyDelta(oDelta2.aLines,
+                    if (this._pointsInOrder(oIntersectStartPoint, oIntersectEndPoint))
                     {
-                        sAction: 'delete',
-                        oRange:
-                        {           // Make points relative to delta2's aLines.
-                            oStart: this._getDecrementedPoint(oRange2.oStart, oIntersectStartPoint),
-                            oEnd:   this._getDecrementedPoint(oRange2.oStart, oIntersectEndPoint)
-                        }
-                    });                    
+                        fnApplyDelta(oDelta2.aLines,
+                        {
+                            sAction: 'delete',
+                            oRange:
+                            {           // Make points relative to delta2's aLines.
+                                oStart: this._getDecrementedPoint(oRange2.oStart, oIntersectStartPoint),
+                                oEnd:   this._getDecrementedPoint(oRange2.oStart, oIntersectEndPoint)
+                            }
+                        });                    
+                        
+                    }
                 }
                 else
                 {
@@ -71,7 +89,7 @@ define(function(require)
                 this.transformRange(oDelta1, oRange2);
             }
         },
-        
+                
         transformRange: function(oDelta, oRange, bPushEqualPoints)
         {
             // Note: For collapsed selections, we treat the both points as the "End of Range".

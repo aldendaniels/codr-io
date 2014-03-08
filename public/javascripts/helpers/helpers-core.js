@@ -171,9 +171,12 @@ define(function()
                 oObj1[sKey] = oObj2[sKey];
         },
         
-        deepCloneObj: function(oObj)
+        deepCloneObj: function(oObj, bNoDates)
         {
-            return this.fromJSON(this.toJSON(oObj));
+            if (bNoDates)
+                return JSON.parse(JSON.stringify(oObj));
+            else
+                return this.fromJSON(this.toJSON(oObj));
         },
         
         cloneObj: function(oObj)
