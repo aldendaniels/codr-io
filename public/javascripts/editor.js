@@ -27,7 +27,8 @@ define(function(require)
                 
                 // Undo & Redo (Applies only to my changes)
                 sType:                'normal', // normal | undo | redo
-                bMergeWithPrevChange: false,    // Applies to: normal | undo | redo
+                bGroupUndo:           false,    // Applies to: normal | undo | redo
+                sGroupID:             '',
                 bHasBeenUndone:       false,    // Applies to: normal |      | redo
                 bHasBeenRedone:       false     // Applies to: undo 
             };
@@ -392,134 +393,176 @@ define(function(require)
         
         _onDocumentChange: function(aDeltas, sType)
         {
-            // Default type.
-            sType = sType || 'normal';
-            
-            // Merge deltas
-            oDelta = aDeltas[0];
-            for (var i = 1; i < aDeltas.length; i++)
-                this._mergeContiguousDeltas(aDeltas[i], oDelta);
-            
-            // Handle change.
-            this._oSocket.send('docChange',
+            var bGroupUndo = aDeltas.length > 1;
+            var sGroupID = String(Math.round(Math.random() * 10000000000));
+            for (var i = 0; i < aDeltas.length; i++)
             {
-                oDelta: oDelta,
-                iState: this._iServerState
-            });
-            this._transformRemoteSelections(oDelta);
-            
-            // Record change.
-            this._aPastDocChanges.push(new DocChange(
-            {
-                bIsMe:  true,
-                oDelta: oDelta,
-                sType:  sType
-            }));
-            this._iNumPendingActions++;
-            
-            // Transform locally stored range.
-            // If we didn't do this, _onSelectionChange would unnecessarily
-            // send selection change events after normal actions.
-            oOT.transformRange(oDelta, this._oCurSelectionRange, true);
+                // Handle change.
+                var oDelta = aDeltas[i];
+                this._oSocket.send('docChange',
+                {
+                    oDelta: oDelta,
+                    iState: this._iServerState
+                });
+                this._transformRemoteSelections(oDelta);
+                
+                // Record change.
+                this._aPastDocChanges.push(new DocChange(
+                {
+                    bIsMe:  true,
+                    oDelta: oDelta,
+                    sType:  sType || 'normal',
+                    bGroupUndo: bGroupUndo,
+                    sGroupID: sGroupID
+                }));
+                this._iNumPendingActions++;
+                
+                // Transform locally stored range.
+                // If we didn't do this, _onSelectionChange would unnecessarily
+                // send selection change events after normal actions.
+                oOT.transformRange(oDelta, this._oCurSelectionRange, true);
+            }            
         },
         
         _onUndo: function()
         {
             // Create reverse delta.
-            var oUndoDelta = null;
-            var oLastReversedDelta = null;
+            var aUndoDeltas = [];
             var oLastDocChange = null;
             for (var i = this._aPastDocChanges.length - 1; i >=0; i--)
             {
+                // Skip.
                 var oDocChange = this._aPastDocChanges[i];
-                if ( oDocChange.get('bIsMe') && oDocChange.get('sType') != 'undo' && !oDocChange.get('bHasBeenUndone'))
+                if ( !oDocChange.get('bIsMe') || oDocChange.get('sType') == 'undo' || oDocChange.get('bHasBeenUndone'))
+                    continue;
+                    
+                // Group undos should be undone by themselves.
+                if (oLastDocChange && (
+                    oDocChange.get('bGroupUndo') != oLastDocChange.get('bGroupUndo') || (
+                    oDocChange.get('bGroupUndo') &&
+                    oDocChange.get('sGroupID') != oLastDocChange.get('sGroupID'))))
                 {
-                    // 1. Always undo "redo" deltas by themselves.
-                    // 2. Always undo multi-character deltas by themselves.
-                    // 3. Never undo an 'insert' delta together with a 'delete' delta.
-                    if (oLastDocChange && (
-                        oLastDocChange.get('sType') == 'redo' ||
-                            oDocChange.get('sType') == 'redo' ||
-                        oLastDocChange.get('oDelta').sAction != oDocChange.get('oDelta').sAction ||
-                        oLastDocChange.get('oDelta').aLines.length    > 1 ||
-                            oDocChange.get('oDelta').aLines.length    > 1 ||
-                        oLastDocChange.get('oDelta').aLines[0].length > 1 || 
-                            oDocChange.get('oDelta').aLines[0].length > 1
-                    ))
-                    {
-                        break;
-                    }
-                    
-                    // Update reversed delta via OT.
-                    var oReversedDelta = this._getReversedDelta(oDocChange.get('oDelta'));
-                    for (var _i = i + 1; _i < this._aPastDocChanges.length; _i++)
-                    {
-                        var oOTDocChange = this._aPastDocChanges[_i];
-                        if (!oOTDocChange.get('bIsMe')) // TODO: Is this right?
-                            oOT.transformDelta(oOTDocChange.get('oDelta'), oReversedDelta);
-                    }
-                    
-                    // Don't undo non-continguous changes together.
-                    if (oLastReversedDelta && (
-                        oReversedDelta.oRange.oStart.iRow != oLastReversedDelta.oRange.oStart.iRow &&
-                        oReversedDelta.oRange.oStart.iCol != oLastReversedDelta.oRange.oEnd.iCol &&
-                        oReversedDelta.oRange.oEnd.iCol   != oLastReversedDelta.oRange.oStart.iCol))
-                    {
-                        break;
-                    }
-                    
-                    // Update merged reverse delta.
-                    if (oUndoDelta)
-                        this._mergeContiguousDeltas(oReversedDelta, oUndoDelta);
-                    else
-                        oUndoDelta = oReversedDelta;
-                    
-                    // Mark undone.
-                    oLastDocChange = oDocChange;
-                    oLastReversedDelta = oReversedDelta;
-                    oDocChange.set('bHasBeenUndone', true);
+                    break;
                 }
+                
+                // 1. Always undo "redo" deltas by themselves.
+                // 2. Always undo multi-character deltas by themselves.
+                // 3. Never undo an 'insert' delta together with a 'delete' delta.
+                if (oLastDocChange && !oDocChange.get('bGroupUndo') && (
+                    oLastDocChange.get('sType') == 'redo' ||
+                        oDocChange.get('sType') == 'redo' ||
+                    oLastDocChange.get('oDelta').sAction != oDocChange.get('oDelta').sAction ||
+                    oLastDocChange.get('oDelta').aLines.length    > 1 ||
+                        oDocChange.get('oDelta').aLines.length    > 1 ||
+                    oLastDocChange.get('oDelta').aLines[0].length > 1 || 
+                        oDocChange.get('oDelta').aLines[0].length > 1
+                ))
+                {
+                    break;
+                }
+                
+                // Update reversed delta via OT.
+                var oReversedDelta = this._getReversedDelta(oDocChange.get('oDelta'));
+                for (var _i = i + 1; _i < this._aPastDocChanges.length; _i++)
+                {
+                    var oOTDocChange = this._aPastDocChanges[_i];
+                    oOT.transformDelta(oOTDocChange.get('oDelta'), oReversedDelta, oOTDocChange.get('bIsMe'));
+                }
+                for (_i in aUndoDeltas)
+                    oOT.transformDelta(aUndoDeltas[_i], oReversedDelta, true);
+                
+                // Undo?
+                if (oDocChange.get('bGroupUndo'))
+                {
+                    aUndoDeltas.push(oReversedDelta);
+                }
+                else
+                {
+                    var oUndoDelta = aUndoDeltas.length ? aUndoDeltas[0] : null;
+                    if (oUndoDelta)
+                    {
+                        // Undo consecutive actions.
+                        // Merge for efficiency.
+                        if (oHelpers.objDeepEquals(oReversedDelta.oRange.oEnd, oUndoDelta.oRange.oStart))
+                        {
+                            oUndoDelta.oRange.oStart.iCol = oReversedDelta.oRange.oStart.iCol;
+                            oUndoDelta.aLines[0] = oReversedDelta.aLines[0] + oUndoDelta.aLines[0];
+                        }
+                        else if(oHelpers.objDeepEquals(oReversedDelta.oRange.oStart, oUndoDelta.oRange.oEnd))
+                        {
+                            oUndoDelta.oRange.oEnd.iCol = oReversedDelta.oRange.oEnd.iCol;
+                            oUndoDelta.aLines[0] += oReversedDelta.aLines[0];
+                        }
+                        else
+                        {
+                            break; // Non-contiguous delta.
+                        }
+                    }
+                    else
+                    {
+                        // Always undo most recent action.
+                        aUndoDeltas.push(oReversedDelta);
+                    }
+                }
+                
+                // Mark undone.
+                oLastDocChange = oDocChange;
+                oDocChange.set('bHasBeenUndone', true);
             }
             
-            // Apply undo delta.
-            if (oUndoDelta)
+            // Apply undo deltas.
+            if (aUndoDeltas.length)
             {
-                this._applyDelta(oUndoDelta, true);
-                this._moveLocalCursorToDeltaEnd(oUndoDelta);
-                this._onDocumentChange([oUndoDelta], 'undo');
+                for (i in aUndoDeltas)
+                    this._applyDelta(aUndoDeltas[i], true);
+                this._moveLocalCursorToDeltaEnd(aUndoDeltas[aUndoDeltas.length - 1]);
+                this._onDocumentChange(aUndoDeltas, 'undo');
             }
         },
         
         _onRedo: function()
         {
-            // Get change to redo.
-            var oRedoDelta = null;
-            for (var iPastDocChange = this._aPastDocChanges.length - 1; iPastDocChange >=0; iPastDocChange--)
-            {    
-                var oDocChange = this._aPastDocChanges[iPastDocChange];
-                if (oDocChange.get('bIsMe') && oDocChange.get('sType') != 'redo' && !oDocChange.get('bHasBeenRedone'))
-                {
-                    if (oDocChange.get('sType') == 'undo')
-                    {
-                        oRedoDelta = this._getReversedDelta(oDocChange.get('oDelta'));
-                        for (var i = iPastDocChange + 1; i < this._aPastDocChanges.length; i++)
-                        {
-                            var oOTDocChange = this._aPastDocChanges[i];
-                            if (!oOTDocChange.get('bIsMe')) // TODO: Is this right?
-                                oOT.transformDelta(oOTDocChange.get('oDelta'), oRedoDelta);
-                        }                        
-                        oDocChange.set('bHasBeenRedone', true);
-                    }
+            // Get changes to redo.
+            var aRedoDeltas = [];
+            var oLastDocChange = null;
+            for (var i = this._aPastDocChanges.length - 1; i >=0; i--)
+            {
+                // Skip.
+                var oDocChange = this._aPastDocChanges[i];
+                if (!oDocChange.get('bIsMe') || oDocChange.get('sType') == 'redo' || oDocChange.get('bHasBeenRedone'))
+                    continue;
+                
+                // Stop when nothing left to redo.
+                if (oDocChange.get('sType') == 'normal')
                     break;
+                
+                // Redo one group only.
+                if (oLastDocChange && oDocChange.get('sGroupID') != oLastDocChange.get('sGroupID'))
+                    break;
+                
+                // Redo.
+                oReversedDelta = this._getReversedDelta(oDocChange.get('oDelta'));
+                for (var _i = i + 1; _i < this._aPastDocChanges.length; _i++)
+                {
+                    var oOTDocChange = this._aPastDocChanges[_i];
+                    oOT.transformDelta(oOTDocChange.get('oDelta'), oReversedDelta, oOTDocChange.get('bIsMe'));
                 }
+                for (var _i in aRedoDeltas)
+                    oOT.transformDelta(aRedoDeltas[_i], oReversedDelta, true);
+                
+                // Mark redone.
+                oDocChange.set('bHasBeenRedone', true);
+                aRedoDeltas.push(oReversedDelta);
+                oLastDocChange = oDocChange;
             }
             
             // Apply redo delta.
-            if (oRedoDelta)
+            if (aRedoDeltas.length)
             {
-                this._applyDelta(oRedoDelta, true);
-                this._moveLocalCursorToDeltaEnd(oRedoDelta);
-                this._onDocumentChange([oRedoDelta], 'redo');
+                for (var i in aRedoDeltas)
+                    this._applyDelta(aRedoDeltas[i], true);
+                this._moveLocalCursorToDeltaEnd(aRedoDeltas[aRedoDeltas.length - 1]);
+                this._onDocumentChange(aRedoDeltas, 'redo');
             }
         },
         
@@ -591,32 +634,6 @@ define(function(require)
             var oInverseDelta = oHelpers.deepCloneObj(oDelta);
             oInverseDelta.sAction = (oDelta.sAction == 'insert' ? 'delete' : 'insert');
             return oInverseDelta;
-        },
-        
-        _mergeContiguousDeltas: function(oDelta1, oDelta2 /* Target */)
-        {
-            // Concat lines and update range.
-            var iSplit;
-            if (oHelpers.objDeepEquals(oDelta1.oRange.oEnd, oDelta2.oRange.oStart))
-            {
-                iSplit = oDelta1.aLines.length - 1;
-                oDelta2.oRange.oStart.iRow = oDelta1.oRange.oStart.iRow;
-                oDelta2.oRange.oStart.iCol = oDelta1.oRange.oStart.iCol;
-                oDelta2.aLines.unshift.apply(oDelta2.aLines, oDelta1.aLines);
-            }
-            else if(oHelpers.objDeepEquals(oDelta1.oRange.oStart, oDelta2.oRange.oEnd))
-            {
-                iSplit = oDelta2.aLines.length - 1;
-                oDelta2.oRange.oEnd.iRow = oDelta1.oRange.oEnd.iRow;
-                oDelta2.oRange.oEnd.iCol = oDelta1.oRange.oEnd.iCol;
-                oDelta2.aLines.push.apply(oDelta2.aLines, oDelta1.aLines);
-            }
-            else
-                oHelpers.assert(false, 'Oops!');
-            
-            // Merge lines at concat point.
-            oDelta2.aLines[iSplit] += oDelta2.aLines[iSplit + 1];
-            oDelta2.aLines.splice(iSplit + 1, 1);
         },
         
         _getPendingDocChanges: function(bRemove)

@@ -25,7 +25,7 @@ define(function(require)
             return oRange;
         },
         
-        transformDelta: function(oDelta1, oDelta2)
+        transformDelta: function(oDelta1, oDelta2, bPushEqualPoints)
         {
             // Quick access.
             var oRange1 = oDelta1.oRange;
@@ -35,7 +35,7 @@ define(function(require)
             {
                 // Transformed start point.
                 var oOldStartPoint = oRange2.oStart;
-                oRange2.oStart = this._getTransformedPoint(oDelta1, oDelta2.oRange.oStart, false);
+                oRange2.oStart = this._getTransformedPoint(oDelta1, oRange2.oStart, true);
                 
                 // Increment end point the same amount (to contain inserted text).
                 oRange2.oEnd.iRow += (oRange2.oStart.iRow - oOldStartPoint.iRow);
@@ -62,15 +62,14 @@ define(function(require)
                                 oStart: this._getDecrementedPoint(oRange2.oStart, oIntersectStartPoint),
                                 oEnd:   this._getDecrementedPoint(oRange2.oStart, oIntersectEndPoint)
                             }
-                        });                    
-                        
+                        });
                     }
                 }
                 else
                 {
                     // Add text that delta1 inserted into delta2's deleted text.
-                    if (this._pointsInOrder(oRange2.oStart, oRange1.oStart, false) &&
-                        this._pointsInOrder(oRange1.oStart, oRange2.oEnd  , false))
+                    if (this._pointsInOrder(oRange2.oStart, oRange1.oStart, bPushEqualPoints) &&
+                        this._pointsInOrder(oRange1.oStart, oRange2.oEnd ,  bPushEqualPoints))
                     {
                         fnApplyDelta(oDelta2.aLines,
                         {
@@ -82,6 +81,8 @@ define(function(require)
                             },
                             aLines: oDelta1.aLines
                         });
+                        oRange2.oEnd = this._getTransformedPoint(oDelta1, oRange2.oEnd, bPushEqualPoints);
+                        return;
                     }
                 }
                 
@@ -96,11 +97,11 @@ define(function(require)
             //       This way, the a delta occuring at the same location as the collapsed range
             //       won't push the range around unnecessarily.
             var bIsCollapsed = oRange.oStart.iRow == oRange.oEnd.iRow && oRange.oStart.iCol == oRange.oEnd.iCol;
-            oRange.oStart = this._getTransformedPoint(oDelta, oRange.oStart , !bPushEqualPoints && bIsCollapsed);
-            oRange.oEnd   = this._getTransformedPoint(oDelta, oRange.oEnd   , !bPushEqualPoints && true);
+            oRange.oStart = this._getTransformedPoint(oDelta, oRange.oStart , bPushEqualPoints || !bIsCollapsed);
+            oRange.oEnd   = this._getTransformedPoint(oDelta, oRange.oEnd   , bPushEqualPoints);
         },
         
-        _getTransformedPoint: function(oDelta, oPoint, bPointIsEndOfRange)
+        _getTransformedPoint: function(oDelta, oPoint, bPushEqualPoints)
         {
             // Get delta info.
             var bDeltaIsInsert = (oDelta.sAction == 'insert')
@@ -110,7 +111,7 @@ define(function(require)
             var oDeltaEnd      = (bDeltaIsInsert ? oDeltaStart : oDelta.oRange.oEnd); // Collapse insert range.
             
             // DELTA AFTER POINT: No change needed.
-            if (this._pointsInOrder(oPoint, oDeltaStart, bPointIsEndOfRange))
+            if (this._pointsInOrder(oPoint, oDeltaStart, !bPushEqualPoints))
             {
                 return (
                 {
@@ -120,7 +121,7 @@ define(function(require)
             }
             
             // DELTA BEFORE POINT: Move point by delta shift.
-            if (this._pointsInOrder(oDeltaEnd, oPoint, !bPointIsEndOfRange))
+            if (this._pointsInOrder(oDeltaEnd, oPoint, bPushEqualPoints))
             {
                 return (
                 {
