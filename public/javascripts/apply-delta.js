@@ -4,51 +4,98 @@ if (typeof define !== 'function')
     var define = require('amdefine')(module);
 
 define(function(require)
-{
-    // Dependencies.
-    var oHelpers = require('./helpers/helpers-core'); // Rel. path for use in nodejs.
-
-    function splitLine(asLines, oPoint)
+{   
+    function throwDeltaError(oDelta, sErrorText)
     {
-        var sText = asLines[oPoint.iRow];
-        asLines[oPoint.iRow] = sText.slice(0, oPoint.iCol);
-        asLines.splice(oPoint.iRow + 1, 0, sText.slice(oPoint.iCol));
+        console.log("Invalid Delta:", oDelta);
+        throw "Invalid Delta: " + sErrorText;
     }
     
-    function joinLineWithNext(asLines, iRow)
+    function positionInDocument(aDocLines, oPos)
     {
-        asLines[iRow] += asLines[iRow + 1];
-        asLines.splice(iRow + 1, 1);            
+        return oPos.iRow >= 0 && oPos.iRow <  aDocLines.length &&
+               oPos.iCol >= 0 && oPos.iCol <= aDocLines[oPos.iRow].length;
     }
     
-    return function(asLines, oDelta)
+    function validateDelta(aDocLines, oDelta)
     {
+        // Validate action string.
+        if (oDelta.sAction != 'insert' && oDelta.sAction != 'delete')
+            throwDeltaError(oDelta, 'oDelta.sAction must be "insert" or "delete".');
+        
+        // Validate lines type.
+        if (!(oDelta.aLines instanceof Array))
+            throwDeltaError(oDelta, 'oDelta.aLines must be an Array.');
+            
+        // Validate range type.
+        if (!oDelta.oRange.oStart || !oDelta.oRange.oEnd)
+           throwDeltaError(oDelta, 'oDelta.oRange.oStart/oEnd must be defined.');        
+        
+        // Validate that the start point is contained in the document.
+        var oStart = oDelta.oRange.oStart;
+        if (!positionInDocument(aDocLines, oDelta.oRange.oStart))
+            throwDeltaError(oDelta, "oDelta.oRange.oStart must be contained in the document.");
+        
+        // Validate that the end point is contained in the document (delete deltas only).
+        var oEnd = oDelta.oRange.oEnd;
+        if (oDelta.sAction == 'delete' && !positionInDocument(aDocLines, oEnd))
+            throwDeltaError(oDelta, 'oDelta.oRange.oEnd must be contained in the document for "delete" actions.');
+        
+        // Validate that the size oDelta.oRange matches that of oDelta.aLines.
+        var iNumRangeRows = oEnd.iRow - oStart.iRow;
+        var iNumRangeLastLineChars = (oEnd.iCol - (iNumRangeRows == 0 ? oStart.iCol : 0));
+        if (iNumRangeRows != oDelta.aLines.length - 1 || oDelta.aLines[iNumRangeRows].length != iNumRangeLastLineChars)
+        {
+            debugger;
+            throwDeltaError(oDelta, 'oDelta.oRange must match oDelta.aLines in size.');
+        }
+    }
+    
+    return function(aDocLines, oDelta, doNotValidate)
+    {
+        // Validate delta.
+        if (!doNotValidate)
+            validateDelta(aDocLines, oDelta);
+        
+        // Cache values (shortcuts).
+        var iStartRow  = oDelta.oRange.oStart.iRow;
+        var iStartCol  = oDelta.oRange.oStart.iCol;
+        var iEndRow    = oDelta.oRange.oEnd.iRow;
+        var iEndCol    = oDelta.oRange.oEnd.iCol;
+        var sStartLine = aDocLines[iStartRow];
+        
+        // Apply delta.
         switch (oDelta.sAction)
         {
             case 'insert':
-                splitLine(asLines, oDelta.oRange.oStart);
-                for (var i = 0; i < oDelta.aLines.length; i++)
+                if (iStartRow == iEndRow)
                 {
-                    var iDocLine = oDelta.oRange.oStart.iRow + 1 + i;
-                    asLines.splice(iDocLine, 0, oDelta.aLines[i]);
+                    aDocLines[iStartRow] = sStartLine.substring(0, iStartCol) + oDelta.aLines[0] + sStartLine.substring(iStartCol);
                 }
-                joinLineWithNext(asLines, oDelta.oRange.oStart.iRow);
-                joinLineWithNext(asLines, oDelta.oRange.oEnd.iRow);
+                else
+                {
+                    aDocLines.splice.apply(aDocLines, [iStartRow, 1].concat(oDelta.aLines));
+                    aDocLines[iStartRow] = sStartLine.substring(0, iStartCol) + aDocLines[iStartRow];
+                    aDocLines[iStartRow + oDelta.aLines.length - 1] += sStartLine.substring(iStartCol);
+                }
                 break;
-            
+                
             case 'delete':
-                splitLine(asLines, oDelta.oRange.oEnd);
-                splitLine(asLines, oDelta.oRange.oStart);
-                asLines.splice(
-                    oDelta.oRange.oStart.iRow + 1,                           // Where to start deleting
-                    oDelta.oRange.oEnd.iRow - oDelta.oRange.oStart.iRow + 1  // Num lines to delete.
-                );
-                joinLineWithNext(asLines, oDelta.oRange.oStart.iRow);
+                if (iStartRow == iEndRow)
+                {
+                    aDocLines[iStartRow] = sStartLine.substring(0, iStartCol) + sStartLine.substring(iEndCol);
+                }
+                else
+                {
+                    aDocLines.splice(
+                        iStartRow, iEndRow - iStartRow + 1,
+                        sStartLine.substring(0, iStartCol) + aDocLines[iEndRow].substring(iEndCol)
+                    );
+                }
                 break;
-            
+                
             default:
-                oHelpers.assert(false, 'Invalid delta type: ' + oDelta.sAction);
+                throw 'Invalid action'
         }
     }
 });
-

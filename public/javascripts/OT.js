@@ -62,7 +62,7 @@ define(function(require)
                                 oStart: this._getDecrementedPoint(oRange2.oStart, oIntersectStartPoint),
                                 oEnd:   this._getDecrementedPoint(oRange2.oStart, oIntersectEndPoint)
                             }
-                        });
+                        }, true /* do not validate because we're not providing aLines. */);
                     }
                 }
                 else
@@ -147,13 +147,11 @@ define(function(require)
         
         _getDecrementedPoint: function(oPoint1, oPoint2) // Decrement oPoint2 by oPoint1
         {
-            oNewPoint = oHelpers.cloneObj(oPoint2);
-            
-            oNewPoint.iRow -= oPoint1.iRow;
+            oPoint2 = oHelpers.cloneObj(oPoint2);
             if (oPoint2.iRow == oPoint1.iRow)
-                oNewPoint.iCol -= oPoint1.iCol;
-            
-            return oNewPoint;
+                oPoint2.iCol -= oPoint1.iCol;
+            oPoint2.iRow -= oPoint1.iRow;
+            return oPoint2;
         }
     });
 });

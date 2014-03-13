@@ -556,7 +556,7 @@ define(function(require)
         },
         {
             sAction: 'insert',
-            oRange: r(1, 1, 2, 2),
+            oRange: r(1, 1, 2, 1),
             aLines: ['1', '2']
         }
     );
