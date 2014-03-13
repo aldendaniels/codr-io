@@ -45,10 +45,7 @@ define(function(require)
         var iNumRangeRows = oEnd.iRow - oStart.iRow;
         var iNumRangeLastLineChars = (oEnd.iCol - (iNumRangeRows == 0 ? oStart.iCol : 0));
         if (iNumRangeRows != oDelta.aLines.length - 1 || oDelta.aLines[iNumRangeRows].length != iNumRangeLastLineChars)
-        {
-            debugger;
             throwDeltaError(oDelta, 'oDelta.oRange must match oDelta.aLines in size.');
-        }
     }
     
     return function(aDocLines, oDelta, doNotValidate)
