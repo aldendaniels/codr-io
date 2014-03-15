@@ -2,10 +2,11 @@ define(function(require)
 {
     // Dependencies.
     // Requires jQuery.
-    var oHelpers     = require('helpers/helpers-web'),
-        oUIDispatch  = require('helpers/ui-dispatch'),
-        EditControl  = require('edit-control/edit-control'),
-        oOT          = require('OT');
+    var oHelpers        = require('helpers/helpers-web'),
+        oUIDispatch     = require('helpers/ui-dispatch'),
+        EditControl     = require('edit-control/edit-control'),
+        oOT             = require('OT'),
+        fnValidateDelta = require('validate-delta');
     
     // Constants.
     var COLORS     = ['green', 'pink', 'orange', 'purple', 'red', 'turquoise '];
@@ -481,22 +482,12 @@ define(function(require)
                     var oUndoDelta = aUndoDeltas.length ? aUndoDeltas[0] : null;
                     if (oUndoDelta)
                     {
-                        // Undo consecutive actions.
-                        // Merge for efficiency.
-                        if (oHelpers.objDeepEquals(oReversedDelta.oRange.oEnd, oUndoDelta.oRange.oStart))
-                        {
-                            oUndoDelta.oRange.oStart.iCol = oReversedDelta.oRange.oStart.iCol;
-                            oUndoDelta.aLines[0] = oReversedDelta.aLines[0] + oUndoDelta.aLines[0];
-                        }
-                        else if(oHelpers.objDeepEquals(oReversedDelta.oRange.oStart, oUndoDelta.oRange.oEnd))
-                        {
-                            oUndoDelta.oRange.oEnd.iCol = oReversedDelta.oRange.oEnd.iCol;
-                            oUndoDelta.aLines[0] += oReversedDelta.aLines[0];
-                        }
-                        else
-                        {
-                            break; // Non-contiguous delta.
-                        }
+                        // Note: mergeContiguousDeltas can handle multi-line deltas.
+                        //       This is important since a single line delta can become a multi-line
+                        //       delta thanks to OT.
+                        var bIsContiguous = this._mergeContiguousDeltas(oReversedDelta, oUndoDelta);
+                        if (!bIsContiguous)
+                            break;
                     }
                     else
                     {
@@ -601,6 +592,7 @@ define(function(require)
         _applyDelta: function(oDelta, bIsMe, sOptionalRemoteClientID)
         {
             // Validate params.
+            fnValidateDelta(this._oEditControl.getAllLines(), oDelta);
             oHelpers.assert(bIsMe  ||  sOptionalRemoteClientID, 'Invalid param: It\'s got to be me or someone.');
             oHelpers.assert(!bIsMe || !sOptionalRemoteClientID, 'Invalid param: It can\'t be me AND someone else.');
             
@@ -627,6 +619,33 @@ define(function(require)
             
             // Transform remote selections.
             this._transformRemoteSelections(oDelta, sOptionalRemoteClientID);    
+        },
+        
+        _mergeContiguousDeltas: function(oDelta1, oDelta2 /* Target */)
+        {
+            // Concat lines and update range.
+            var iSplit;
+            if (oHelpers.objDeepEquals(oDelta1.oRange.oEnd, oDelta2.oRange.oStart))
+            {
+                iSplit = oDelta1.aLines.length - 1;
+                oDelta2.oRange.oStart.iRow = oDelta1.oRange.oStart.iRow;
+                oDelta2.oRange.oStart.iCol = oDelta1.oRange.oStart.iCol;
+                oDelta2.aLines.unshift.apply(oDelta2.aLines, oDelta1.aLines);
+            }
+            else if(oHelpers.objDeepEquals(oDelta1.oRange.oStart, oDelta2.oRange.oEnd))
+            {
+                iSplit = oDelta2.aLines.length - 1;
+                oDelta2.oRange.oEnd.iRow = oDelta1.oRange.oEnd.iRow;
+                oDelta2.oRange.oEnd.iCol = oDelta1.oRange.oEnd.iCol;
+                oDelta2.aLines.push.apply(oDelta2.aLines, oDelta1.aLines);
+            }
+            else
+                return false; /* Not contiguous */
+            
+            // Merge lines at concat point.
+            oDelta2.aLines[iSplit] += oDelta2.aLines[iSplit + 1];
+            oDelta2.aLines.splice(iSplit + 1, 1);
+            return true;
         },
         
         _getReversedDelta: function(oDelta)
