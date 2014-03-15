@@ -162,20 +162,34 @@ define('preview', function(require)
                 // Replace scripts.
                 // Necessary because setting the InnerHTML of the iFrame won't make it eval the scripts.
                 var aScripts = this._ePreview.contentDocument.getElementsByTagName('script');
-                for (var i in aScripts)
+                var i = -1;
+                loadNextScript = oHelpers.createCallback(this, function()
                 {
-                    var eOldScript = aScripts[i];
-                    if (eOldScript.parentNode)
-                    {
-                        var eNewScript = document.createElement('script');
-                        if (eOldScript.src)
-                            eNewScript.src = eOldScript.src;
-                        eNewScript.text = eOldScript.text;
-                        eOldScript.parentNode.replaceChild(eNewScript, eOldScript);                    
-                    }
-                }
+                    i++;
+                    if (i < aScripts.length)
+                        this._loadScript(aScripts[i], loadNextScript)                        
+                });
+                loadNextScript();
             }
             this._bIsDirty = false;
+        },
+        
+        _loadScript: function(eOldScript, fnCallback)
+        {
+            var eNewScript = document.createElement('script');
+            eNewScript.type = eOldScript.type;
+            if (eOldScript.src)
+            {
+                eNewScript.src = eOldScript.src;
+                eNewScript.onload = fnCallback;
+                eOldScript.parentNode.replaceChild(eNewScript, eOldScript);
+            }
+            else
+            {
+                eNewScript.text = eOldScript.text;
+                eOldScript.parentNode.replaceChild(eNewScript, eOldScript);
+                fnCallback();
+            }
         }
     });
 });
