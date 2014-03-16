@@ -64,7 +64,8 @@ oApp.configure(function()
     {
         oApp.use(function(req, res, next)
         {
-            res.set("Content-Encoding", "gzip");
+            if (req.url.indexOf('/ajax/') == -1)
+                res.set("Content-Encoding", "gzip");
             next();
         });        
     }
