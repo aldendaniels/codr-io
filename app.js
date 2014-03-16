@@ -136,7 +136,7 @@ oApp.configure(function()
     oApp.get('^/v/[a-z0-9]+/?$',        function(req, res) { res.sendfile(sPublicDir + '/index.html'); });
 
     /* Preview files as HTML. */
-    oApp.get('/:DocumentID([a-z0-9]+)/preview/?$', function(req, res)
+    oApp.get(':ignore(/v)?/:DocumentID([a-z0-9]+)/preview/?$', function(req, res)
     {
         res.sendfile(sPublicDir + '/preview.html');
     });

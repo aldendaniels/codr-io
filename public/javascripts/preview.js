@@ -33,6 +33,12 @@ define('preview', function(require)
             }
         },
         
+        setSnapshotLines: function(aDocLines)
+        {
+            this._aDocLines = aDocLines;
+            this._updatePreview();
+        },
+        
         pause: function()
         {
             this._bPaused = true;

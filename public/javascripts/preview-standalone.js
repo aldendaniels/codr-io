@@ -5,8 +5,26 @@ define('preview-standalone', function(require)
         Socket   = require('helpers/socket')
         oPreview = require('preview');
         
+    var bIsSnapshot = /^\/v\//.test(window.location.pathname);
+    
+    var sSocketURL = null;
+    if (bIsSnapshot)
+    {
+        // Set Ccontent.
+        var sDocumentID = /^\/v\/([a-z0-9]+)\/preview\/?$/.exec(document.location.pathname)[1];
+        $.get('/ajax/' + sDocumentID + '/', oHelpers.createCallback(this, function(oResponse)
+        {
+            oHelpers.assert(!oResponse.sError, oResponse.sError);
+            oPreview.setSnapshotLines(oResponse.aLines);
+            oHelpers.setTitleWithHistory(oResponse.sTitle);
+        }));
+    }
+    else
+    {
+        sSocketURL = 'ws://' + window.document.location.host + '/';
+    }
+    
     // Init Socket.
-    var sSocketURL = 'ws://' + window.document.location.host + '/';
     var oSocket  = new Socket(sSocketURL);
     
     // Init preview.
@@ -20,6 +38,7 @@ define('preview-standalone', function(require)
             oHelpers.setTitleWithHistory(oAction.oData.sTitle);
             return true;
         }
+        return false; // Not handled.
     });
     
     // Open document.
