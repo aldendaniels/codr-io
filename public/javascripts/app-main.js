@@ -131,7 +131,7 @@ define('app-main', function(require)
             var sEventType = oEvent.type;
             var jTarget = $(oEvent.target);
             if ((sEventType == 'keydown' && oEvent.which == 13       ) || 
-                (sEventType == 'click'   && jTarget.is('#title-save')))
+                (sEventType == 'click'   && jTarget.is('button#download')))
             {
                 this._download();
                 oEvent.preventDefault();
