@@ -48,11 +48,11 @@ define(function(require)
                 if (oDelta1.sAction == 'delete')
                 {
                     // Find the intersection of the two ranges.
-                    var oIntersectStartPoint = this._pointsInOrder(oRange1.oStart, oRange2.oStart) ? oRange2.oStart : oRange1.oStart; // Max start point
-                    var oIntersectEndPoint   = this._pointsInOrder(oRange1.oEnd,   oRange2.oEnd)   ? oRange1.oEnd   : oRange2.oEnd;   // Min end point
+                    var oIntersectStartPoint = oHelpers.pointsInOrder(oRange1.oStart, oRange2.oStart) ? oRange2.oStart : oRange1.oStart; // Max start point
+                    var oIntersectEndPoint   = oHelpers.pointsInOrder(oRange1.oEnd,   oRange2.oEnd)   ? oRange1.oEnd   : oRange2.oEnd;   // Min end point
                     
                     // Munger oDelta2.aLines to reflect the intersecting changes
-                    if (this._pointsInOrder(oIntersectStartPoint, oIntersectEndPoint))
+                    if (oHelpers.pointsInOrder(oIntersectStartPoint, oIntersectEndPoint))
                     {
                         fnApplyDelta(oDelta2.aLines,
                         {
@@ -68,8 +68,8 @@ define(function(require)
                 else
                 {
                     // Add text that delta1 inserted into delta2's deleted text.
-                    if (this._pointsInOrder(oRange2.oStart, oRange1.oStart, bPushEqualPoints) &&
-                        this._pointsInOrder(oRange1.oStart, oRange2.oEnd ,  bPushEqualPoints))
+                    if (oHelpers.pointsInOrder(oRange2.oStart, oRange1.oStart, bPushEqualPoints) &&
+                        oHelpers.pointsInOrder(oRange1.oStart, oRange2.oEnd ,  bPushEqualPoints))
                     {
                         fnApplyDelta(oDelta2.aLines,
                         {
@@ -111,7 +111,7 @@ define(function(require)
             var oDeltaEnd      = (bDeltaIsInsert ? oDeltaStart : oDelta.oRange.oEnd); // Collapse insert range.
             
             // DELTA AFTER POINT: No change needed.
-            if (this._pointsInOrder(oPoint, oDeltaStart, !bPushEqualPoints))
+            if (oHelpers.pointsInOrder(oPoint, oDeltaStart, !bPushEqualPoints))
             {
                 return (
                 {
@@ -121,7 +121,7 @@ define(function(require)
             }
             
             // DELTA BEFORE POINT: Move point by delta shift.
-            if (this._pointsInOrder(oDeltaEnd, oPoint, bPushEqualPoints))
+            if (oHelpers.pointsInOrder(oDeltaEnd, oPoint, bPushEqualPoints))
             {
                 return (
                 {

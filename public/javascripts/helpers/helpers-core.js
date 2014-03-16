@@ -222,6 +222,12 @@ define(function()
             sURL1 = (this.strEndsWith(sURL1,   '/') ? sURL1.substr(0, sURL1.length - 1) : sURL1);
             sURL2 = (this.strStartsWith(sURL2, '/') ? sURL2.substr(1, sURL2.length    ) : sURL2);
             return sURL1 + '/' + sURL2;
-        }
+        },
+        
+        pointsInOrder: function(oPoint1, oPoint2, bEqualPointsInOrder)
+        {
+            var bColIsAfter = bEqualPointsInOrder ? oPoint1.iCol <= oPoint2.iCol : oPoint1.iCol < oPoint2.iCol;
+            return (oPoint1.iRow < oPoint2.iRow) || (oPoint1.iRow == oPoint2.iRow && bColIsAfter);
+        },
     };
 });

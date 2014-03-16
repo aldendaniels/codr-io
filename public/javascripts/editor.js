@@ -428,8 +428,10 @@ define(function(require)
         _onUndo: function()
         {
             // Create reverse delta.
-            var aUndoDeltas = [];
+            var aUndoDeltas = [];  // A group undo.
+            var oUndoDelta = null; // A single delta to undo.
             var oLastDocChange = null;
+            var iLastDocChange = null;
             for (var i = this._aPastDocChanges.length - 1; i >=0; i--)
             {
                 // Skip.
@@ -464,44 +466,85 @@ define(function(require)
                 
                 // Update reversed delta via OT.
                 var oReversedDelta = this._getReversedDelta(oDocChange.get('oDelta'));
+                var bBreak = false;
                 for (var _i = i + 1; _i < this._aPastDocChanges.length; _i++)
                 {
+                    // Unless we're undoing a group of deltas, only undo contiguous deltas.
+                    // We need to check for contiguousness when at the state of the last delta.
                     var oOTDocChange = this._aPastDocChanges[_i];
-                    oOT.transformDelta(oOTDocChange.get('oDelta'), oReversedDelta, oOTDocChange.get('bIsMe'));
+                    if (_i === iLastDocChange)
+                    {
+                        if (!oDocChange.get('bGroupUndo') && !this._deltasAreContiguous(oReversedDelta, oOTDocChange.get('oDelta')))
+                        {
+                            bBreak = true;
+                            break;
+                        }
+                    }
+                    else if (!oOTDocChange.get('bIsMe'))
+                    {
+                        oOT.transformDelta(oOTDocChange.get('oDelta'), oReversedDelta);                        
+                    }
                 }
-                for (_i in aUndoDeltas)
-                    oOT.transformDelta(aUndoDeltas[_i], oReversedDelta, true);
+                if (bBreak)
+                    break;
                 
-                // Undo?
+                // Add to undo delta(s).
                 if (oDocChange.get('bGroupUndo'))
                 {
+                    // If we're undoing a group of actions, simply undo the actions independently.
                     aUndoDeltas.push(oReversedDelta);
                 }
                 else
                 {
-                    var oUndoDelta = aUndoDeltas.length ? aUndoDeltas[0] : null;
                     if (oUndoDelta)
                     {
-                        // Note: mergeContiguousDeltas can handle multi-line deltas.
-                        //       This is important since a single line delta can become a multi-line
-                        //       delta thanks to OT.
-                        var bIsContiguous = this._mergeContiguousDeltas(oReversedDelta, oUndoDelta);
-                        if (!bIsContiguous)
-                            break;
+                        // If we're undoing an insert (therefore we're deleteing), we need to delete
+                        // the range from the insertion start to the insertion end since other clients
+                        // could have inserted/deleted in between.
+                        if (oUndoDelta.sAction == 'delete')
+                        {
+                            if (oHelpers.pointsInOrder(oReversedDelta.oRange.oStart, oUndoDelta.oRange.oStart))
+                                oUndoDelta.oRange.oStart = oReversedDelta.oRange.oStart;
+                            if (oHelpers.pointsInOrder(oUndoDelta.oRange.oEnd, oReversedDelta.oRange.oEnd))
+                                oUndoDelta.oRange.oEnd = oReversedDelta.oRange.oEnd;                            
+                        }
+                        
+                        // If we're undoing a deletion (therefore inserting), we know that the
+                        // consecutive deletes will still be consecutive since it's impossible to
+                        // insert between deleted characters. Hence we merge the insert events into
+                        // a single event for efficiency. Merging is not strictly necessary.
+                        else
+                        {
+                            this._mergeContiguousDeltas(oReversedDelta, oUndoDelta);
+                        }
                     }
                     else
                     {
-                        // Always undo most recent action.
-                        aUndoDeltas.push(oReversedDelta);
+                        oUndoDelta = oReversedDelta;
+                        if (oUndoDelta.sAction == 'delete')
+                            delete oUndoDelta.aLines;                        
                     }
                 }
                 
                 // Mark undone.
                 oLastDocChange = oDocChange;
+                iLastDocChange = i;
                 oDocChange.set('bHasBeenUndone', true);
             }
             
-            // Apply undo deltas.
+            // Single delta (normal case) handing.
+            if (oUndoDelta)
+            {
+                // If we're undoing an insert (therefore we're deleting), update
+                // the deletion deleta lines from the document since (for efficency)
+                // we only updated the range in the loop above.
+                if (oUndoDelta.sAction == 'delete')
+                    oUndoDelta.aLines = this._oEditControl.getLinesForRange(oUndoDelta.oRange);
+                
+                aUndoDeltas = [oUndoDelta];
+            }
+            
+            // Apply undo delta(s).
             if (aUndoDeltas.length)
             {
                 for (i in aUndoDeltas)
@@ -536,10 +579,9 @@ define(function(require)
                 for (var _i = i + 1; _i < this._aPastDocChanges.length; _i++)
                 {
                     var oOTDocChange = this._aPastDocChanges[_i];
-                    oOT.transformDelta(oOTDocChange.get('oDelta'), oReversedDelta, oOTDocChange.get('bIsMe'));
+                    if (!oOTDocChange.get('bIsMe'))
+                        oOT.transformDelta(oOTDocChange.get('oDelta'), oReversedDelta);
                 }
-                for (var _i in aRedoDeltas)
-                    oOT.transformDelta(aRedoDeltas[_i], oReversedDelta, true);
                 
                 // Mark redone.
                 oDocChange.set('bHasBeenRedone', true);
@@ -621,6 +663,12 @@ define(function(require)
             this._transformRemoteSelections(oDelta, sOptionalRemoteClientID);    
         },
         
+        _deltasAreContiguous: function(oDelta1, oDelta2)
+        {
+            return oHelpers.objDeepEquals(oDelta1.oRange.oEnd, oDelta2.oRange.oStart) ||
+                   oHelpers.objDeepEquals(oDelta1.oRange.oStart, oDelta2.oRange.oEnd);
+        },
+        
         _mergeContiguousDeltas: function(oDelta1, oDelta2 /* Target */)
         {
             // Concat lines and update range.
@@ -640,7 +688,7 @@ define(function(require)
                 oDelta2.aLines.push.apply(oDelta2.aLines, oDelta1.aLines);
             }
             else
-                return false; /* Not contiguous */
+                throw 'Error: Deltas are not contiguous';
             
             // Merge lines at concat point.
             oDelta2.aLines[iSplit] += oDelta2.aLines[iSplit + 1];
