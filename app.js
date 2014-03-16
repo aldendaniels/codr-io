@@ -58,16 +58,13 @@ oApp.configure(function()
         oApp.use(oExpress.static(sLessOutputDir));
     }
     
-    // Serve static content with gzip headers in production.
+    // Serve with gzip headers in production.
     // The build script should gzip all static files.
     if (g_oConfig.bIsProd)
     {
         oApp.use(function(req, res, next)
         {
-            if (req.url.indexOf('/static/') != -1)
-            {
-                res.set("Content-Encoding", "gzip");
-            }
+            res.set("Content-Encoding", "gzip");
             next();
         });        
     }
@@ -135,13 +132,8 @@ oApp.configure(function()
         }
     });
 
-    function sendIndex(req, res)
-    {
-        res.set("Content-Encoding", "gzip");
-        res.sendfile(sPublicDir + '/index.html');
-    }
-    oApp.get('^/[a-z0-9]+/?$',   sendIndex);
-    oApp.get('^/v/[a-z0-9]+/?$', sendIndex);    
+    oApp.get('^/[a-z0-9]+/?$',          function(req, res) { res.sendfile(sPublicDir + '/index.html'); });
+    oApp.get('^/v/[a-z0-9]+/?$',        function(req, res) { res.sendfile(sPublicDir + '/index.html'); });
 
     /* Preview files as HTML. */
     oApp.get(':ignore(/v)?/:DocumentID([a-z0-9]+)/preview/?$', function(req, res)
@@ -159,6 +151,7 @@ oApp.configure(function()
         
         // Set response headers for file download.
         // Default to plain text in case there is no file name.
+        res.set("Content-Encoding", "none");
         res.set('Content-Type', 'text/plain');
         
         // Content-Type is automatically determined if there is a file name.
