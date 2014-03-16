@@ -151,7 +151,7 @@ module.exports = oHelpers.createClass(
     _setClientInitialValue: function(oClient)
     {
         this._assertDocumentLoaded();
-
+        
         // Send ID (Username).
         oClient.sendAction('connect',
         {
