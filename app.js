@@ -148,7 +148,6 @@ oApp.configure(function()
         // Parse the url and get/sanatize the file name.
         var sFileName = oUrl.parse(req.url, true).query.filename;
         sFileName = sFileName.replace(/[^a-z0-9_\.\- ]/gi, '');
-        sFileName = encodeURIComponent(sFileName);
         
         // Set response headers for file download.
         // Default to plain text in case there is no file name.

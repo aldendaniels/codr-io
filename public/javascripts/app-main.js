@@ -158,7 +158,7 @@ define('app-main', function(require)
             var sHref = window.location.href;
             if (sHref[-1] != '/')
                 sHref += '/'
-            var sUrl = sHref + 'download?filename=' + $('#download-as').val();
+            var sUrl = sHref + 'download?filename=' + encodeURIComponent($('#download-as').val());
             
             // Update download iFrame.
             if (!this._jFrame)
