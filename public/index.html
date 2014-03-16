@@ -388,8 +388,13 @@
             if (IS_SNAPSHOT)
             {
                 document.body.className += " snapshot";
-                document.getElementById('toolbar-item-chat').className  += ' disabled';
-                document.getElementById('toolbar-item-link').className  += ' disabled';
+                document.getElementById('toolbar-item-chat').className                              += ' disabled';
+                document.getElementById('toolbar-item-link').className                              += ' disabled';
+                document.getElementById('toolbar-item-html-template-insert').className              += ' disabled';
+                document.getElementById('toolbar-item-html-preview-refresh-frequency').className    += ' disabled';
+                document.getElementById('toolbar-item-html-preview-refresh').className              += ' disabled';
+                
+                // Disable Title / Mode.
                 document.getElementById('title-input').disabled  = 'disabled';
                 document.getElementById('title-save').disabled   = 'disabled';
                 document.querySelectorAll('#toolbar-item-title .hidden-focusable')[0].style.display="block";
