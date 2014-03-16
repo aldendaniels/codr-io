@@ -569,6 +569,7 @@ define('app-main', function(require)
                 oModeUIHandler.setMode(oModes.oModesByName[oResponse.sMode]);
                 oTitleUIHandler.setTitle(oResponse.sTitle);
             }));
+            updateCollabUrl(sDocumentID);
         }
         else
         {
