@@ -48,12 +48,12 @@ define('app-main', function(require)
         {
             $('#toolbar-item-title .toolbar-item-selection').text(sTitle);
             $('#title-input').val(sTitle);
-            $('#download-as').val(sTitle);
             $('#toolbar-item-title .toolbar-item-btn').attr('title', sTitle);
             if (bDoNotSetWithHistory)
                 document.title = sTitle;
             else
                 oHelpers.setTitleWithHistory(sTitle);
+            oDownloadUIHandler.updateName();
         },
         
         getTitle: function()
@@ -105,6 +105,7 @@ define('app-main', function(require)
                 oHtmlPreviewDockDropdownUIHandler.setPreviewDock('None');
             this._oCurrentMode = oMode;
             oEditor.setMode(oMode);
+            oDownloadUIHandler.updateName();
         },
         
         getMode: function()
@@ -122,6 +123,8 @@ define('app-main', function(require)
     
     var oDownloadUIHandler = (
     {
+        _jFrame: null,
+        
         onEvent: function(oEvent)
         {
             // Download on ENTER / Click.
@@ -135,15 +138,34 @@ define('app-main', function(require)
             }
         },
         
+        updateName: function()
+        {
+            var sTitle = oTitleUIHandler.getTitle();
+            var oMode = oModeUIHandler.getMode();
+            var sExtension = (oMode ? oMode.getDefaultExtension() : '');
+            if (sTitle && sExtension)
+            {
+                if (sTitle.indexOf('.') == -1)
+                    $('#download-as').val(sTitle + '.' + sExtension);
+                else
+                    $('#download-as').val(sTitle);
+            }
+        },
+        
         _download: function()
         {
+            // Construct download URL.
             var sHref = window.location.href;
             if (sHref[-1] != '/')
-            {
                 sHref += '/'
-            }
-            var sFilename = $('#download-as').val();
-            window.location.href = sHref + 'download?filename=' + sFilename;
+            var sUrl = sHref + 'download?filename=' + $('#download-as').val();
+            
+            // Update download iFrame.
+            if (!this._jFrame)
+                this._jFrame = $('<iframe>').hide().appendTo('body');
+            this._jFrame.attr('src', sUrl);
+            
+            // Blur.
             oUIDispatch.blurFocusedUIHandler();
         }
     });

@@ -144,17 +144,18 @@ oApp.configure(function()
     /* Download file */
     oApp.get(':ignore(/v)?/:DocumentID([a-z0-9]+)/download/?$', function(req, res)
     {
-        // Parse the url and get the file name
-        var sFilename = oUrl.parse(req.url, true).query.filename;
-        // Sanitize file name
-        sFilename = sFilename.replace(/[^a-z0-9_\.\-]/gi, '');
+        // Parse the url and get/sanatize the file name.
+        var sFileName = oUrl.parse(req.url, true).query.filename;
+        sFileName = sFileName.replace(/[^a-z0-9_\.\- ]/gi, '');
+        sFileName = encodeURIComponent(sFileName);
         
         // Set response headers for file download.
         // Default to plain text in case there is no file name.
+        res.set("Content-Encoding", "none");
         res.set('Content-Type', 'text/plain');
         
         // Content-Type is automatically determined if there is a file name.
-        res.attachment(sFilename);
+        res.attachment(sFileName);
         
         // Send document text.
         var oDocument = null;
@@ -169,7 +170,7 @@ oApp.configure(function()
         {
             oDatabase.getDocument(sDocumentID, this, function(sDocumentJSON)
             {
-                // TODO: Should determine correct line-ending server-side.
+                // TODO: Determine correct line-ending client-side.
                 res.send((new Document(sDocumentJSON)).get('aLines').join('\r\n'));
             });
         }

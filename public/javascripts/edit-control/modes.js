@@ -12,10 +12,23 @@ define(function(require)
     var CodrMode = oHelpers.createClass(
     {
         _oAceMode: null,
+        _sDefaultExtension: 'txt',
         
         __init__: function(oAceMode)
         {
+            // Store ace mode.
             this._oAceMode = oAceMode;
+            
+            // Store default extension.
+            var aExtensions = this._oAceMode.extensions.split('|');
+            for (var i in aExtensions)
+            {
+                if (!oHelpers.strStartsWith(aExtensions[i], '^'))
+                {
+                    this._sDefaultExtension = aExtensions[i];
+                    break;
+                }
+            }
         },
         
         supportsFile: function(sFileName)
@@ -41,6 +54,11 @@ define(function(require)
         isFavorite: function()
         {
            return $.inArray(this.getName(), aCodrFavModeNames) != -1;
+        },
+        
+        getDefaultExtension: function()
+        {
+            return this._sDefaultExtension;
         }
     });
 
