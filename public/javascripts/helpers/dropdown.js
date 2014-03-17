@@ -42,7 +42,7 @@ define(function(require)
         // UI HANDLER METHOD
         onFocusOut: function()
         {
-            this._jDropdown.removeClass('open').scrollTop(0);
+            this._jDropdown.removeClass('open').scrollTop(0).scrollLeft(0);
             if (this._oSubUIHandler && this._oSubUIHandler.onFocusOut)
                 this._oSubUIHandler.onFocusOut();
         },
