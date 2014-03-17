@@ -44,8 +44,8 @@ define(function(require)
                     '</div>' +
                 '</div>'
             );
-            this._oMenuKeyNav = new MenuKeyNav(this._jMenu.find('.menu-options'), this, this._onSelect);
             this._renderOptions();
+            this._oMenuKeyNav = new MenuKeyNav(this._jMenu.find('.menu-options'), this, this._onSelect);
             $(jParent).append(this._jMenu);
         },
         
@@ -56,8 +56,22 @@ define(function(require)
         
         reset: function()
         {
+            this._sLastQuery = '';
             this._jMenu.find('input').val('');
             this._renderOptions();
+            this._oMenuKeyNav.makeSelectedCurrent();
+        },
+        
+        setSelected: function(oOption, bNoCallback)
+        {
+            // Hack: Timeout allows time for the browser to do the initial
+            // render fo the viewport so that scrollIntoView orks.
+            window.setTimeout(oHelpers.createCallback(this, function()
+            {
+                this._oMenuKeyNav.setSelected(this._fnGetKey(oOption), bNoCallback);
+                if (bNoCallback) // Cleared in fnOnSelect otherwise.
+                    this.reset();
+            }), 1);
         },
         
         onEvent: function(oEvent)
@@ -100,7 +114,8 @@ define(function(require)
                 this._appendOption(jOptionsParent, aNormalOptions[i]);
             
             // Update DOM.
-            this._oMenuKeyNav.update();
+            if (this._oMenuKeyNav)
+                this._oMenuKeyNav.update();
         },
         
         _grepOptions: function(aOptions, sSearch)
@@ -121,6 +136,7 @@ define(function(require)
         _onSelect: function(sOptionID)
         {
             this._fnOnSelect(this._oOptionsByKey[sOptionID]);
+            this.reset();
         }
     });
 });

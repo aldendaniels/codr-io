@@ -65,6 +65,11 @@
             }
         },
         
+        getCurrent: function()
+        {
+            return this._jCurrent;
+        },
+        
         moveDown: function()
         {
             var iCurIndex = this._jKeyables.index(this._jCurrent);
@@ -77,11 +82,6 @@
             var iCurIndex = this._jKeyables.index(this._jCurrent);
             if (iCurIndex > 0)
                 this.setCurrent(this._jKeyables[iCurIndex - 1], true);        
-        },
-        
-        getCurrent: function()
-        {
-            return this._jCurrent;
         }
     });
 });

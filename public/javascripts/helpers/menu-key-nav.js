@@ -8,6 +8,7 @@ define(function(require)
     return oHelpers.createClass(
     {
         _jParent:     null,
+        _sSelectedID: null,
         _oKeyable:    null,
         _fnOnSelect:  null,
         _bIsDisabled: false,
@@ -18,16 +19,38 @@ define(function(require)
             this._fnOnSelect = oHelpers.createCallback(oScope, fnOnSelect);
             this._oKeyable   = new Keyable(jParent, 'id', '.option');
             this._oKeyable.attach();
+            
+            // Set default selection.
+            var jSelected = this._jParent.find('.selected');
+            if (jSelected.length)
+                this._oKeyable.setCurrent(jSelected);
+            this._sSelectedID = this._oKeyable.getCurrent().attr('id');
         },
         
         update: function()
         {
             this._oKeyable.update();
+            this._scrollIntoView();
         },
         
         setDisabled: function(bIsDisabled)
         {
             this._bIsDisabled = bIsDisabled;
+        },
+        
+        setSelected: function(sID, bNoCallback)
+        {
+            this._oKeyable.setCurrent(this._jParent.find('#' + sID));
+            this._selectCur(bNoCallback);
+            this._scrollIntoView();
+        },
+        
+        makeSelectedCurrent: function()
+        {
+            var jSelected = this._jParent.find('#' + this._sSelectedID);
+            oHelpers.assert(jSelected.length, 'Element not found');
+            this._oKeyable.setCurrent(jSelected);
+            this._scrollIntoView();
         },
         
         onEvent: function(oEvent)
@@ -72,13 +95,15 @@ define(function(require)
             }
         },
         
-        _selectCur: function()
+        _selectCur: function(bNoCallback)
         {
             if (!this._bIsDisabled)
             {
-                this._fnOnSelect(this._oKeyable.getCurrent().attr('id'));
+                this._sSelectedID = this._oKeyable.getCurrent().attr('id');
+                if (!bNoCallback)
+                    this._fnOnSelect(this._oKeyable.getCurrent().attr('id'));
                 this._jParent.find('.option.selected').removeClass('selected');
-                this._jParent.find('.option.current').addClass('selected');
+                this._oKeyable.getCurrent().addClass('selected');
             }
         },
         
@@ -86,6 +111,8 @@ define(function(require)
         {            
             // Get Elems.
             var jElem = this._oKeyable.getCurrent();
+            if (!jElem.length)
+                return;
             var jViewport = this._jParent;
             
             // Calculate the element's position.

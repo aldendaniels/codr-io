@@ -94,7 +94,7 @@ define('app-main', function(require)
             $('.menu').addClass('disabled');
         },
         
-        setMode: function(oMode)
+        setMode: function(oMode, bSetByMenu)
         {
             $('#toolbar-item-mode .toolbar-item-selection').text(oMode.getDisplayName());
             $('BODY').toggleClass('mode-html',       oMode.getName() == 'html');
@@ -106,6 +106,8 @@ define('app-main', function(require)
             this._oCurrentMode = oMode;
             oEditor.setMode(oMode);
             oDownloadUIHandler.updateName();
+            if (!bSetByMenu)
+                this._oModeMenu.setSelected(oMode, true);
         },
         
         getMode: function()
@@ -115,7 +117,7 @@ define('app-main', function(require)
         
         _setModeToLocal: function(oMode)
         {
-            this.setMode(oMode);
+            this.setMode(oMode, true);
             oSocket.send('setMode', { sMode: oMode.getName() });
             oUIDispatch.blurFocusedUIHandler();
         }
@@ -203,15 +205,9 @@ define('app-main', function(require)
         showPreview: function()
         {
             if($(window).width() > $(window).height())
-            {
-                $('#html-preview-dock-menu .option#right').addClass('selected');
-                this.setPreviewDock('Right');
-            }
+                this._oMenu.setSelected('Right');
             else
-            {
-                $('#html-preview-dock-menu .option#bottom').addClass('selected');
-                this.setPreviewDock('Bottom');
-            }            
+                this._oMenu.setSelected('Bottom');
         },
         
         onEvent: function(oEvent)
@@ -361,27 +357,28 @@ define('app-main', function(require)
             this._oMenu.onEvent(oEvent);
         },
         
-        setAutoRefresh:function(bAutoRefresh)
+        setAutoRefresh:function(bAutoRefresh, bSetByMenu)
         {
-            var sLabel = (bAutoRefresh ? 'Auto' : 'Manual');
-            $('#toolbar-item-html-preview-refresh-frequency .toolbar-item-value').text(sLabel);
+            var sID = (bAutoRefresh ? 'Auto' : 'Manual');
+            $('#toolbar-item-html-preview-refresh-frequency .toolbar-item-value').text(sID);            
             oHtmlPreviewRefreshUIHandler.setDisabled(bAutoRefresh);
+            if (!bSetByMenu)
+                this._oMenu.setSelected(sID, true);
         },
         
         _setRefreshFrequency: function(sRefreshFrequency)
         {
             // Validate.
             oHelpers.assert(oHelpers.inArray(sRefreshFrequency, ['Auto', 'Manual']));
-            var bAutoRefresh = (sRefreshFrequency == 'Auto');
             
             // Update UI.
-            this.setAutoRefresh(bAutoRefresh);
+            this.setAutoRefresh(sRefreshFrequency == 'Auto', true);
             oUIDispatch.blurFocusedUIHandler();
             
             // Send action.
             oSocket.send('setAutoRefreshPreview',
             {
-                bAutoRefreshPreview: bAutoRefresh
+                bAutoRefreshPreview: sRefreshFrequency == 'Auto'
             });
         }
     });
@@ -576,8 +573,9 @@ define('app-main', function(require)
             // On a new document creation, default the title to "Untitled".
             if (bIsNewDocument)
             {
-                oTitleUIHandler.setTitle(_sUNTITLED, true);         
+                oTitleUIHandler.setTitle(_sUNTITLED, true);
                 oModeUIHandler.setMode(oNewDocumentMode);
+                
                 oSocket.send('createDocument',
                 {
                     sMode:  oNewDocumentMode.getName(),
