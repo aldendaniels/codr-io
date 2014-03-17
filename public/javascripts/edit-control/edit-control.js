@@ -148,6 +148,11 @@ define(function(require)
             delete this._oAceMarkerIDMap[sID];
         },
         
+        insert: function(aLines)
+        {
+            this._oAceEditor.insert(aLines.join('\n'));
+        },
+        
         resize: function()
         {
             this._oAceEditor.resize();

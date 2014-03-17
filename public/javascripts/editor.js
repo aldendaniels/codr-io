@@ -204,21 +204,7 @@ define(function(require)
         
         insertLines: function(aInsertLines)
         {
-            var iInsertLastRow  = aInsertLines.length - 1;
-            var iInsertLastCol  = aInsertLines[iInsertLastRow].length;
-            var oInsertDelta =
-            {
-                sAction: 'insert',
-                oRange:
-                {
-                    oStart: { iRow: 0,              iCol: 0              },
-                    oEnd:   { iRow: iInsertLastRow, iCol: iInsertLastCol }
-                },
-                aLines: aInsertLines
-            };
-            this._applyDelta(oInsertDelta, true);
-            this._onDocumentChange([oInsertDelta]);
-            this._moveLocalCursorToDeltaEnd(oInsertDelta);
+            this._oEditControl.insert(aInsertLines);
         },
         
         replaceRegex: function(oRegex, sLine)
