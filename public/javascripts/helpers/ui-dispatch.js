@@ -107,7 +107,7 @@ define(function(require)
                     case 'mousedown':
                         
                         // Focus should always be in a text-entry box.
-                        if (!jTarget.is('input, textarea, select, option') || jTarget.prop('disabled'))
+                        if ((!jTarget.is('input, textarea, select, option') || jTarget.prop('disabled')) && !jTarget.closest('.selectable').length)
                             oEvent.preventDefault();
                         
                         // Blur focused object on click off if bAutoBlur is true.

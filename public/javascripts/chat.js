@@ -4,6 +4,7 @@ define(function(require)
     // Dependencies.
     // Requires jQuery.
     var oHelpers = require('helpers/helpers-web');
+                   require('lib/linkify');
 
     return (
     {
@@ -34,7 +35,8 @@ define(function(require)
         onFocusIn: function()
         {
             this._bChatOpen = true;
-            this._iUnseen = 0;
+            if (this._bChatVisible)
+                this._iUnseen = 0;
             this._reRender();
         },
         
@@ -99,7 +101,7 @@ define(function(require)
                     this._changeClientID(jTarget.val());
             }
         },
-    
+        
         _showChatBox: function()
         {
             if (this._bChatVisible)
@@ -116,6 +118,8 @@ define(function(require)
                 $('#chat-box').focus();
                 
             this._bChatVisible = true;
+            this._iUnseen = 0;
+            this._reRender();
         },
     
         _handleServerAction: function(oAction)
@@ -159,7 +163,7 @@ define(function(require)
     
         _addNewChatMessage: function(sClientID, sMessage)
         {
-            if (!this._bChatOpen)
+            if (!this._bChatOpen || !this._bChatVisible)
                 this._iUnseen++;
                 
             this._aHistory.push(
@@ -202,7 +206,7 @@ define(function(require)
             // Remove old comments.
             var jHistory = $('#chat-history');
             jHistory.empty();
-    
+            
             // Show chat history.
             for (var i = 0; i < this._aHistory.length; i++)
             {
@@ -217,15 +221,21 @@ define(function(require)
                 jMessage.find('.chat-message-text').text(oMessage.sMessage);
                 jHistory.append(jMessage);
             }
-    
+            
+            // Linkify links.
+            jHistory.find('.chat-message-text').linkify({target: "_blank"});
+            
+            // Scroll to bottom.
+            jHistory.scrollTop(10000000);
+            
             // Show currently typing.
             $('#chat-typing-names').text(this._englishFormatArray(this._aTypingUsers));
-    
+            
             // Update the notifications.
             $('#chat-unread-count').text(this._iUnseen);
             $('#chat-unread-count').toggle(!!this._iUnseen);
         },
-    
+        
         _englishFormatArray: function(aArray)
         {
             if (aArray.length === 0)

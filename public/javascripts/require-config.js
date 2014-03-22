@@ -15,6 +15,11 @@ requirejs.config(
             exports: '$'
         },
         
+        'lib/linkify':
+        {
+            exports: '$'
+        },
+        
         'tests/qunit':
         {
             exports: 'QUnit',
