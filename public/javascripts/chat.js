@@ -94,7 +94,7 @@ define(function(require)
                     }
                 }            
             }
-    
+            
             if (sEventType == 'blur')
             {
                 if (jTarget.is('#username'))
@@ -121,7 +121,7 @@ define(function(require)
             this._iUnseen = 0;
             this._reRender();
         },
-    
+        
         _handleServerAction: function(oAction)
         {
             switch(oAction.sType)
@@ -139,12 +139,12 @@ define(function(require)
                     this._aTypingUsers.splice(this._aTypingUsers.indexOf(oAction.oData.sClientID), 1);
                     this._reRender();
                     break;
-    
+                    
                 case 'invalidClientIDChange':
                     
                     $('#chat-identify-error-message').text(oAction.oData.sReason);
                     break;
-    
+                    
                 case 'newClientIDAccepted':
                     
                     // Save username.
@@ -197,10 +197,10 @@ define(function(require)
                 'sClientID': this._fnGetUserInfo()['sClientID'],
                 'sMessage': sMessage
             });
-    
+            
             this._reRender();
         },
-    
+        
         _reRender: function()
         {
             // Remove old comments.
@@ -240,16 +240,16 @@ define(function(require)
         {
             if (aArray.length === 0)
                 return '';
-    
+                
             if (aArray.length === 1)
                 return aArray[0];
-    
+                
             if (aArray.length === 2)
                 return aArray.join(' and ');
-    
+                
             return aArray.slice(0, -1).join(', ') + ' and ' + aArray[aArray.length - 1];
         },
-    
+        
         _clearTyping: function()
         {
             window.clearTimeout(this._iTypingTimeout);

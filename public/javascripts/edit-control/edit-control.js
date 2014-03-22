@@ -60,9 +60,17 @@ define(function(require)
             
         applyDelta: function(oNormDelta)
         {
+            // Set applying delta. Used to keep from alerting caller of the caller's own deltas.
             this._setApplyingDelta(true);
+            
+            // Apply deleta.
             var oAceDelta = this._denormalizeDelta(oNormDelta);
             this._oAceDocument.applyDeltas([oAceDelta]);
+            
+            // Force the ace scrollbar to resize (works around ace bug).
+            this._oAceEditor.renderer.$autosize();
+            
+            // All done. :)
             this._setApplyingDelta(false);
         },
         
