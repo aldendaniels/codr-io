@@ -248,9 +248,9 @@ define('app-main', function(require)
         _jSplitElem: $('#html-preview-border'),
         _bIsDragging: false,
         
-        contains: function()
+        contains: function(jElem)
         {
-            return this._jSplitElem;
+            return !!jElem.closest(this._jSplitElem).length;
         },
         
         onEvent: function(oEvent)
@@ -387,7 +387,7 @@ define('app-main', function(require)
     {
         contains: function(jElem)
         {
-            return jElem.closest('#toolbar-item-html-preview-popup').length;
+            return !!jElem.closest('#toolbar-item-html-preview-popup').length;
         },
         
         onEvent: function(oEvent)
@@ -415,7 +415,7 @@ define('app-main', function(require)
         
         contains: function(jElem)
         {
-            return jElem.closest(this._jElem).length;
+            return !!jElem.closest(this._jElem).length;
         },
         
         setDisabled: function(bDisabled)
@@ -446,7 +446,7 @@ define('app-main', function(require)
     {
         contains: function(jElem)
         {
-            return jElem.closest('#html-tools-btn').length;
+            return !!jElem.closest('#html-tools-btn').length;
         },
         
         onEvent: function(oEvent)
