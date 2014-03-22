@@ -19,7 +19,6 @@ module.exports = oHelpers.createClass(
             sTitle: 'Untitled',
             sMode: '',
             aLines: [''],
-            aChatHistory: [],
             bIsSnapshot: false,
             oDateCreated: new Date(),
             bUseSoftTabs: true,
@@ -53,7 +52,6 @@ module.exports = oHelpers.createClass(
         oClone.set('bIsSnapshot', bIsSnapshot || false);
         oClone.set('aSnapshots', []);
         oClone.set('oDateCreated', new Date());
-        oClone.set('aChatHistory', []);
         return oClone;
     },
             
@@ -70,6 +68,9 @@ module.exports = oHelpers.createClass(
             oData = optionalJSONorObj;
         else
             oHelpers.assert(false, 'Invalid document data type.');
+            
+        // Remove deprecated values.
+        delete oData['aChatHistory'];
         
         // Set values.
         for (var sKey in oData)

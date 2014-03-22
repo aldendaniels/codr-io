@@ -399,6 +399,7 @@ body.snapshot .edit-mode-message
 #toolbar-item-chat
 {
     position: relative;
+    
     #chat-unread-count
     {
         position: absolute;
@@ -434,13 +435,22 @@ body.snapshot .edit-mode-message
                 color: red;
             }
         }
-    
+            
         &.identify 
         {
             #chat-identify-wrapper { display: block; }
             #chat-main             { display: none;  }
         }
-    
+        
+        #chat-ephemeral-title
+        {
+            text-align: center;
+            font-size: 8pt;
+            color: #888;
+            position: relative;
+            top: -2px;
+        }
+            
         #chat-history
         {
             margin: 5px;

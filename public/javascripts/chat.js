@@ -31,14 +31,14 @@ define(function(require)
             this._oSocket.bind('message', this, this._handleServerAction);
         },
         
-        onOpen: function()
+        onFocusIn: function()
         {
             this._bChatOpen = true;
             this._iUnseen = 0;
             this._reRender();
         },
         
-        onClose: function()
+        onFocusOut: function()
         {
             this._bChatOpen = false;
         },

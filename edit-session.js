@@ -222,16 +222,6 @@ module.exports = oHelpers.createClass(
                     'sClientID': this._aCurrentlyTyping[i].getClientID()
                 });
             }
-            
-            // Set chat history.
-            for (var i = 0; i < this._oDocument.get('aChatHistory').length; i++)
-            {
-                oClient.sendAction('newChatMessage',
-                {
-                    'sClientID': this._oDocument.get('aChatHistory')[i].sClientID,
-                    'sMessage':  this._oDocument.get('aChatHistory')[i].sMessage
-                });
-            }
         }
         
         // Send snapshots.
@@ -346,7 +336,6 @@ module.exports = oHelpers.createClass(
                     }
                 };
                 this._broadcastAction(oClient, oNewAction);
-                this._oDocument.get('aChatHistory').push(oNewAction.oData);
                 this._setAutoSaveTimeout();
                 break;
                 
