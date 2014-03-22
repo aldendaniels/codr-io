@@ -65,11 +65,11 @@
                             <div id="title-message" class="edit-mode-message">
                                 Changes not allowed in read-only files
                             </div>
-                            <input class="toolbar-input" type="text" id="title-input"></input>
+                            <input class="toolbar-input" type="text" id="title-input" />
                             <div class="horizontal-divider"></div>
                             <button id="title-save">Save</button>
                             <div class="hidden-focusable" style="display: none;">
-                                <input type="text"></input>
+                                <input type="text" />
                             </div>
                         </div>
                     </div>
@@ -189,7 +189,7 @@
                                 <div id="Bottom" class="option">Bottom <span class="icon-check"></span></div>
                                 <div class="menu-foot-msg">Affects Only You</div>
                                 <div class="hidden-focusable">
-                                    <input type="text"></input>
+                                    <input type="text" />
                                 </div>
                             </div>
                         </div>
@@ -319,11 +319,11 @@
                         <div id="html-preview-border">
                             <div id="grab"></div>
                             <div class="hidden-focusable">
-                                <input type="text" tabindex="-1"></input>
+                                <input type="text" tabindex="-1" />
                             </div>
                         </div>
                         <div id="html-preview-wrap-inner">
-                            <iframe id="html-preview" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
+                            <iframe id="html-preview-frame" src="/preview-inner.html" sandbox="allow-scripts allow-forms"></iframe>
                         </div>
                     </div>
                 </div>
@@ -386,6 +386,7 @@
         <div id="resize-overlay"></div>
         
         <script type="text/javascript">
+            
             if (IS_SNAPSHOT)
             {
                 document.body.className += " snapshot";
@@ -399,7 +400,7 @@
                 document.getElementById('title-input').disabled  = 'disabled';
                 document.getElementById('title-save').disabled   = 'disabled';
                 document.querySelectorAll('#toolbar-item-title .hidden-focusable')[0].style.display="block";
-            }
+            }            
         </script>
         
         <script type="text/javascript" defer src="/javascripts/lib/require.js"></script>

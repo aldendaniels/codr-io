@@ -101,6 +101,15 @@ var aTasks = [
             include: ['require-config']
         }, fnNext);        
     },
+
+    function()
+    {
+        console.log('Compile preview.js');
+        compileJS('preview',
+        {
+            include: ['require-config']
+        }, fnNext);        
+    },
     
     function()
     {
@@ -150,7 +159,7 @@ var aTasks = [
     function()
     {
         console.log('Compile HTML files');
-        var aFileNames = ['index.html', 'tests.html', 'preview.html'];
+        var aFileNames = ['index.html', 'tests.html', 'preview.html', 'preview-inner.html'];
         for(var i in aFileNames)
         {
             var sFileName = aFileNames[i];

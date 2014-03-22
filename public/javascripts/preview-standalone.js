@@ -2,8 +2,7 @@ define('preview-standalone', function(require)
 {
     // Dependencies.
     var oHelpers = require('helpers/helpers-web-no-jquery'),
-        Socket   = require('helpers/socket')
-        oPreview = require('preview');
+        Socket   = require('helpers/socket');
         
     var bIsSnapshot = /^\/v\//.test(window.location.pathname);
     
@@ -15,7 +14,7 @@ define('preview-standalone', function(require)
         $.get('/ajax/' + sDocumentID + '/', oHelpers.createCallback(this, function(oResponse)
         {
             oHelpers.assert(!oResponse.sError, oResponse.sError);
-            oPreview.setSnapshotLines(oResponse.aLines);
+            ePreviewWindow.postMessage({sType: 'setSnapshotLines', aLines: oResponse.aLines}, '*');
             oHelpers.setTitleWithHistory(oResponse.sTitle);
         }));
     }
@@ -28,7 +27,12 @@ define('preview-standalone', function(require)
     var oSocket  = new Socket(sSocketURL);
     
     // Init preview.
-    oPreview.init(oSocket);
+    ePreviewWindow.postMessage({sType: 'play'}, '*');
+    oSocket.bind('message', this, function(oMessage)
+    {
+        ePreviewWindow.postMessage({ sType: 'serverMessage', oMessage: oMessage}, '*');
+        return true;
+    }, true /* bHandleMsgSends */);
     
     // Handle title updates.
     oSocket.bind('message', null, function(oAction)
@@ -50,5 +54,14 @@ define('preview-standalone', function(require)
     });
 });
 
-// Start App.
-require(['preview-standalone']);
+// Make sure the preview is loaded.
+// Code cloned in init-app.js.
+var ePreviewWindow = $('iframe#html-preview-frame')[0].contentWindow;
+window.onmessage = function(e)
+{
+    if (e.data.sType == 'previewLoaded')
+        require(['preview-standalone']);
+    else
+        throw 'Unkown message from preview';
+}
+ePreviewWindow.postMessage({sType: 'checkPreviewLoaded'}, '*');

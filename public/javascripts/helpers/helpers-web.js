@@ -48,6 +48,11 @@ define(function(require)
             {
                 return oHelpers.createCallback(oScope, fnCallback)(this /* Current DOM Elem */)
             }).first();
+        },
+        
+        getOrigin: function()
+        {
+            return window.location.href.replace(window.location.pathname, '');
         }
     });
     return oHelpers;

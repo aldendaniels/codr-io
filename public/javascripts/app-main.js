@@ -15,13 +15,13 @@ define('app-main', function(require)
     var oChatUIHandler               = require('chat'),
         oHtmlTemplateInsertUIHandler = require('html-template-dialog'),
         oEditor                      = require('editor'),
-        oKeyShortcutHandler          = require('helpers/key-shortcut-handler'),
-        oPreviewUIHandler            = require('preview');
+        oKeyShortcutHandler          = require('helpers/key-shortcut-handler');
         
     // Other module globals.
-    var _sUNTITLED = 'Untitled';
-    var oSocket                      = null;
-    var oUserInfo = null;
+    var _sUNTITLED     = 'Untitled';
+    var oSocket        = null;
+    var oUserInfo      = null;
+    var ePreviewWindow = $('iframe#html-preview-frame')[0].contentWindow;
 
     var oTitleUIHandler = (
     {   
@@ -183,7 +183,7 @@ define('app-main', function(require)
         addSnapshot: function(oSnapshot)
         {
             $('#snapshots #placeholder').remove();
-            var sUrl = document.location.origin + '/v/' + oSnapshot.sID;
+            var sUrl = oHelpers.getOrigin() + '/v/' + oSnapshot.sID;
             var sDate = oHelpers.formatDateTime(oSnapshot.oDateCreated);
             var jSnapshot = $('<a class="snapshot-link"><span class="date"></span><span class="url"></span></a>');
             jSnapshot.find('span.date').text(sDate);
@@ -228,9 +228,9 @@ define('app-main', function(require)
             
             // Pause or play Preview.
             if (sDockDir == 'none')
-                oPreviewUIHandler.pause();
+                ePreviewWindow.postMessage({ sType: 'pause'}, '*');
             else
-                oPreviewUIHandler.play(oEditor.getAllLines());
+                ePreviewWindow.postMessage({ sType: 'play', aLines: oEditor.getAllLines()}, '*');
             
             // Close menu.
             oUIDispatch.blurFocusedUIHandler();
@@ -542,7 +542,12 @@ define('app-main', function(require)
         oHtmlPreviewDockDropdownUIHandler.init();
         oHtmlPreviewRefreshFrequencyUIHandler.init();
         oKeyShortcutHandler.init();
-        oPreviewUIHandler.init(oSocket, oEditor);
+        
+        // Init preview handlers.
+        oSocket.bind('message', this, function(oMessage)
+        {
+            ePreviewWindow.postMessage({ sType: 'serverMessage', oMessage: oMessage}, '*');
+        }, true /* bHandleMsgSends */);
         
         // Set initial DOM focus to editor.
         oEditor.focus();

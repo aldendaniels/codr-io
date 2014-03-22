@@ -6,48 +6,67 @@ define('preview', function(require)
     
     return (
     {
-        _ePreview: document.getElementById('html-preview'),
         _bAutoRefresh: true,
-        _oSocket: null,
-        _bIsStandalone: true,
-        _bIsDirty: true, // Start as dirty, since we need initial content.
-        
-        // Standalone Only.
         _aDocLines: [],
+        _bPaused: true,
         
-        // Docked (Non-Standalone) Only
-        _bPaused: false,
-        _oEditor: null,
-        
-        init: function(oSocket, oOptionalEditor)
+        init: function(oOptionalEditor)
         {
-            this._oSocket = oSocket;
-            this._oSocket.bind('message', this, this._handleServerAction, true /* bHandleMsgSends */);
-            
-            // Docked (non stand-alone).
-            if (oOptionalEditor)
+            // Handle server messages passed to iFrame via the PostMessage API.
+            window.onMessage = null;
+            oHelpers.on(window, 'message', this, function(e)
             {
-                this._bPaused = true;
-                this._bIsStandalone = false;
-                this._oEditor = oOptionalEditor;
+                this._handleMessage(e.originalEvent.data);
+            });
+            
+            // Disable document.write.
+            // This is necessary because calling document.write will kill the
+            // Preview scripts.
+            document.write = function()
+            {
+                alert('document.write is not supported in preview');
             }
+            
+            // We notify the parent window when JS is loaded.
+            console.log('test1: ', window.parent.postMessage);
+            window.parent.postMessage({sType: 'previewLoaded'}, '*');
         },
         
-        setSnapshotLines: function(aDocLines)
+        _handleMessage: function(o)
         {
-            this._aDocLines = aDocLines;
-            this._updatePreview();
-        },
-        
-        pause: function()
-        {
-            this._bPaused = true;
-        },
-        
-        play: function()
-        {
-            this._bPaused = false;
-            this._updatePreview();
+            console.log(o);
+            switch(o.sType)
+            {
+                case 'serverMessage':
+                    this._handleServerAction(o.oMessage);
+                    break;
+                
+                case 'setSnapshotLines':
+                    this._aDocLines = o.aLines;
+                    this._updatePreview();
+                    break;
+                    
+                case 'pause':
+                    this._bPaused = true;
+                    break;
+                
+                case 'play':
+                    this._bPaused = false;
+                    if (o.aLines)
+                    {
+                        this._aDocLines = o.aLines;
+                        this._updatePreview();                        
+                    }
+                    break;
+                
+                case 'checkPreviewLoaded':
+                    console.log('test1: ', window.parent.postMessage);
+                    window.parent.postMessage({sType: 'previewLoaded'}, '*');
+                    break;
+                    
+                default:
+                    oHelpers.assert(false, 'Bad message sent to preview.');
+            }
         },
         
         _handleServerAction: function(oAction)
@@ -55,132 +74,122 @@ define('preview', function(require)
             switch(oAction.sType)
             {
                 case 'setDocumentData':
-                    if (this._bIsStandalone)
+                    if (!this._bPaused)
                     {
                         this._aDocLines = oAction.oData.aLines;
-                        this._updatePreview();
+                        this._updatePreview();                        
                     }
-                    else
-                    {
-                        if (!this._bPaused)
-                            window.setTimeout(oHelpers.createCallback(this, this._updatePreview), 1);
-                    }
-                    return true;
+                    break;
                     
                 case 'docChange':
-                    this._bIsDirty = true;
-                    if (this._bIsStandalone)
+                    if (!this._bPaused)
                     {
                         fnApplyDelta(this._aDocLines, oAction.oData.oDelta);
                         if (this._bAutoRefresh)
                             this._updatePreview();
                     }
-                    else if (!this._bPaused)
-                    {
-                        // Allow the editor to update, and then update preview.
-                        if (this._bAutoRefresh)
-                            window.setTimeout(oHelpers.createCallback(this, this._updatePreview), 1);
-                    }
-                    return true;
+                    break;
                     
                 case 'setAutoRefreshPreview':
                     this._bAutoRefresh = oAction.oData.bAutoRefreshPreview;
                     if (this._bAutoRefresh && !this._bPaused)
                         this._updatePreview();
-                    return true;
+                    break;
                 
                 case 'refreshPreview':
                     oHelpers.assert(!this._bAutoRefresh, 'The "refreshPreview" event should only occur when manually refreshing.');
                     if (!this._bPaused)
                         this._updatePreview();
-                    return true;
+                    break;
                     
                 case 'error':
                     document.write(oAction.oData.sMessage);
-                    return true;
+                    break;
             }
             return false;
         },
         
         _updatePreview: function()
         {
+            // Validate that preview is not paused. Preview is paused when the docked preview paneis hidden.
             oHelpers.assert(!this._bPaused, '_updatePreview should not be called when paused.');
             
-            if (this._bIsDirty)
+            // Show placeholder (if no HTML to render).
+            var sHTML = this._aDocLines.join('\n');
+            if (!sHTML) 
             {
-                // Get HTML.
-                var sHTML = (this._bIsStandalone ? this._aDocLines : this._oEditor.getAllLines()).join('\n');
-                if (!sHTML) // Show placeholder.
-                {
-                    sHTML = [
-                        '<!DOCTYPE html>',
-                        '<html>',
-                        '    <head>',
-                        '        <style type="text/css">',
-                        '            body',
-                        '            {',
-                        '                background-color: #f5f5f5;',
-                        '                font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;',
-                        '                text-align: center;',
-                        '                text-shadow: 1px 2px 3px white;',
-                        '            }',
-                        '            ',
-                        '            h1',
-                        '            {',
-                        '                font-size: 2.5em;',
-                        '                color: #aaa;',
-                        '                margin-bottom: 0;',
-                        '                font-weight: normal',
-                        '            }',
-                        '            ',
-                        '            p',
-                        '            {',
-                        '                margin-top: 10px;',
-                        '                color: #888;',
-                        '            }',
-                        '            ',
-                        '            html, body, table',
-                        '            {',
-                        '                height: 100%;',
-                        '                width: 100%;',
-                        '                overflow: hidden;',
-                        '                text-align: center;',
-                        '            }',
-                        '        </style>',
-                        '    </head>',
-                        '    <body>',
-                        '        <table>',
-                        '            <tr>',
-                        '                <td>',
-                        '                    <h1>HTML Preview</h1>',
-                        '                    <p>No content yet. Start typing!</p>',
-                        '                </td>',
-                        '            </tr>',
-                        '        </table>',
-                        '    </body>',
-                        '</html>'
-                    ].join('\n');
-                }
-                
-                // Update content.
-                this._ePreview.contentDocument.documentElement.innerHTML = sHTML;
-                
-                // Replace scripts.
-                // Necessary because setting the InnerHTML of the iFrame won't make it eval the scripts.
-                var aScripts = this._ePreview.contentDocument.getElementsByTagName('script');
-                var i = -1;
-                loadNextScript = oHelpers.createCallback(this, function()
-                {
-                    i++;
-                    if (i < aScripts.length)
-                        this._loadScript(aScripts[i], loadNextScript)                        
-                });
-                loadNextScript();
+                sHTML = [
+                    '<!DOCTYPE html>',
+                    '<html>',
+                    '    <head>',
+                    '        <style type="text/css">',
+                    '            body',
+                    '            {',
+                    '                background-color: #f5f5f5;',
+                    '                font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;',
+                    '                text-align: center;',
+                    '                text-shadow: 1px 2px 3px white;',
+                    '            }',
+                    '            ',
+                    '            h1',
+                    '            {',
+                    '                font-size: 2.5em;',
+                    '                color: #aaa;',
+                    '                margin-bottom: 0;',
+                    '                font-weight: normal',
+                    '            }',
+                    '            ',
+                    '            p',
+                    '            {',
+                    '                margin-top: 10px;',
+                    '                color: #888;',
+                    '            }',
+                    '            ',
+                    '            html, body, table',
+                    '            {',
+                    '                height: 100%;',
+                    '                width: 100%;',
+                    '                overflow: hidden;',
+                    '                text-align: center;',
+                    '            }',
+                    '        </style>',
+                    '    </head>',
+                    '    <body>',
+                    '        <table>',
+                    '            <tr>',
+                    '                <td>',
+                    '                    <h1>HTML Preview</h1>',
+                    '                    <p>No content yet. Start typing!</p>',
+                    '                </td>',
+                    '            </tr>',
+                    '        </table>',
+                    '    </body>',
+                    '</html>'
+                ].join('\n');
             }
-            this._bIsDirty = false;
+            
+            // Update content.
+            document.documentElement.innerHTML = sHTML;
+            
+            // Replace scripts.
+            this._reloadScripts();
         },
         
-        _loadScript: function(eOldScript, fnCallback)
+        _reloadScripts: function()
+        {
+            // Necessary because setting the InnerHTML of the iFrame won't make it eval the scripts.
+            var aScripts = document.getElementsByTagName('script');
+            var i = -1;
+            reloadNextScript = oHelpers.createCallback(this, function()
+            {
+                i++;
+                if (i < aScripts.length)
+                    this._reloadScript(aScripts[i], reloadNextScript)                        
+            });
+            reloadNextScript();
+        },
+        
+        _reloadScript: function(eOldScript, fnCallback)
         {
             var eNewScript = document.createElement('script');
             eNewScript.type = eOldScript.type;
@@ -198,4 +207,10 @@ define('preview', function(require)
             }
         }
     });
+});
+
+// Start Preview
+require(['preview'], function(oPreview)
+{
+    oPreview.init();
 });

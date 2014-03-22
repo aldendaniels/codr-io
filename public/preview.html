@@ -14,17 +14,16 @@
                 height: 100%;
                 overflow: hidden;
             }
-            iframe#html-preview
+            iframe#html-preview-frame
             {
                 border: 0 !important;
                 height: 100%;
                 width: 100%;
             }
         </style>
-        
         <frameset rows="100%">
             <frameset cols="100%">
-                <iframe id="html-preview" sandbox="allow-same-origin allow-scripts"></iframe>
+                <iframe id="html-preview-frame" src="/preview-inner.html" sandbox="allow-scripts allow-forms"></iframe>
             </frameset>
         </frameset>
         
