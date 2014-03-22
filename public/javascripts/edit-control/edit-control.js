@@ -45,6 +45,10 @@ define(function(require)
             this._oAceEditor.commands.bindKey('Ctrl-G|Command-G', 'gotoline');
             this._oAceEditor.commands.bindKey('Ctrl-L|Command-L', '');
             
+            // Disable the "Move Lines" commands since these break in 1.1.x versions of ace.
+            this._oAceEditor.commands.bindKey('Alt-Up|Option-Up', '');
+            this._oAceEditor.commands.bindKey('Alt-Down|Option-Down', '');
+            
             // Do not include white space in selection
             this._oAceEditor.setSelectionStyle('text');
             
