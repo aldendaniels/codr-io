@@ -22,10 +22,20 @@ define('preview', function(require)
             // Disable document.write.
             // This is necessary because calling document.write will kill the
             // Preview scripts.
-            document.write = function()
+            function showUnsupportedMessage(sFnName)
             {
-                alert('document.write is not supported in preview');
+                $('BODY').prepend('<div style="background-color: red;\
+                              color: rgba(255, 255, 255, 0.9);\
+                              text-align: center;\
+                              padding: 5px;\
+                              right: 0;\
+                              font-family: arial;\
+                              font-size: 10pt;">' + sFnName + '() is not supported in preview.</div>');
+
             }
+            document.write = function() { showUnsupportedMessage('document.write') }
+            document.open  = function() { showUnsupportedMessage('document.open') }
+            document.close = function() { showUnsupportedMessage('document.close') }
             
             // We notify the parent window when JS is loaded.
             window.parent.postMessage({sType: 'previewLoaded'}, '*');
