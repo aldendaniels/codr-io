@@ -9,6 +9,7 @@ define('app-main', function(require)
         MenuKeyNav                   = require('helpers/menu-key-nav'),
         fnPopupWindow                = require('helpers/popup-window'),
         oModes                       = require('edit-control/modes');
+        oHtmlPreviewFrameConnector   = require('html-preview-frame-connector');
                                        require('lib/tooltip');
     
     // UI Handler Dependencies.    
@@ -21,7 +22,6 @@ define('app-main', function(require)
     var _sUNTITLED     = 'Untitled';
     var oSocket        = null;
     var oUserInfo      = null;
-    var ePreviewWindow = $('iframe#html-preview-frame')[0].contentWindow;
 
     var oTitleUIHandler = (
     {   
@@ -228,10 +228,17 @@ define('app-main', function(require)
             
             // Pause or play Preview.
             if (sDockDir == 'none')
-                ePreviewWindow.postMessage({ sType: 'pause'}, '*');
+            {
+                oHtmlPreviewFrameConnector.sendMessage('pause');
+            }
             else
-                ePreviewWindow.postMessage({ sType: 'play', aLines: oEditor.getAllLines()}, '*');
-            
+            {
+                oHtmlPreviewFrameConnector.sendMessage('play',
+                {
+                    aLines: oEditor.getAllLines()
+                });
+            }
+                
             // Close menu.
             oUIDispatch.blurFocusedUIHandler();
         }
@@ -526,7 +533,7 @@ define('app-main', function(require)
         $('#collaborate-url').val(document.location.href.slice(7));
         $('#clone-doc-id').val(sDocumentID);
     }
-    
+        
     return function(bIsNewDocument, bIsSnapshot, oNewDocumentMode)
     {
         // Init Socket.
@@ -543,10 +550,11 @@ define('app-main', function(require)
         oHtmlPreviewRefreshFrequencyUIHandler.init();
         oKeyShortcutHandler.init();
         
-        // Init preview handlers.
-        oSocket.bind('message', this, function(oMessage)
+        // Init HTML preview connector.
+        oHtmlPreviewFrameConnector.init();
+        oSocket.bind('message', this, function(oAction)
         {
-            ePreviewWindow.postMessage({ sType: 'serverMessage', oMessage: oMessage}, '*');
+            oHtmlPreviewFrameConnector.sendMessage('serverMessage', oAction);
         }, true /* bHandleMsgSends */);
         
         // Set initial DOM focus to editor.

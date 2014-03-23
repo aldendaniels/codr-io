@@ -1,48 +1,50 @@
 define('preview-standalone', function(require)
 {
     // Dependencies.
-    var oHelpers = require('helpers/helpers-web-no-jquery'),
-        Socket   = require('helpers/socket');
-        
+    var oHelpers                   = require('helpers/helpers-web'),
+        Socket                     = require('helpers/socket'),
+        oHtmlPreviewFrameConnector = require('html-preview-frame-connector');
+
+    // Init Socket.
     var bIsSnapshot = /^\/v\//.test(window.location.pathname);
+    var sSocketURL = 'ws://' + window.document.location.host + '/';
+    var oSocket  = new Socket(bIsSnapshot ? null : sSocketURL);
+
+    // Init HTML Preview connector.
+    oHtmlPreviewFrameConnector.init();
+    oHtmlPreviewFrameConnector.sendMessage('play');
     
-    var sSocketURL = null;
+    // Set preview content for snpashot.
     if (bIsSnapshot)
     {
-        // Set Ccontent.
         var sDocumentID = /^\/v\/([a-z0-9]+)\/preview\/?$/.exec(document.location.pathname)[1];
         $.get('/ajax/' + sDocumentID + '/', oHelpers.createCallback(this, function(oResponse)
         {
             oHelpers.assert(!oResponse.sError, oResponse.sError);
-            ePreviewWindow.postMessage({sType: 'setSnapshotLines', aLines: oResponse.aLines}, '*');
+            oHtmlPreviewFrameConnector.sendMessage('setSnapshotLines',
+            {
+                aLines: oResponse.aLines
+            });
             oHelpers.setTitleWithHistory(oResponse.sTitle);
         }));
     }
-    else
-    {
-        sSocketURL = 'ws://' + window.document.location.host + '/';
-    }
     
-    // Init Socket.
-    var oSocket  = new Socket(sSocketURL);
     
-    // Init preview.
-    ePreviewWindow.postMessage({sType: 'play'}, '*');
-    oSocket.bind('message', this, function(oMessage)
-    {
-        ePreviewWindow.postMessage({ sType: 'serverMessage', oMessage: oMessage}, '*');
-        return true;
-    }, true /* bHandleMsgSends */);
-    
-    // Handle title updates.
     oSocket.bind('message', null, function(oAction)
     {
+        // Handle title updates.
         if (oAction.sType == 'setDocumentTitle')
         {
             oHelpers.setTitleWithHistory(oAction.oData.sTitle);
             return true;
         }
-        return false; // Not handled.
+        
+        // Forward server messags to preview frame.
+        oHtmlPreviewFrameConnector.sendMessage('serverMessage', oAction);
+        
+        // Treat all events as handled since we don't need all events
+        // for standalone preview.
+        return true;
     });
     
     // Open document.
@@ -54,14 +56,5 @@ define('preview-standalone', function(require)
     });
 });
 
-// Make sure the preview is loaded.
-// Code cloned in init-app.js.
-var ePreviewWindow = $('iframe#html-preview-frame')[0].contentWindow;
-window.onmessage = function(e)
-{
-    if (e.data.sType == 'previewLoaded')
-        require(['preview-standalone']);
-    else
-        throw 'Unkown message from preview';
-}
-ePreviewWindow.postMessage({sType: 'checkPreviewLoaded'}, '*');
+// Start.
+require(['preview-standalone']);

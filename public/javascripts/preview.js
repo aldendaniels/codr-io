@@ -28,21 +28,19 @@ define('preview', function(require)
             }
             
             // We notify the parent window when JS is loaded.
-            console.log('test1: ', window.parent.postMessage);
             window.parent.postMessage({sType: 'previewLoaded'}, '*');
         },
         
         _handleMessage: function(o)
         {
-            console.log(o);
             switch(o.sType)
             {
                 case 'serverMessage':
-                    this._handleServerAction(o.oMessage);
+                    this._handleServerAction(o.oData);
                     break;
                 
                 case 'setSnapshotLines':
-                    this._aDocLines = o.aLines;
+                    this._aDocLines = o.oData.aLines;
                     this._updatePreview();
                     break;
                     
@@ -52,15 +50,14 @@ define('preview', function(require)
                 
                 case 'play':
                     this._bPaused = false;
-                    if (o.aLines)
+                    if (o.oData)
                     {
-                        this._aDocLines = o.aLines;
+                        this._aDocLines = o.oData.aLines;
                         this._updatePreview();                        
                     }
                     break;
                 
                 case 'checkPreviewLoaded':
-                    console.log('test1: ', window.parent.postMessage);
                     window.parent.postMessage({sType: 'previewLoaded'}, '*');
                     break;
                     
@@ -106,7 +103,11 @@ define('preview', function(require)
                     document.write(oAction.oData.sMessage);
                     break;
             }
-            return false;
+            
+            // Pretend to handle all events since the preview functionality
+            // only needs a subset. This shouldn't mess up a docked preview
+            // since there we get events on send, not on receipt.
+            return true; 
         },
         
         _updatePreview: function()

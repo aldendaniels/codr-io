@@ -34,33 +34,18 @@ define('init-app', function(require)
     {
         var fnLoadWorkspace = function()
         {
-            _fnLoadWorkspace = function()
+            require(['app-main'], function(fnAppMain, Socket)
             {
-                require(['app-main'], function(fnAppMain, Socket)
+                // Instantiate main app.
+                fnAppMain(bIsNewDocument, bIsSnapshot, oNewDocumentMode);
+                
+                // Hide mode chooser.
+                if (bIsNewDocument)
                 {
-                    // Instantiate main app.
-                    fnAppMain(bIsNewDocument, bIsSnapshot, oNewDocumentMode);
-                    
-                    // Hide mode chooser.
-                    if (bIsNewDocument)
-                    {
-                        $('BODY').removeClass('home');
-                        $(window).off('.home');
-                    }
-                });                
-            }
-            
-            // Make sure the preview is loaded.
-            // Code cloned in preview-standalone.js.
-            var ePreviewWindow = $('iframe#html-preview-frame')[0].contentWindow;
-            window.onmessage = function(e)
-            {
-                if (e.data.sType == 'previewLoaded')
-                    _fnLoadWorkspace();
-                else
-                    throw 'Unkown message from preview';
-            }
-            ePreviewWindow.postMessage({sType: 'checkPreviewLoaded'}, '*');
+                    $('BODY').removeClass('home');
+                    $(window).off('.home');
+                }
+            });                
         };
         
         if (IS_EDITOR_READY)
