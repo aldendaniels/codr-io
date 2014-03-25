@@ -2,8 +2,9 @@ define('init-app', function(require)
 {
     // Dependencies.
     // Requires jQuery.
-    var oHelpers = require('helpers/helpers-web'),
-        oModes   = require('edit-control/modes');
+    var oHelpers   = require('helpers/helpers-web'),
+        oModes     = require('edit-control/modes'),
+        oFavorites = require('favorites');
 
     function loadModeChooser(fnOnModeSelect)
     {
@@ -65,6 +66,8 @@ define('init-app', function(require)
             {
                 loadWorkspace(IS_NEW_DOCUMENT, IS_SNAPSHOT, oMode)
             });
+
+            oFavorites.insertRecentFiles($('#recent-files'))
         }
         else
             loadWorkspace(IS_NEW_DOCUMENT, IS_SNAPSHOT, null);
