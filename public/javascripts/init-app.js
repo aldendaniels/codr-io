@@ -2,8 +2,62 @@ define('init-app', function(require)
 {
     // Dependencies.
     // Requires jQuery.
-    var oHelpers = require('helpers/helpers-web'),
-        oModes   = require('edit-control/modes');
+    var oHelpers   = require('helpers/helpers-web'),
+        oModes     = require('edit-control/modes'),
+        oBowser    = require('lib/bowser'),
+        oModernizr = require('lib/modernizr'),
+        oTemplatizer = require('helpers/templatizer');
+    
+    var sNotSupportedTemplate = (
+    [
+    '<!DOCTYPE html>',
+    '<html lang="en">',
+    '    <head>',
+    '        <title>codr.io</title>',
+    '        <style>',
+    '            html, body, #main',
+    '            {',
+    '                margin: 0;',
+    '                padding: 0;',
+    '                height: 100%;',
+    '            }',
+    '            ',
+    '            body',
+    '            {',
+    '                font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;',
+    '                line-height: 2em;',
+    '                background-color: #fafafa;',
+    '                color: #444;',
+    '                text-shadow: 1px 2px 3px white;',
+    '            }',
+    '            ',
+    '            h3, p',
+    '            {',
+    '                margin-bottom: 0;',
+    '                margin-top: 0;',
+    '            }',
+    '            ',
+    '            table#main',
+    '            {',
+    '                max-width: 480px;',
+    '                margin-left: auto;',
+    '                margin-right: auto;',
+    '            }',
+    '            ',
+    '        </style>',
+    '    </head>',
+    '    <body>',
+    '        <table id="main">',
+    '            <tr>',
+    '                <td>',
+    '                    <h3>[[ sTitle ]]</h3>',
+    '                    <p>[[ sMessage ]]</p>',
+    '                </td>',
+    '            </tr>',
+    '        </div>',
+    '    </body>',
+    '</html>'
+    ]).join('\n');
 
     function loadModeChooser(fnOnModeSelect)
     {
@@ -55,10 +109,41 @@ define('init-app', function(require)
     }
     
     return function()
-    {        
+    {
+        // Handle unsupported devices.
+        oTemplatizer.compileTemplate('not-supported-page', sNotSupportedTemplate);
+        if (oBowser.mobile || oBowser.tablet)
+        {
+            document.open();
+            document.write(oTemplatizer.render('not-supported-page',
+            {
+                sTitle:   'Sorry! Device not supported.',
+                sMessage: 'Codr.io does not support mobile devices (including tablets). At this point, \
+                           no reliable code editing component exists for touch-based browsers.',
+            }));
+            document.close();
+            return;
+        }
+        
+        // Handle unsupported browsers.
+        if (!oModernizr.websockets || !oModernizr.localstorage || !oModernizr.history || !oModernizr.postmessage)
+        {
+            document.open();
+            document.write(oTemplatizer.render('not-supported-page',
+            {
+                sTitle:   'Sorry! Browser not supported.',
+                sMessage: 'Your browser does not support awesome HTML5 features like Web Sockets, \
+                           Local Storage, the Post Message API, or the History API. Please upgrade to a modern browser.\
+                           The latest versions of Chrome, Firefox, and Internet Explorer are recommended.',
+            }));
+            document.close();
+            return;
+        }
+        
         // References global variables defined in index.html:
         //   - IS_NEW_DOCUMENT
         //   - IS_SNAPSHOT
+        $('body').removeClass('hidden');
         if (IS_NEW_DOCUMENT)
         {
             loadModeChooser(function(oMode)

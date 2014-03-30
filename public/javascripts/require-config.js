@@ -19,7 +19,17 @@ requirejs.config(
         {
             exports: '$'
         },
+
+        'lib/modernizr':
+        {
+            exports: 'Modernizr'
+        },
         
+        'lib/bowser':
+        {
+            exports: 'bowser'
+        },
+                
         'tests/qunit':
         {
             exports: 'QUnit',

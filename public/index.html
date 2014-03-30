@@ -6,7 +6,7 @@
         <link rel=StyleSheet href="/stylesheets/index.css" type="text/css" />        
         <link href='http://fonts.googleapis.com/css?family=Sanchez' rel='stylesheet' type='text/css'>
     </head>
-    <body>
+    <body class="hidden">
         
         <script type="text/javascript">
             // TODO: Get rid of globals.
@@ -14,7 +14,7 @@
             var IS_SNAPSHOT = /^\/v\//.test(window.location.pathname);
             if (IS_NEW_DOCUMENT) // New document.
             {
-                document.body.className = "home";
+                document.body.className += " home";
             }
             else
             {
