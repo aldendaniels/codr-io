@@ -8,8 +8,7 @@ define('app-main', function(require)
         Dropdown                     = require('helpers/dropdown')
         MenuKeyNav                   = require('helpers/menu-key-nav'),
         fnPopupWindow                = require('helpers/popup-window'),
-        oModes                       = require('edit-control/modes'),
-        oFavorites                   = require('favorites'),
+        oModes                       = require('edit-control/modes');
         oHtmlPreviewFrameConnector   = require('html-preview-frame-connector');
                                        require('lib/tooltip');
     
@@ -47,8 +46,6 @@ define('app-main', function(require)
         
         setTitle: function(sTitle, bDoNotSetWithHistory)
         {
-            oFavorites.saveThisTitle(sTitle);
-
             $('#toolbar-item-title .toolbar-item-selection').text(sTitle);
             $('#title-input').val(sTitle);
             $('#toolbar-item-title .toolbar-item-btn').attr('title', sTitle);
@@ -491,8 +488,6 @@ define('app-main', function(require)
                                 
             case 'setDocumentID': // Fired after creating a new document.
                 
-                oFavorites.registerThisFile(oAction.oData.sDocumentID, 'http://codr.io/' + oAction.oData.sDocumentID);
-
                 // Push the new URL.
                 // HACK: In order for the first history entry to have a title of "codr.io"
                 //       and the second to have a title of "Untitled", we set
@@ -607,8 +602,7 @@ define('app-main', function(require)
                 {
                     sDocumentID: sDocumentID,
                     bIsPreview: false
-                });
-                oFavorites.registerThisFile(sDocumentID, document.location.href);
+                });            
                 updateCollabUrl(sDocumentID);
             }
         }

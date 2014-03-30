@@ -13,9 +13,8 @@ body.home   #workspace { display: none;  }
 
 #home
 {
-    @width: 1000px;
+    @width: 450px;
     @height: 500px;
-    @homeBorderWidth: 6px;
     
     position: absolute;
     left: 50%;
@@ -31,10 +30,11 @@ body.home   #workspace { display: none;  }
     
     #home-content
     {
+        @homeBorderWidth: 6px;
         position: absolute;
         top: @homeBorderWidth;
         left: @homeBorderWidth;
-        right: (@width + @homeBorderWidth) / 2;
+        right: @homeBorderWidth;
         bottom: @homeBorderWidth;
         background-color: white;
         border: 1px #ccc solid;
@@ -62,39 +62,4 @@ body.home   #workspace { display: none;  }
             background-color: white;
         }
     }        
-
-    #recent-files
-    {
-        position: absolute;
-        top: @homeBorderWidth;
-        left: (@width + @homeBorderWidth) / 2;
-        right: @homeBorderWidth;
-        bottom: @homeBorderWidth;
-        border: 1px #ccc solid;
-
-        #recent-files-header
-        {
-            text-align: center;
-            font-size: 8pt;
-            padding: 0.5em;
-            color: #333;
-        }
-
-        A
-        {
-            display: block;
-            text-decoration: none;
-            border-top: 1px solid #ccc;
-            border-bottom: 1px solid #ccc;
-            padding: 1em;
-        }
-
-        A:after
-        {
-            content: attr(href);
-            color: #AAA;
-            size: 8pt;
-            float: right;
-        }
-    }
 }
