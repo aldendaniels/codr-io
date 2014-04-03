@@ -146,6 +146,7 @@ define('init-app', function(require)
         $('body').removeClass('hidden');
         if (IS_NEW_DOCUMENT)
         {
+            $('#home').css('opacity', 100);
             loadModeChooser(function(oMode)
             {
                 loadWorkspace(IS_NEW_DOCUMENT, IS_SNAPSHOT, oMode)
