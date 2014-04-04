@@ -62,7 +62,7 @@ define('init-app', function(require)
     function loadModeChooser(fnOnModeSelect)
     {
         // Init menu.
-        var oMenu = oModes.createModeMenu('#modes', null, function(oMode) // On Mode select
+        var oMenu = oModes.createModeMenu('#mode-menu', 'Create Document', null, function(oMode) // On Mode select
         {
             fnOnModeSelect(oMode);
         });

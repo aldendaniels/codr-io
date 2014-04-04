@@ -94,9 +94,9 @@ define(function(require)
         aModes:            aCodrModes,
         oModesByName:      oCodrModesByName,
         iNumFavoriteModes: aFavModes.length,
-        createModeMenu:    function(jParent, oScope, fnOnModeSelect)
+        createModeMenu:    function(jParent, sBtnText, oScope, fnOnModeSelect)
         {
-            return new Menu( this.aModes, jParent, this.iNumFavoriteModes, null, 
+            return new Menu( this.aModes, jParent, sBtnText, this.iNumFavoriteModes, null, 
                              function(oMode) { return oMode.getName();         }, // Get key
                              function(oMode) { return oMode.getDisplayName();  }, // Get item display text.
                              oHelpers.createCallback(oScope, fnOnModeSelect)      // On Item Selection.

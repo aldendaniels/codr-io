@@ -15,7 +15,7 @@ define(function(require)
         _oMenuKeyNav: null,
         _sLastQuery: '',
         
-        __init__: function(aOptions, jParent, iNumFavoriteOptions, oScope, fnGetKey, fnGetDisplayText, fnOnSelect)
+        __init__: function(aOptions, jParent, sBtnText, iNumFavoriteOptions, oScope, fnGetKey, fnGetDisplayText, fnOnSelect)
         {
             // Save options.
             this._aNormalOptions = aOptions.slice(iNumFavoriteOptions);
@@ -40,7 +40,9 @@ define(function(require)
                     '<div class="menu-search">'+
                         '<input type="text" autocomplete="off"/>' +
                     '</div>' + 
-                    '<div class="menu-options" tabIndex="-1">' + // Tab index for FF.
+                    '<div class="menu-options" tabIndex="-1"></div>' + // Tab index for FF.
+                    '<div class="menu-button-wrap">' + 
+                       '<button class="menu-button" tabIndex="-1">' + sBtnText + '</button>' +
                     '</div>' +
                 '</div>'
             );

@@ -28,13 +28,35 @@
                 document.body.className += " snapshot"
             }
         </script>
-
-        <div id="home">
-            <div id="home-content">
-                <h3 class="logo">codr<span class="io">.io</span></h3>
-                <div id="modes"></div>
-            </div>
-        </div>
+        
+        <table id="home">
+            <tr>
+                <td>
+                    <table id="home-content">
+                        <colgroup>
+                            <col style="width: 50%;"/>
+                            <col style="width: 50%;"/>
+                        </colgroup>
+                        <tr>
+                            <td>
+                                <img id="logo" src="images/logo.png" />
+                                <div class="tag-line">
+                                    Write Code.  <br/>
+                                    Together.    <br/>
+                                    In Realtime. <br/>
+                                </div>
+                                <div class="signature">
+                                Created by <a href="http://aldendaniels.me">Alden Daniels</a>
+                                </div>
+                            </td>
+                            <td>
+                                <div id="mode-menu"></div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
         
         <div id="workspace" class="">
             

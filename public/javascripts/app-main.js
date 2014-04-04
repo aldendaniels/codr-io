@@ -81,7 +81,7 @@ define('app-main', function(require)
         
         init: function()
         {
-            this._oModeMenu = oModes.createModeMenu('#mode-menu', this, this._setModeToLocal);
+            this._oModeMenu = oModes.createModeMenu('#mode-menu', 'Set Language', this, this._setModeToLocal);
         },
         
         onEvent: function(oEvent)
