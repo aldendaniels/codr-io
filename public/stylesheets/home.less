@@ -116,6 +116,11 @@ table#home-content
         color: white;
     }
     
+    .icon-search
+    {
+        color: #bbb;
+    }
+    
     .menu-options
     {
         border: 1px #333 solid;
@@ -125,19 +130,20 @@ table#home-content
         .menu-favs
         {
             border-bottom: 2px #474f56 solid;
+            .option:last-child
+            {
+                border-bottom-color: white !important;
+            }
         }
         
         .option
         {
-            &:last-child
-            {
-                border-bottom-color: white !important;
-            }
             
             border-bottom-color: #ddd;
             &.current
             {
                 background-color: #f5f5f5;
+                color: #666;
             }
             
             //border-top-color: #fff;
@@ -152,7 +158,6 @@ table#home-content
         border-color: #444;
         text-shadow: none;
         color: #e5e5e5;
-        // old color: #566A78
         background: linear-gradient(lighten(#535C64, 3%), darken(#566A78, 2%));
     }
 }

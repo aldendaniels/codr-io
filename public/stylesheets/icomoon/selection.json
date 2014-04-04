@@ -17,13 +17,13 @@
 			"properties": {
 				"order": 1,
 				"id": 236,
-				"prevSize": 42,
+				"prevSize": 28,
 				"code": 58887,
 				"name": "angle-down",
 				"ligatures": ""
 			},
-			"setIdx": 0,
-			"iconIdx": 1
+			"setIdx": 1,
+			"iconIdx": 0
 		},
 		{
 			"icon": {
@@ -40,13 +40,13 @@
 			"properties": {
 				"order": 2,
 				"id": 2,
-				"prevSize": 42,
+				"prevSize": 28,
 				"code": 58881,
 				"name": "code-fork",
 				"ligatures": ""
 			},
-			"setIdx": 0,
-			"iconIdx": 2
+			"setIdx": 1,
+			"iconIdx": 1
 		},
 		{
 			"icon": {
@@ -65,13 +65,13 @@
 			"properties": {
 				"order": 3,
 				"id": 3,
-				"prevSize": 42,
+				"prevSize": 28,
 				"code": 58882,
 				"name": "download",
 				"ligatures": ""
 			},
-			"setIdx": 0,
-			"iconIdx": 3
+			"setIdx": 1,
+			"iconIdx": 2
 		},
 		{
 			"icon": {
@@ -88,13 +88,13 @@
 			"properties": {
 				"order": 4,
 				"id": 4,
-				"prevSize": 42,
+				"prevSize": 28,
 				"code": 58883,
 				"name": "cloud",
 				"ligatures": ""
 			},
-			"setIdx": 0,
-			"iconIdx": 4
+			"setIdx": 1,
+			"iconIdx": 3
 		},
 		{
 			"icon": {
@@ -112,13 +112,13 @@
 			"properties": {
 				"order": 5,
 				"id": 5,
-				"prevSize": 42,
+				"prevSize": 28,
 				"code": 58884,
 				"name": "comments",
 				"ligatures": ""
 			},
-			"setIdx": 0,
-			"iconIdx": 5
+			"setIdx": 1,
+			"iconIdx": 4
 		},
 		{
 			"icon": {
@@ -136,13 +136,13 @@
 			"properties": {
 				"order": 6,
 				"id": 6,
-				"prevSize": 42,
+				"prevSize": 28,
 				"code": 58885,
 				"name": "link",
 				"ligatures": ""
 			},
-			"setIdx": 0,
-			"iconIdx": 6
+			"setIdx": 1,
+			"iconIdx": 5
 		},
 		{
 			"icon": {
@@ -161,13 +161,13 @@
 			"properties": {
 				"order": 7,
 				"id": 7,
-				"prevSize": 42,
+				"prevSize": 28,
 				"code": 58886,
 				"name": "sort",
 				"ligatures": ""
 			},
-			"setIdx": 0,
-			"iconIdx": 7
+			"setIdx": 1,
+			"iconIdx": 6
 		},
 		{
 			"icon": {
@@ -189,8 +189,8 @@
 				"name": "popup",
 				"ligatures": ""
 			},
-			"setIdx": 0,
-			"iconIdx": 10
+			"setIdx": 1,
+			"iconIdx": 7
 		},
 		{
 			"icon": {
@@ -208,13 +208,13 @@
 			"properties": {
 				"order": 9,
 				"id": 235,
-				"prevSize": 42,
+				"prevSize": 28,
 				"code": 58891,
 				"name": "angle-up",
 				"ligatures": ""
 			},
-			"setIdx": 0,
-			"iconIdx": 11
+			"setIdx": 1,
+			"iconIdx": 8
 		},
 		{
 			"icon": {
@@ -235,8 +235,8 @@
 				"name": "help",
 				"ligatures": ""
 			},
-			"setIdx": 0,
-			"iconIdx": 12
+			"setIdx": 1,
+			"iconIdx": 9
 		},
 		{
 			"icon": {
@@ -261,8 +261,8 @@
 				"name": "refresh",
 				"ligatures": ""
 			},
-			"setIdx": 5,
-			"iconIdx": 125
+			"setIdx": 1,
+			"iconIdx": 10
 		},
 		{
 			"icon": {
@@ -279,13 +279,13 @@
 			"properties": {
 				"order": 12,
 				"id": 1,
-				"prevSize": 42,
+				"prevSize": 28,
 				"code": 58880,
 				"name": "code",
 				"ligatures": ""
 			},
-			"setIdx": 0,
-			"iconIdx": 0
+			"setIdx": 1,
+			"iconIdx": 11
 		},
 		{
 			"icon": {
@@ -303,13 +303,36 @@
 			"properties": {
 				"order": 13,
 				"id": 13,
-				"prevSize": 42,
+				"prevSize": 28,
 				"code": 58889,
 				"name": "check",
 				"ligatures": ""
 			},
-			"setIdx": 4,
+			"setIdx": 1,
 			"iconIdx": 12
+		},
+		{
+			"icon": {
+				"paths": [
+					"M658.286 475.429q0-105.714-75.143-180.857t-180.857-75.143-180.857 75.143-75.143 180.857 75.143 180.857 180.857 75.143 180.857-75.143 75.143-180.857zM950.857 950.857q0 29.714-21.714 51.429t-51.429 21.714q-30.857 0-51.429-21.714l-196-195.429q-102.286 70.857-228 70.857-81.714 0-156.286-31.714t-128.571-85.714-85.714-128.571-31.714-156.286 31.714-156.286 85.714-128.571 128.571-85.714 156.286-31.714 156.286 31.714 128.571 85.714 85.714 128.571 31.714 156.286q0 125.714-70.857 228l196 196q21.143 21.143 21.143 51.429z"
+				],
+				"width": 951,
+				"tags": [
+					"search"
+				],
+				"defaultCode": 61442,
+				"grid": 14
+			},
+			"properties": {
+				"id": 2,
+				"order": 14,
+				"prevSize": 28,
+				"code": 61442,
+				"name": "search",
+				"ligatures": ""
+			},
+			"setIdx": 0,
+			"iconIdx": 2
 		}
 	],
 	"height": 1024,

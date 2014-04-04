@@ -41,7 +41,7 @@ define(function(require)
         setSelected: function(sID, bNoCallback)
         {
             this._oKeyable.setCurrent(this._jParent.find('#' + sID));
-            this._selectCur(bNoCallback);
+            this.selectCur(bNoCallback, false);
             this._scrollIntoView();
         },
         
@@ -63,7 +63,7 @@ define(function(require)
                     if (jOption.length)
                     {
                         this._oKeyable.setCurrent(jOption);
-                        this._selectCur();
+                        this.selectCur(false, true);
                     }
                     break;
                     
@@ -86,7 +86,7 @@ define(function(require)
                         case 13: // ENTER
                             if(!this._bIsDisabled)
                             {
-                                this._selectCur();
+                                this.selectCur(false, false);
                                 oEvent.preventDefault();
                             }
                             break;
@@ -95,13 +95,13 @@ define(function(require)
             }
         },
         
-        _selectCur: function(bNoCallback)
+        selectCur: function(bNoCallback, bIsClick)
         {
             if (!this._bIsDisabled)
             {
                 this._sSelectedID = this._oKeyable.getCurrent().attr('id');
                 if (!bNoCallback)
-                    this._fnOnSelect(this._oKeyable.getCurrent().attr('id'));
+                    this._fnOnSelect(this._oKeyable.getCurrent().attr('id'), bIsClick);
                 this._jParent.find('.option.selected').removeClass('selected');
                 this._oKeyable.getCurrent().addClass('selected');
             }

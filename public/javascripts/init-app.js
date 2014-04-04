@@ -2,10 +2,11 @@ define('init-app', function(require)
 {
     // Dependencies.
     // Requires jQuery.
-    var oHelpers   = require('helpers/helpers-web'),
-        oModes     = require('edit-control/modes'),
-        oBowser    = require('lib/bowser'),
-        oModernizr = require('lib/modernizr'),
+    var oHelpers     = require('helpers/helpers-web'),
+        oUIDispatch  = require('helpers/ui-dispatch'),
+        oModes       = require('edit-control/modes'),
+        oBowser      = require('lib/bowser'),
+        oModernizr   = require('lib/modernizr'),
         oTemplatizer = require('helpers/templatizer');
     
     var sNotSupportedTemplate = (
@@ -66,7 +67,6 @@ define('init-app', function(require)
         {
             fnOnModeSelect(oMode);
         });
-        oMenu.focusInput();
         
         // Maintain focus.
         oHelpers.on(window, 'mousedown.home', null, function(oEvent)
@@ -76,12 +76,8 @@ define('init-app', function(require)
         });
         
         // Pass events through to the menu.
-        oHelpers.on(window, 'click.home keyup.home keydown.home', null, function(oEvent)
-        {
-            if ($(oEvent.target).parents('#home #modes').length > 0)
-                oMenu.onEvent(oEvent);
-            
-        });        
+        oUIDispatch.registerUIHandler(oMenu);
+        oMenu.focusInput();
     }
         
     function loadWorkspace(bIsNewDocument, bIsSnapshot, oNewDocumentMode)

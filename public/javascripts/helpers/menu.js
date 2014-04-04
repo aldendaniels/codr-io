@@ -15,40 +15,63 @@ define(function(require)
         _oMenuKeyNav: null,
         _sLastQuery: '',
         
-        __init__: function(aOptions, jParent, sBtnText, iNumFavoriteOptions, oScope, fnGetKey, fnGetDisplayText, fnOnSelect)
+        __init__: function(oParams)
         {
+            // Get settings & Validate Params.
+            var oSettings = (
+            {
+                aOptions:           null,
+                jParent:            null,
+                sBtnText:           '',
+                sPlaceHolderText:   'Filter',
+                iNumFavoriteOptions: 0,
+                oScope:             null,
+                fnGetKey:           null,
+                fnGetDisplayText:   null,
+                fnOnSelect:         null
+            });
+            for (sKey in oSettings)
+                oHelpers.assert(sKey in oSettings, 'Unrecognized Menu Setting');
+            oHelpers.extendObj(oSettings, oParams);
+            
             // Save options.
-            this._aNormalOptions = aOptions.slice(iNumFavoriteOptions);
-            this._aFavOptions = aOptions.slice(0, iNumFavoriteOptions);
+            this._aNormalOptions = oSettings.aOptions.slice(oSettings.iNumFavoriteOptions);
+            this._aFavOptions = oSettings.aOptions.slice(0, oSettings.iNumFavoriteOptions);
             
             // Map options by key.
             this._oOptionsByKey = {};
-            for (var iOptionIndex in aOptions)
+            for (var iOptionIndex in oSettings.aOptions)
             {
-                var oOption = aOptions[iOptionIndex];
-                this._oOptionsByKey[fnGetKey(oOption)] = oOption;
+                var oOption = oSettings.aOptions[iOptionIndex];
+                this._oOptionsByKey[oSettings.fnGetKey(oOption)] = oOption;
             }
             
             // Save callbacks.
-            this._fnGetKey          = oHelpers.createCallback(oScope, fnGetKey);
-            this._fnGetDisplayText  = oHelpers.createCallback(oScope, fnGetDisplayText);
-            this._fnOnSelect        = oHelpers.createCallback(oScope, fnOnSelect);
+            this._fnGetKey          = oHelpers.createCallback(oSettings.oScope, oSettings.fnGetKey);
+            this._fnGetDisplayText  = oHelpers.createCallback(oSettings.oScope, oSettings.fnGetDisplayText);
+            this._fnOnSelect        = oHelpers.createCallback(oSettings.oScope, oSettings.fnOnSelect);
             
             // Init.
             this._jMenu = $(
                 '<div class="menu" >' +
                     '<div class="menu-search">'+
-                        '<input type="text" autocomplete="off"/>' +
+                        '<span class="icon-search"></span>' +
+                        '<input type="text" autocomplete="off" placeholder="' + oSettings.sPlaceHolderText + '"/>' +
                     '</div>' + 
                     '<div class="menu-options" tabIndex="-1"></div>' + // Tab index for FF.
                     '<div class="menu-button-wrap">' + 
-                       '<button class="menu-button" tabIndex="-1">' + sBtnText + '</button>' +
+                       '<button class="menu-button" tabIndex="-1">' + oSettings.sBtnText + '</button>' +
                     '</div>' +
                 '</div>'
             );
             this._renderOptions();
             this._oMenuKeyNav = new MenuKeyNav(this._jMenu.find('.menu-options'), this, this._onSelect);
-            $(jParent).append(this._jMenu);
+            $(oSettings.jParent).append(this._jMenu);
+        },
+        
+        contains: function(jElem)
+        {
+            return !!jElem.closest(this._jMenu).length;
         },
         
         focusInput: function()
@@ -86,6 +109,10 @@ define(function(require)
                     this._renderOptions(sQuery);
                 this._sLastQuery = sQuery;
             }
+            
+            // Fire on button click.
+            if (oEvent.type == 'click' && $(oEvent.target).is('.menu-button'))
+                this._oMenuKeyNav.selectCur();
             
             // Forward other events to MenuKeyNav.
             this._oMenuKeyNav.setDisabled($('.menu').hasClass('disabled'));            
@@ -135,10 +162,13 @@ define(function(require)
             jParent.append(jOption);
         },
         
-        _onSelect: function(sOptionID)
+        _onSelect: function(sOptionID, bIsOptionClick)
         {
-            this._fnOnSelect(this._oOptionsByKey[sOptionID]);
-            this.reset();
+            if (!bIsOptionClick)
+            {
+                this._fnOnSelect(this._oOptionsByKey[sOptionID]);
+                this.reset();            
+            }
         }
     });
 });

@@ -96,11 +96,18 @@ define(function(require)
         iNumFavoriteModes: aFavModes.length,
         createModeMenu:    function(jParent, sBtnText, oScope, fnOnModeSelect)
         {
-            return new Menu( this.aModes, jParent, sBtnText, this.iNumFavoriteModes, null, 
-                             function(oMode) { return oMode.getName();         }, // Get key
-                             function(oMode) { return oMode.getDisplayName();  }, // Get item display text.
-                             oHelpers.createCallback(oScope, fnOnModeSelect)      // On Item Selection.
-                        );
+            return new Menu(
+            {
+                aOptions:            this.aModes,
+                jParent:             jParent,
+                sBtnText:            sBtnText,
+                sPlaceHolderText:    'Filter Languages',
+                iNumFavoriteOptions: this.iNumFavoriteModes,
+                oScope:              null,
+                fnGetKey:            function(oMode) { return oMode.getName();         },
+                fnGetDisplayText:    function(oMode) { return oMode.getDisplayName();  },
+                fnOnSelect:          oHelpers.createCallback(oScope, fnOnModeSelect)
+            });
         }
     }
 });
