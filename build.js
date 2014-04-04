@@ -175,7 +175,7 @@ var aTasks = [
         console.log('Copy other files');
         
         oFS.mkdirSync(sOutputDir + '/images', function(e){});
-        aFileNames = ['stylesheets/qunit.css', 'images/favicon.ico'];
+        aFileNames = ['stylesheets/qunit.css', 'images/favicon.ico', 'images/logo.png'];
         for(var i in aFileNames)
         {
             var sFileName = aFileNames[i];
