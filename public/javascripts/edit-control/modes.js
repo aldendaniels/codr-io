@@ -105,7 +105,10 @@ define(function(require)
                 iNumFavoriteOptions: this.iNumFavoriteModes,
                 oScope:              null,
                 fnGetKey:            function(oMode) { return oMode.getName();         },
-                fnGetDisplayText:    function(oMode) { return oMode.getDisplayName();  },
+                fnRenderOption:      function(oMode)
+                {
+                    return oMode.getDisplayName() + (oMode.getName() == 'html' ? '<span class="badge">Instant Preview</preview>' : '');
+                },
                 fnOnSelect:          oHelpers.createCallback(oScope, fnOnModeSelect)
             });
         }

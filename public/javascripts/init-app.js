@@ -91,10 +91,7 @@ define('init-app', function(require)
                 
                 // Hide mode chooser.
                 if (bIsNewDocument)
-                {
                     $('BODY').removeClass('home');
-                    $(window).off('.home');
-                }
             });                
         };
         

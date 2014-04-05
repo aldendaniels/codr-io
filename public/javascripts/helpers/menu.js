@@ -27,7 +27,7 @@ define(function(require)
                 iNumFavoriteOptions: 0,
                 oScope:             null,
                 fnGetKey:           null,
-                fnGetDisplayText:   null,
+                fnRenderOption:     null,
                 fnOnSelect:         null
             });
             for (sKey in oSettings)
@@ -47,9 +47,9 @@ define(function(require)
             }
             
             // Save callbacks.
-            this._fnGetKey          = oHelpers.createCallback(oSettings.oScope, oSettings.fnGetKey);
-            this._fnGetDisplayText  = oHelpers.createCallback(oSettings.oScope, oSettings.fnGetDisplayText);
-            this._fnOnSelect        = oHelpers.createCallback(oSettings.oScope, oSettings.fnOnSelect);
+            this._fnGetKey       = oHelpers.createCallback(oSettings.oScope, oSettings.fnGetKey);
+            this._fnRenderOption = oHelpers.createCallback(oSettings.oScope, oSettings.fnRenderOption);
+            this._fnOnSelect     = oHelpers.createCallback(oSettings.oScope, oSettings.fnOnSelect);
             
             // Init.
             this._jMenu = $(
@@ -60,7 +60,7 @@ define(function(require)
                     '</div>' + 
                     '<div class="menu-options" tabIndex="-1"></div>' + // Tab index for FF.
                     '<div class="menu-button-wrap">' + 
-                       '<button class="menu-button" tabIndex="-1">' + oSettings.sBtnText + '</button>' +
+                       '<button class="menu-button">' + oSettings.sBtnText + '</button>' +
                     '</div>' +
                 '</div>'
             );
@@ -151,14 +151,14 @@ define(function(require)
         {
             return $.grep(aOptions, oHelpers.createCallback(this, function(oOption)
             {
-                return this._fnGetDisplayText(oOption).toLowerCase().indexOf(sSearch) != -1;
+                return this._fnRenderOption(oOption).toLowerCase().indexOf(sSearch) != -1;
             }));
         },
         
         _appendOption: function(jParent, oOption)
         {
             var jOption = $('<div class="option mode"></div>');
-            jOption.text(this._fnGetDisplayText(oOption)).attr('id', this._fnGetKey(oOption));
+            jOption.html(this._fnRenderOption(oOption)).attr('id', this._fnGetKey(oOption));
             jParent.append(jOption);
         },
         

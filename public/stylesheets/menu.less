@@ -11,7 +11,7 @@
 
     .menu-search
     {
-        @inputPadding: 10px;
+        @inputPadding: 9px;
         margin-right: @inputPadding * 2 + 2;
         position: relative;
         
@@ -32,6 +32,7 @@
             outline: none;
             width: 100%;
             border-width: 0;
+            line-height: 21px;
         }
         
         .icon-search
@@ -45,8 +46,8 @@
     {
         position: absolute;
         left: 0;
-        top: 48px;
-        bottom: 50px;
+        top: 47px;
+        bottom: 47px;
         right: 0;
         overflow: auto;
         text-align: left;
@@ -59,14 +60,12 @@
         bottom: 0;
         left: 0px;
         right: 0px;
-        height: 50px;
     }
     
     .menu-button
     {
         display: block;
         margin: 0;
-        margin-top: 7px;
         width: 100%;
     }
     
@@ -75,16 +74,34 @@
         font-size: 10pt;
         color: #777;
         padding-left: 10px;
-        padding-top: 8px;
-        padding-bottom: 8px;
+        padding-top: 10px;
+        padding-bottom: 10px;
         border-bottom: #e5e5e5 1px solid;
         cursor: pointer;
+        position: relative;
+        line-height: 1em;
     }
     
     .option.current
     {
         background-color: #f5f5f5;
         color: #666;
+    }
+
+    .badge
+    {
+        position: absolute;
+        top: 6px;
+        right: 0px;
+        display: inline-block;
+        margin-right: 1em;
+        background-color: #40CA77;
+        padding: 3px 7px;
+        color: rgba(0, 0, 0, 0.8);
+        border: 1px rgba(0, 0, 0, 0.1) solid;
+        text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.3);
+        border-radius: 2px;
+        font-size: 8pt;
     }
     
     .menu-favs
