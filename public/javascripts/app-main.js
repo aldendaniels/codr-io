@@ -530,7 +530,7 @@ define('app-main', function(require)
     function updateCollabUrl(sDocumentID)
     {
         oHelpers.assert(oHelpers.inString(sDocumentID, document.location.href), 'Bad URL');
-        $('#collaborate-url').val(document.location.href.slice(7));
+        $('#collaborate-url').val('http://' + document.location.href.slice(7));
         $('#clone-doc-id').val(sDocumentID);
     }
         
