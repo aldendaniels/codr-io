@@ -166,8 +166,8 @@ define(function(require)
         {
             if (!bIsOptionClick)
             {
-                this._fnOnSelect(this._oOptionsByKey[sOptionID]);
-                this.reset();            
+                if (!this._fnOnSelect(this._oOptionsByKey[sOptionID]))
+                    this.reset();
             }
         }
     });

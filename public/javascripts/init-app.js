@@ -66,6 +66,7 @@ define('init-app', function(require)
         var oMenu = oModes.createModeMenu('#home-mode-menu', 'Create Document', null, function(oMode) // On Mode select
         {
             fnOnModeSelect(oMode);
+            return true; // Don't reset menu.
         });
         
         // Maintain focus.
