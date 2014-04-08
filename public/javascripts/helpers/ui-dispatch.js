@@ -18,6 +18,18 @@ define(function(require)
             this._aUIHandlers.push(oUIHandler);
         },
         
+        unregisterUIHandler: function(oUIHandler)
+        {
+            for (var i in this._aUIHandlers)
+            {
+                if (this._aUIHandlers[i] == oUIHandler)
+                {
+                    this._aUIHandlers.splice(i, 1);
+                    break;
+                }
+            }
+        },
+        
         blurFocusedUIHandler: function()
         {
             this._assertInit();

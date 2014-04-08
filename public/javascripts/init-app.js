@@ -59,26 +59,21 @@ define('init-app', function(require)
     '    </body>',
     '</html>'
     ]).join('\n');
+    
+    var oModeMenu = null;
 
     function loadModeChooser(fnOnModeSelect)
     {
         // Init menu.
-        var oMenu = oModes.createModeMenu('#home-mode-menu', 'Create Document', null, function(oMode) // On Mode select
+        oModeMenu = oModes.createModeMenu('#home-mode-menu', 'Create Document', null, function(oMode) // On Mode select
         {
             fnOnModeSelect(oMode);
             return true; // Don't reset menu.
         });
         
-        // Maintain focus.
-        oHelpers.on(window, 'mousedown.home', null, function(oEvent)
-        {
-            if (!$(oEvent.target).is('input, textarea'))
-                oEvent.preventDefault();
-        });
-        
         // Pass events through to the menu.
-        oUIDispatch.registerUIHandler(oMenu);
-        oMenu.focusInput();
+        oUIDispatch.registerUIHandler(oModeMenu);
+        oModeMenu.focusInput();
     }
         
     function loadWorkspace(bIsNewDocument, bIsSnapshot, oNewDocumentMode)
@@ -92,7 +87,10 @@ define('init-app', function(require)
                 
                 // Hide mode chooser.
                 if (bIsNewDocument)
+                {
+                    oUIDispatch.unregisterUIHandler(oModeMenu);
                     $('BODY').removeClass('home');
+                }
             });                
         };
         
