@@ -1,3 +1,5 @@
+/*globals g_oEditSessions*/
+
 var oHelpers    = require('./helpers-node');
 var EditSession = require('./edit-session');
 var Document    = require('./document');
@@ -42,7 +44,7 @@ module.exports = oHelpers.createClass(
 
     getClientID: function()
     {
-        oHelpers.assert(this._sClientID, 'The client ID is not yet initialized.')
+        oHelpers.assert(this._sClientID, 'The client ID is not yet initialized.');
         return this._sClientID;
     },
 
@@ -79,7 +81,7 @@ module.exports = oHelpers.createClass(
     sendAction: function(param1, param2) /* either sendAction(sType, oData) or sendAction(oAction)*/
     {
         var oAction;
-        if (typeof(param1) == 'string')
+        if (typeof(param1) === 'string')
         {
             oAction = (
             {
@@ -89,7 +91,7 @@ module.exports = oHelpers.createClass(
         }
         else
         {
-            oHelpers.assert(typeof(param1) == 'object', 'Invalid parameter type');
+            oHelpers.assert(typeof(param1) === 'object', 'Invalid parameter type');
             oAction = param1;
         }
         

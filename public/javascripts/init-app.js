@@ -1,9 +1,10 @@
+/*globals define, $, IS_EDITOR_READY, EDITOR_READY_HANDlER, IS_NEW_DOCUMENT, IS_SNAPSHOT*/
+
 define('init-app', function(require)
 {
     // Dependencies.
     // Requires jQuery.
-    var oHelpers     = require('helpers/helpers-web'),
-        oUIDispatch  = require('helpers/ui-dispatch'),
+    var oUIDispatch  = require('helpers/ui-dispatch'),
         oModes       = require('edit-control/modes'),
         oBowser      = require('lib/bowser'),
         oModernizr   = require('lib/modernizr'),
@@ -15,7 +16,7 @@ define('init-app', function(require)
     '<html lang="en">',
     '    <head>',
     '        <title>codr.io</title>',
-    '        <style>',
+    '        <style type="text/css">',
     '            html, body, #main',
     '            {',
     '                margin: 0;',
@@ -80,7 +81,7 @@ define('init-app', function(require)
     {
         var fnLoadWorkspace = function()
         {
-            require(['app-main'], function(fnAppMain, Socket)
+            require(['app-main'], function(fnAppMain)
             {
                 // Instantiate main app.
                 fnAppMain(bIsNewDocument, bIsSnapshot, oNewDocumentMode);
@@ -95,9 +96,9 @@ define('init-app', function(require)
         };
         
         if (IS_EDITOR_READY)
-            fnLoadWorkspace()
+            fnLoadWorkspace();
         else
-            EDITOR_READY_HANDlER = fnLoadWorkspace;
+            window.EDITOR_READY_HANDlER = fnLoadWorkspace;
     }
     
     return function()
@@ -110,8 +111,8 @@ define('init-app', function(require)
             document.write(oTemplatizer.render('not-supported-page',
             {
                 sTitle:   'Sorry! Device not supported.',
-                sMessage: 'Codr.io does not support mobile devices (including tablets). At this point, \
-                           no reliable code editing component exists for touch-based browsers.',
+                sMessage: 'Codr.io does not support mobile devices (including tablets). At this point, ' +
+                          'no reliable code editing component exists for touch-based browsers.'
             }));
             document.close();
             return;
@@ -124,9 +125,9 @@ define('init-app', function(require)
             document.write(oTemplatizer.render('not-supported-page',
             {
                 sTitle:   'Sorry! Browser not supported.',
-                sMessage: 'Your browser does not support awesome HTML5 features like Web Sockets, \
-                           Local Storage, the Post Message API, or the History API. Please upgrade to a modern browser.\
-                           The latest versions of Chrome, Firefox, and Internet Explorer are recommended.',
+                sMessage: 'Your browser does not support awesome HTML5 features like Web Sockets, ' +
+                          'Local Storage, the Post Message API, or the History API. Please upgrade to a modern browser.' +
+                          'The latest versions of Chrome, Firefox, and Internet Explorer are recommended.'
             }));
             document.close();
             return;
@@ -141,11 +142,13 @@ define('init-app', function(require)
             $('#home').css('opacity', 100);
             loadModeChooser(function(oMode)
             {
-                loadWorkspace(IS_NEW_DOCUMENT, IS_SNAPSHOT, oMode)
+                loadWorkspace(IS_NEW_DOCUMENT, IS_SNAPSHOT, oMode);
             });
         }
         else
+        {
             loadWorkspace(IS_NEW_DOCUMENT, IS_SNAPSHOT, null);
+        }
     };
 });
 

@@ -275,7 +275,7 @@ define('app-main', function(require)
                 case 'mousemove':
                     if (this._bIsDragging)
                     {
-                        var oWrapOffset = $('#edit-wrap').offset(); 
+                        var oWrapOffset = $('#edit-wrap').offset();
                         switch(this._sDockDir)
                         {
                             case 'right':
@@ -319,7 +319,7 @@ define('app-main', function(require)
                 this._bIsDragging = false;
                 $('BODY').css('cursor', 'auto');
                 $('#resize-overlay').hide().css('cursor', 'auto');
-                oEditor.resize();                
+                oEditor.resize();
             }
         },
         

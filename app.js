@@ -85,7 +85,9 @@ oApp.configure(function()
             res.set('Content-Type', 'text/json');
             
             if (oDocument.get('bIsSnapshot'))
+            {
                 res.send(oDocument.toJSON());
+            }
             else
             {
                 var sError = 'The document has not been published. Please click <a href="/' + sDocumentID + '/">here</a> to see the original.';
