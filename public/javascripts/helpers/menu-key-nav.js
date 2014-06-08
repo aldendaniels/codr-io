@@ -64,6 +64,8 @@ define(function(require)
                     {
                         this._oKeyable.setCurrent(jOption);
                         this.selectCur(false, true);
+						if(!this._bIsDisabled)
+                            this.selectCur(false, false);
                     }
                     break;
                     
