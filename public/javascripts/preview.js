@@ -136,7 +136,6 @@ define('preview', function(require)
                     '        <style type="text/css">',
                     '            body',
                     '            {',
-                    '                background-color: #f5f5f5;',
                     '                font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;',
                     '                text-align: center;',
                     '                text-shadow: 1px 2px 3px white;',
