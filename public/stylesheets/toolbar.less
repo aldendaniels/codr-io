@@ -148,7 +148,7 @@ body.snapshot .edit-mode-message
         
         .icon-cloud
         {
-            color: @codr-blue;                
+            color: #1abc9c;
         }
         
         .icon-code
@@ -588,7 +588,7 @@ body.snapshot .edit-mode-message
 // @dark-bg-color: desaturate(spin(@codr-blue, 270), 25%);
 @dark-bg-color: darken(desaturate(@codr-blue, 35%), 25%);
 @dark-bg-color-light: lighten(@dark-bg-color, 5%);
-@dark-border-color: desaturate(lighten(@dark-bg-color, 15%), 5%);
+@dark-border-color: desaturate(lighten(@dark-bg-color, 9%), 5%);
 
 body.mode-html
 {    
@@ -658,7 +658,7 @@ body.mode-html
             
             .toolbar-item
             {
-                max-width: 200px;
+                max-width: 160px;
                 height: 100%;
                 overflow: hidden;
                 position: relative;
@@ -804,11 +804,6 @@ body.mode-html
                     {
                         width: 100%;
                     }
-                }
-                
-                .toolbar-item-btn
-                {
-                    width: 189px;
                 }
                 
                 .toolbar-dropdown

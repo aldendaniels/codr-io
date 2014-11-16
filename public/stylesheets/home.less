@@ -10,10 +10,15 @@ html, body
     height: 100%;
 }
 
-body
-{
-    background-color: #fafafa;
-    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+.logo {
+    font-family: 'Lobster Two', cursive;
+    font-size: 86pt;
+    margin: 0;
+    line-height: 1.15;
+    text-align: center;
+    color: #444;
+    font-weight: bold;
+    margin-top: -50px;
 }
 
 table#home
@@ -24,85 +29,39 @@ table#home
 
 table#home-content
 {
-    width: 950px;
+    width: 100%;
     margin-left: auto;
     margin-right: auto;
     text-align: center;
 }
 
-/* Left Column */
-#logo
-{
-    margin-bottom: 5px;
-}
-
-.tag-line
-{
-    font-family: sanchez;
-    font-size: 45pt;
-    margin-bottom: 15px;
-    margin-bottom: 10px;
-    text-align: left;
-    margin-left: 25px;
-    color: #444;
-    text-align: center;
-    line-height: 1.5em;
-}
-
-.signature
-{
-    font-family: "Lucida Sans Unicode","Lucida Grande",sans-serif;
-    color: #aaa;
-    font-size: 10pt;
-    padding-left: 28px;
-    height: 40px;
-    margin-top: 10px;
-}
-
-.signature a
-{
-    color: #333;
-    text-decoration: none;
-}
-
-.signature a:hover
-{
-    color: black;
-}
 
 #home-mode-menu
 {
     margin-left: auto;
     margin-right: auto;
-    width: 380px;
-    height: 450px;
-    background-color: darken(#535C64, 5%);
-    border: 1px ;
+    margin-top: 20px;
+    width: 340px;
+    height: 400px;
     padding: 10px 8px;
     border-radius: 5px;
     color: white;
+    border: 2px #eee solid;
 
     input
     {
-        box-shadow: 0 0 3px rgba(0, 0, 0, 0.15) inset;
-        border: 1px #333 solid;
+        box-shadow: 0 0 1px rgba(0, 0, 0, 0.30) inset;
     }
     
     .menu-options
     {
-        border: 1px #333 solid;
+        //border: 1px #333 solid;
     }
     
     button
     {
-        border-color: #444;
         text-shadow: none;
-        color: #e5e5e5;
-        background: linear-gradient(lighten(#535C64, 3%), darken(#566A78, 2%));
-        
-        &:hover
-        {
-            background: linear-gradient(lighten(#535C64, 6%), lighten(#566A78, 1%));
-        }
+        color: white;
+        background: #1abc9c;
     }
 }
