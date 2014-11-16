@@ -278,20 +278,20 @@
 {
     background-color: transparent !important;
     border-left: 2px solid;
-    margin-top: -1px;
+    margin-top: 0px;
 }
 
 .remote-sel-collapsed-hat
 {
-    margin-top: -3px;
+    margin-top: 0px;
     margin-left: -2px;
     width: 6px !important;
     height: 6px !important;
-    border-radius: 6px;
+    //border-radius: 6px;
 }
 
 /* colors */
-.green     { background-color: green;    border-color: green;    }
+.green     { background-color: @green;   border-color: @green;    }
 .pink      { background-color: deepPink; border-color: deepPink; }
 .orange    { background-color: orange;   border-color: orange;   }
 .purple    { background-color: purple;   border-color: purple;   }
@@ -299,9 +299,13 @@
 .turquoise { background-color: turquise; border-color: turquise; }
 .black     { background-color: black;    border-color: black;    }
 
+#edit {
+    line-height: 22px !important;
+}
+
 .ace_scroller
 {
-   margin-right: -2px;
+    margin-right: -2px;
 }
 
 .ace_gutter, #gutter-extension
