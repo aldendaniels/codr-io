@@ -1,7 +1,10 @@
 @editStatusBarHeight: 25px;
-
+@editBorderTop: 7px;
 #edit-wrap
-{    
+{
+    border-top: @editBorderTop white solid;
+    border-bottom: @editBorderTop white solid;
+    background-color: white;
     position: absolute;
     top: @top-toolbar-height + 1px;
     left: @left-toolbar-width + 1px;
@@ -83,8 +86,8 @@
         {
             width: 7px;
             left: 0;
-            bottom: -1px;
-            top: -1px;
+            bottom: -1px - @editBorderTop;
+            top: -1px - @editBorderTop;
             cursor: ew-resize;
             
             #grab
@@ -305,7 +308,8 @@
 {
     min-width: 57px !important;
     background-color: white !important;
-    border-right: 1px #eee solid;
+    border-right: 1px transparent solid;
+    color: #bbc0c5 !important;
 }
 
 .ace_gutter-layer
@@ -316,7 +320,7 @@
 .ace-tm .ace_gutter-active-line,
 .ace-tm .ace_marker-layer .ace_active-line
 {
-    background: rgba(0, 0, 0, 0.03) !important;
+    background: transparent !important;
 }
 
 /* TO CONTROL SELECTION COLOR:

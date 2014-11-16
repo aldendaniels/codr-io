@@ -40,6 +40,8 @@ define(function(require)
             this._oAceEditor.setFontSize(14);
             this._oAceEditor.setShowPrintMargin(false);
             this._oAceEditor.setReadOnly(IS_SNAPSHOT);
+            this._oAceEditor.setShowFoldWidgets(false);
+            this._oAceEditor.setDisplayIndentGuides(false);
                 
             // Attach Ace gotoline command to different shortcut
             this._oAceEditor.commands.bindKey('Ctrl-G|Command-G', 'gotoline');
