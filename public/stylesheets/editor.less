@@ -48,7 +48,7 @@
 
     #html-preview-border
     {
-        background-color: @dark-bg-color;
+        background-color: lighten(@dark-bg-color, 30%);
         position: absolute;
     }
     
@@ -83,8 +83,8 @@
         {
             width: 7px;
             left: 0;
-            bottom: 0;
-            top: 0;
+            bottom: -1px;
+            top: -1px;
             cursor: ew-resize;
             
             #grab
