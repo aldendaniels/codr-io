@@ -42,6 +42,7 @@ define(function(require)
             this._oAceEditor.setReadOnly(IS_SNAPSHOT);
             this._oAceEditor.setShowFoldWidgets(false);
             this._oAceEditor.setDisplayIndentGuides(false);
+            this._oAceEditSession.setUseWorker(false); // Disable syntax check.
                 
             // Attach Ace gotoline command to different shortcut
             this._oAceEditor.commands.bindKey('Ctrl-G|Command-G', 'gotoline');

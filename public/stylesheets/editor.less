@@ -2,8 +2,8 @@
 @editBorderTop: 7px;
 #edit-wrap
 {
-    border-top: @editBorderTop white solid;
-    border-bottom: @editBorderTop white solid;
+    //border-top: @editBorderTop white solid;
+    //border-bottom: @editBorderTop white solid;
     background-color: white;
     position: absolute;
     top: @top-toolbar-height + 1px;
@@ -14,10 +14,10 @@
     #edit
     {
         position: absolute;
-        top: 0px;
+        top: @editBorderTop;
         left: 0px;
         right: 0px;
-        bottom: 0px;
+        bottom: @editBorderTop;
     }
 }
 
@@ -86,8 +86,8 @@
         {
             width: 7px;
             left: 0;
-            bottom: -1px - @editBorderTop;
-            top: -1px - @editBorderTop;
+            bottom: 0px;
+            top: 0px;
             cursor: ew-resize;
             
             #grab
