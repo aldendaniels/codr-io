@@ -1,0 +1,51 @@
+
+body
+{
+    margin: 0;
+    color: #333;
+    padding-bottom: 40px;
+    min-width: 800px;
+}
+
+body, textarea, input, button
+{
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 300;
+    font-size: 12pt;
+}
+
+h6, h5, h4, h3, h2, h1 {
+    font-weight: normal;
+    font-weight: 300;
+}
+
+#video {
+    margin-left: auto;
+    margin-right: auto;
+    width: 798px;
+    overflow: hidden;
+    margin-top: 50px;
+    margin-bottom: 40px;
+    border: 2px #eee solid;
+}
+
+#video iframe {
+    margin-left: -1px;
+}
+
+#content {
+    width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#description {
+    font-size: 13pt;
+    line-height: 1.5em;
+    text-align: justify;
+}
+
+#mc-embedded-subscribe-form {
+    margin: 0 !important;
+    padding: 0 !important;
+}
