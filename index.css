@@ -73,3 +73,10 @@ h1 {
 #share-on-twitter {
     min-height: 28px;
 }
+
+#copyright {
+    font-size: 10pt;
+    color: #aaa;
+    font-family: helvetica, arial, sans-serif;
+    margin-top: 20px;
+}
