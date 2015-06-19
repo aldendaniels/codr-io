@@ -7,6 +7,10 @@ body
     min-width: 800px;
 }
 
+* {
+    box-sizing: border-box;
+}
+
 body, textarea, input, button
 {
     font-family: 'Open Sans', sans-serif;
@@ -17,6 +21,11 @@ body, textarea, input, button
 h6, h5, h4, h3, h2, h1 {
     font-weight: normal;
     font-weight: 300;
+}
+
+h1 {
+    margin-top: 10px;
+    magin-bottom: 5px;
 }
 
 #video {
@@ -34,7 +43,7 @@ h6, h5, h4, h3, h2, h1 {
 }
 
 #content {
-    width: 500px;
+    width: 798px;
     margin-left: auto;
     margin-right: auto;
 }
@@ -45,7 +54,22 @@ h6, h5, h4, h3, h2, h1 {
     text-align: justify;
 }
 
+#right {
+    float: right;
+    width: 50%;
+}
+
+#left {
+    float: left;
+    width: 50%;
+    padding-right: 30px;
+}
+
 #mc-embedded-subscribe-form {
     margin: 0 !important;
     padding: 0 !important;
+}
+
+#share-on-twitter {
+    min-height: 28px;
 }
