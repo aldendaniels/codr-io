@@ -24,8 +24,8 @@ h6, h5, h4, h3, h2, h1 {
 }
 
 h1 {
-    margin-top: 10px;
-    magin-bottom: 5px;
+    margin-top: 15px;
+    margin-bottom: 10px;
 }
 
 #video {
@@ -79,4 +79,49 @@ h1 {
     color: #aaa;
     font-family: helvetica, arial, sans-serif;
     margin-top: 20px;
+}
+
+.custom-tweet-button, .button {
+    margin: 3px 0;
+    display: block;
+    background-color: #18AF91 !important;
+    color: white;
+    padding: 10px;
+    text-decoration: none;
+    border-radius: 2px !important;
+}
+
+.custom-tweet-button > [class^="icon-"], .button > [class^="icon-"] {
+    margin-right: 5px;
+    display: inline-block;
+}
+
+.fancybox-skin {
+    background-color: white !important;
+    padding-left: 30px !important;
+}
+
+#mc_embed_signup {
+}
+
+#mc_embed_signup input {
+    outline: none;
+    border-color: #ccc !important;
+    border-width: 3px !important;
+    border-radius: 4px;
+}
+
+#mc_embed_signup label {
+    font-size: 12pt;
+    color: #333 !important;
+    margin-bottom: 7px !important;
+}
+
+#mc_embed_signup input:focus {
+    border-color: #18AF91 !important;
+}
+
+#mc_embed_signup .button {
+    padding: 5px 70px !important;
+    height: auto !important;
 }

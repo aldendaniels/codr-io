@@ -1,0 +1,3 @@
+/* global $ */
+
+$(".fancybox").fancybox();
