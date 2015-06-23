@@ -2,62 +2,74 @@
 <html lang="en">
     <head>
         <title>Codr</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
         <link rel="shortcut icon" type="image/x-icon" sizes="32x32" href="/images/favicon.ico">
         <link href='http://fonts.googleapis.com/css?family=Lobster+Two&text=codr' rel='stylesheet' type='text/css'>
         <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300' rel='stylesheet' type='text/css'>
         <link href='./icomoon/style.css' rel='stylesheet' type='text/css'>
+        <link rel=StyleSheet href="./bootstrap/css/bootstrap.min.css" type="text/css" />
         <link rel=StyleSheet href="./index.css" type="text/css" />
     </head>
     <body>
-        <div id="video">
-        <iframe
-            src="https://player.vimeo.com/video/124713673?color=FFFFFF&title=0&byline=0&portrait=0"
-            width="800" height="486" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen>
-        </iframe>
-        </div>
         <div id="content">
-            <div id="left">
-                <h1>Meet Codr</h1>
-                <p  id="description">
-                    Codr is a collaborative text editor - like a lightweight Google Docs for code. Codr enables software developers to code together in real-time from anywhere. For web developers, Codr also doubles as a shared reactive work surface: every change is instantly visualized for all viewers via Codr's integrated HTML preview pane.
-                    <br/><br/>
-                    A Kickstarter campaign for Codr is launching on <b>Tuesday, June 23rd</b>! Codr has been in development for over a year and the initial version is largely complete, but I need your help to bring Codr to the finish line.
-                </p>
+            <div class="row">
+                <div class="col-xs-12">
+                    <iframe id="video"
+                            src="https://player.vimeo.com/video/124713673?color=FFFFFF&title=0&byline=0&portrait=0"
+                            width="800" height="486" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen>
+                    </iframe>
+                    <a class="button" href="https://www.kickstarter.com/projects/aldendaniels/1542571912?token=aca7dadb"
+                                      id="kickstarter-btn">View on Kickstarter!</a>
+                </div>
             </div>
-            <div id="right">
-                <h1>Help spread the word!</h1>
-                <div id="share-on-twitter">
-
-                    <!-- Tweet -->
-                    <a class="custom-tweet-button" href="https://twitter.com/intent/tweet?text=Check out @CodrEditor! It's like Google Docs for code plus a live preview for HTML. Launching June 23 on %23Kickstarter!" target="_blank" alt="Tweet about Codr">
+            <hr/>
+            <div class="row">
+                <div class="col-xs-12">
+                    <p>
+                        Codr is a collaborative editor for code and web design. It's a shared work-surface
+                        for developers - like Google Docs for code. Codr's <b>30 day</b> <a href="">Kickstarter campaign</a>
+                        launched on <b>June 23</b>. The initial version of Codr is already built, but we need your
+                        help to launch!
+                    </p>
+                </div>
+            </div>
+            <hr/>
+            <div class="row">
+                <div class="col-xs-12 col-sm-3">
+                    <h4 class="top-header">Try Codr Today!</h4>
+                    <a class="custom-tweet-button button" href="https://twitter.com/intent/tweet?text=Google Docs for code sounds terrific and the demo looks great! @CodrEditor, could I have a temporary pre-launch invite link to try it out?" target="_blank" alt="Tweet about Codr">
+                        <span class="icon-twitter"></span>
+                        <span class="btn-text">Request Invite</span>
+                    </a>
+                </div>
+                <div class="col-xs-12 col-sm-3">
+                    <h4>Share the Love!</h4>
+                    <a class="custom-tweet-button button" href="https://twitter.com/intent/tweet?text=Check out @CodrEditor! It's like Google Docs for code plus a live preview for HTML. Launching June 23 on %23Kickstarter!" target="_blank" alt="Tweet about Codr">
                         <span class="icon-twitter"></span>
                         <span class="btn-text">Tweet</span>
                     </a>
-
-                    <!--Follow -->
-                    <a class="custom-tweet-button" href="https://twitter.com/intent/user?screen_name=CodrEditor" target="_blank" alt="Follow @CodrEditor">
-                        <span class="icon-twitter"></span>
-                        <span class="btn-text">Follow @CodrEditor</span>
-                    </a>
-
-                    <!--Request Invite-->
-                    <a class="custom-tweet-button" href="https://twitter.com/intent/tweet?text=Google Docs for code sounds terrific and the demo looks great! @CodrEditor, could I have a temporary pre-launch invite link to try it out?" target="_blank" alt="Tweet about Codr">
-                        <span class="icon-twitter"></span>
-                        <span class="btn-text">Request Invite Link</span>
-                    </a>
-
-                    <!-- Twitter Script -->
-                    <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
-
                 </div>
-                <h1>On Board? Get notified!</h1>
-                <a href="#subscribe" class="button fancybox">
-                    <span class="icon-email"></span>
-                    <span class="btn-text">Sign me up, Scotty!</span>
-                </a>
+                <div class="col-xs-12 col-sm-3">
+                    <h4>Stay Tuned!</h4>
+                    <a class="custom-tweet-button button" href="https://twitter.com/intent/user?screen_name=CodrEditor" target="_blank" alt="Follow @CodrEditor">
+                        <span class="icon-twitter"></span>
+                        <span class="btn-text">Follow</span>
+                    </a>
+                </div>
+                <div class="col-xs-12 col-sm-3">
+                    <h4>Get Big Updates!</h4>
+                    <a href="#subscribe" class="button fancybox">
+                        <span class="icon-email"></span>
+                        <span class="btn-text">Subscribe</span>
+                    </a>
+                </div>
             </div>
-            <div style="clear: both;"></div>
-            <div id="copyright">Copyright &copy; 2015</div>
+            <hr/>
+            <div class="row">
+                <div class="col-xs-12">
+                    <div id="copyright">Copyright &copy; 2015</div>
+                </div>
+            </div>
         </div>
 
         <!-- Lightbox -->
@@ -94,12 +106,21 @@
                     <div class="clear"><input type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" class="button"></div>
                 </div>
                 </form>
-            </div>
-        </div>
+
+
+        <!-- Twitter Script -->
+        <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+
         <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/fitvids/1.1.0/jquery.fitvids.js"></script>
+        <script type="text/javascript">
+            $('body').fitVids();
+        </script>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.js"></script>
         <link rel="StyleSheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.css" type="text/css" />
-        <script src="/index.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            $(".fancybox").fancybox();
+        </script>
     </body>
 </html>
 
