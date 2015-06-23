@@ -37,6 +37,9 @@ h4.top-header {
     p {
         padding: 0 15%;
     }
+    .footer > :last-child {
+        text-align: right;
+    }
 }
 
 p {
@@ -92,13 +95,6 @@ p {
 
 #share-on-twitter {
     min-height: 28px;
-}
-
-#copyright {
-    font-size: 10pt;
-    color: #aaa;
-    font-family: helvetica, arial, sans-serif;
-    margin-bottom: 20px;
 }
 
 .button {
@@ -161,6 +157,13 @@ p {
     margin-right: auto;
     text-align: center;
     padding: 13px;
+    margin-bottom: 20px;
+}
+
+.footer {
+    font-size: 10pt;
+    color: #aaa;
+    font-family: helvetica, arial, sans-serif;
     margin-bottom: 20px;
 }
 
