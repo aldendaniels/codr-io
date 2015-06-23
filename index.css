@@ -4,6 +4,7 @@ body
     margin: 0;
     color: #333;
     padding-bottom: 40px;
+    min-width: 800px;
 }
 
 * {
@@ -15,7 +16,6 @@ body, textarea, input, button
     font-family: 'Open Sans', sans-serif;
     font-weight: 300;
     font-size: 12pt;
-    padding: 10px;
 }
 
 h6, h5, h4, h3, h2, h1 {
@@ -23,47 +23,27 @@ h6, h5, h4, h3, h2, h1 {
     font-weight: 300;
 }
 
-h4 {
-    margin: 15px 0 12px 0;
-}
-h4.top-header {
-    margin-top: 0px;
-}
-
-@media (min-width: 768px) {
-    h4 {
-        margin-top: 0px;
-    }
-    p {
-        padding: 0 15%;
-    }
-}
-
-p {
-    margin: 0;
-    line-height: 1.5em;
-    text-align: justify;
-}
-
-.row {
-    margin-left: 3px;
-    margin-right: 3px;
+h1 {
+    margin-top: 15px;
+    margin-bottom: 10px;
 }
 
 #video {
     margin-left: auto;
     margin-right: auto;
+    width: 798px;
+    overflow: hidden;
+    margin-top: 50px;
+    margin-bottom: 40px;
     border: 2px #eee solid;
 }
 
-.fluid-width-video-wrapper {
-    padding-bottom: 4px !important;
-    margin-top: 50px;
-    margin-bottom: 40px;
+#video iframe {
+    margin-left: -1px;
 }
 
 #content {
-    max-width: 798px;
+    width: 798px;
     margin-left: auto;
     margin-right: auto;
 }
@@ -98,31 +78,20 @@ p {
     font-size: 10pt;
     color: #aaa;
     font-family: helvetica, arial, sans-serif;
-    margin-bottom: 20px;
+    margin-top: 20px;
 }
 
-.button {
+.custom-tweet-button, .button {
     margin: 3px 0;
-    display: block !important;
-    background-color: #18AF91;
+    display: block;
+    background-color: #18AF91 !important;
     color: white;
     padding: 10px;
     text-decoration: none;
-    border-radius: 4px;
-    transition: background-color 0.2s;
+    border-radius: 2px !important;
 }
 
-.button:hover, .button:focus {
-    background-color: #6f5499;
-    outline: none;
-}
-
-.button:hover, .button:active, .button:visited, .button:focus {
-    color: white !important;
-    text-decoration: none !important;
-}
-
-.button > [class^="icon-"] {
+.custom-tweet-button > [class^="icon-"], .button > [class^="icon-"] {
     margin-right: 5px;
     display: inline-block;
 }
@@ -130,6 +99,9 @@ p {
 .fancybox-skin {
     background-color: white !important;
     padding-left: 30px !important;
+}
+
+#mc_embed_signup {
 }
 
 #mc_embed_signup input {
@@ -152,20 +124,4 @@ p {
 #mc_embed_signup .button {
     padding: 5px 70px !important;
     height: auto !important;
-}
-
-#kickstarter-btn {
-    max-width: 400px;
-    font-size: 16pt;
-    margin-left: auto;
-    margin-right: auto;
-    text-align: center;
-    padding: 13px;
-    margin-bottom: 20px;
-}
-
-hr {
-    height: 0;
-    margin: 30px 0;
-    border: 1px #eee solid;
 }
