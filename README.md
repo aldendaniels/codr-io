@@ -9,3 +9,5 @@ codr.io is a lightweight collaborative editor/pastebin for easy code sharing.
     Run `sudo forever list` to see the location of the log file
     Run `tail -f [thatlocation]`
  
+ #### License
+ MIT License
